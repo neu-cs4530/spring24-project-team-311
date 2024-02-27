@@ -6,23 +6,23 @@ import swaggerUi from 'swagger-ui-express';
 import { ValidateError } from 'tsoa';
 import fs from 'fs/promises';
 import { Server as SocketServer } from 'socket.io';
+import { initializeApp } from 'firebase/app';
+import { getDatabase } from 'firebase/database';
 import { RegisterRoutes } from '../generated/routes';
 import TownsStore from './lib/TownsStore';
 import { ClientToServerEvents, ServerToClientEvents } from './types/CoveyTownSocket';
 import { TownsController } from './town/TownsController';
 import { logError } from './Utils';
-import { initializeApp } from "firebase/app";
-import { getDatabase } from "firebase/database";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCIOW_Yip0CHd5hJe5mjO674dpm40YOeTk",
-  authDomain: "covey-town-pets.firebaseapp.com",
-  projectId: "covey-town-pets",
-  storageBucket: "covey-town-pets.appspot.com",
-  messagingSenderId: "209075765212",
-  appId: "1:209075765212:web:530a8d8586598b760cd919",
-  databaseURL: "https://covey-town-pets-default-rtdb.firebaseio.com"
+  apiKey: 'AIzaSyCIOW_Yip0CHd5hJe5mjO674dpm40YOeTk',
+  authDomain: 'covey-town-pets.firebaseapp.com',
+  projectId: 'covey-town-pets',
+  storageBucket: 'covey-town-pets.appspot.com',
+  messagingSenderId: '209075765212',
+  appId: '1:209075765212:web:530a8d8586598b760cd919',
+  databaseURL: 'https://covey-town-pets-default-rtdb.firebaseio.com',
 };
 
 // Initialize Firebase
