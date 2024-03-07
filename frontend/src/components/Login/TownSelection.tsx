@@ -337,7 +337,7 @@ export default function TownSelection(): JSX.Element {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {currentPublicTowns?.map(town => (
+                  {currentPublicTowns?.map((town: any) => (
                     <Tr key={town.townID}>
                       <Td role='cell'>{town.friendlyName}</Td>
                       <Td role='cell'>{town.townID}</Td>
