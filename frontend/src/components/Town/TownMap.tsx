@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Phaser from 'phaser';
 import { useEffect } from 'react';
 import useTownController from '../../hooks/useTownController';
@@ -10,6 +10,7 @@ import useChatContext from '../VideoCall/VideoFrontend/hooks/useChatContext/useC
 import ChatWindow from '../VideoCall/VideoFrontend/components/ChatWindow/ChatWindow';
 import clsx from 'clsx';
 import { createStyles, makeStyles, Theme } from '@material-ui/core';
+import PetSelectionPopup from './PetSelectionPopup';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -44,6 +45,7 @@ export default function TownMap(): JSX.Element {
   const coveyTownController = useTownController();
   const { isChatWindowOpen } = useChatContext();
   const classes = useStyles();
+  const [isPetSelectionOpen, setIsPetSelectionOpen] = useState<boolean>(true);
 
   useEffect(() => {
     const config = {
@@ -93,6 +95,12 @@ export default function TownMap(): JSX.Element {
       <div id='social-container'>
         <SocialSidebar />
       </div>
+      {isPetSelectionOpen && (
+        <PetSelectionPopup
+          isOpen={isPetSelectionOpen}
+          onClose={() => setIsPetSelectionOpen(false)}
+        />
+      )}
     </div>
   );
 }

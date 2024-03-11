@@ -21,7 +21,7 @@
     },
     "homepage": "https://github.com/neu-se/covey.town#readme",
     "devDependencies": {
-        "@types/jest": "^26.0.15",
+        "@types/jest": "^26.0.24",
         "@typescript-eslint/eslint-plugin": "^4.8.1",
         "@typescript-eslint/parser": "^4.8.1",
         "eslint": "^7.13.0",
@@ -38,6 +38,7 @@
         "npm": "9.x.x"
     },
     "dependencies": {
+        "@chakra-ui/react": "^2.8.2",
         "@types/ramda": "^0.27.34",
         "cors": "^2.8.5",
         "express": "^4.18.2",
