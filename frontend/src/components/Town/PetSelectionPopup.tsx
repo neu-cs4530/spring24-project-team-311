@@ -33,7 +33,9 @@ const PetSelectionPopup = (props: PetSelectionPopupProps) => {
   };
 
   const handleSubmit = () => {
-    if (selectedPet && !petName) {
+    if (!selectedPet) {
+      setErrorMessage('Please select a pet');
+    } else if (!petName) {
       // Show error message when user clicks "Done" without entering a name
       setErrorMessage('Please enter a name for your pet');
     } else {
