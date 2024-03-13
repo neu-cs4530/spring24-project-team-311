@@ -39,9 +39,9 @@ const PetSelectionPopup = (props: PetSelectionPopupProps) => {
     } else {
       // Reset error message
       setErrorMessage('');
-  
+
       // Call API or emit socket event...
-  
+
       // On success
       props.onClose();
     }
@@ -53,34 +53,31 @@ const PetSelectionPopup = (props: PetSelectionPopupProps) => {
         <ModalContent>
           <ModalHeader>Select your pet and name them:</ModalHeader>
           <ModalBody display={'flex'} flexDirection={'column'} gap={6}>
-          <Flex justifyContent={'space-evenly'}>
+            <Flex justifyContent={'space-evenly'}>
               <Image boxSize='100px' src={dog.src} alt={'Cat'} />
               <Image boxSize='100px' src={dog.src} alt={'Cat'} />
               <Image boxSize='100px' src={dog.src} alt={'Cat'} />
             </Flex>
             <Flex justifyContent={'space-evenly'}>
               <Button
-                  onClick={() => handlePetSelection('cat')}
-                  variant={selectedPet === 'cat' ? 'solid' : 'outline'}
-                  >
-                  Cat
+                onClick={() => handlePetSelection('cat')}
+                variant={selectedPet === 'cat' ? 'solid' : 'outline'}>
+                Cat
               </Button>
               <Button
-                 onClick={() => handlePetSelection('dog')}
-                 variant={selectedPet === 'dog' ? 'solid' : 'outline'}
-                 >
-                 Dog
+                onClick={() => handlePetSelection('dog')}
+                variant={selectedPet === 'dog' ? 'solid' : 'outline'}>
+                Dog
               </Button>
               <Button
-                 onClick={() => handlePetSelection('duck')}
-                 variant={selectedPet === 'duck' ? 'solid' : 'outline'}
-                 >
-                 Duck
+                onClick={() => handlePetSelection('duck')}
+                variant={selectedPet === 'duck' ? 'solid' : 'outline'}>
+                Duck
               </Button>
             </Flex>
             <input
               type={'text'}
-              placeholder={'Enter your pet\'s name'}
+              placeholder={"Enter your pet's name"}
               value={petName}
               onChange={handleNameChange}
             />
