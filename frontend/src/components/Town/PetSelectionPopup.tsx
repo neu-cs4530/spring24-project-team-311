@@ -61,17 +61,20 @@ const PetSelectionPopup = (props: PetSelectionPopupProps) => {
             <Flex justifyContent={'space-evenly'}>
               <Button
                 onClick={() => handlePetSelection('cat')}
-                variant={selectedPet === 'cat' ? 'solid' : 'outline'}>
+                variant={selectedPet === 'cat' ? 'solid' : 'outline'}
+                colorScheme={selectedPet === 'cat' ? 'blue' : 'gray'}>
                 Cat
               </Button>
               <Button
                 onClick={() => handlePetSelection('dog')}
-                variant={selectedPet === 'dog' ? 'solid' : 'outline'}>
+                variant={selectedPet === 'dog' ? 'solid' : 'outline'}
+                colorScheme={selectedPet === 'dog' ? 'blue' : 'gray'}>
                 Dog
               </Button>
               <Button
                 onClick={() => handlePetSelection('duck')}
-                variant={selectedPet === 'duck' ? 'solid' : 'outline'}>
+                variant={selectedPet === 'duck' ? 'solid' : 'outline'}
+                colorScheme={selectedPet === 'duck' ? 'blue' : 'gray'}>
                 Duck
               </Button>
             </Flex>
