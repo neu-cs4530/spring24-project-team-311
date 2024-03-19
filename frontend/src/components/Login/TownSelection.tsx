@@ -24,8 +24,12 @@ import { Town } from '../../generated/client';
 import useLoginController from '../../hooks/useLoginController';
 import TownController from '../../classes/TownController';
 import useVideoContext from '../VideoCall/VideoFrontend/hooks/useVideoContext/useVideoContext';
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { set } from 'lodash';
+import SignInOrUp from './SignInOrUp';
 
 export default function TownSelection(): JSX.Element {
+  const [loggedIn, setLoggedIn] = useState<boolean>(false);
   const [userName, setUserName] = useState<string>('');
   const [newTownName, setNewTownName] = useState<string>('');
   const [newTownIsPublic, setNewTownIsPublic] = useState<boolean>(true);
@@ -50,6 +54,20 @@ export default function TownSelection(): JSX.Element {
       clearInterval(timer);
     };
   }, [updateTownListings]);
+
+  useEffect(() => {
+    const unsubscribe = getAuth().onAuthStateChanged(user => {
+      if (user) {
+        setLoggedIn(true);
+        // set username here
+        setUserName(user.displayName || user.email || 'DUMMY_USERNAME');
+      } else {
+        setLoggedIn(false);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
 
   const handleJoin = useCallback(
     async (coveyRoomID: string) => {
@@ -234,26 +252,19 @@ export default function TownSelection(): JSX.Element {
     }
   };
 
+  if (!loggedIn) {
+    return (
+      <>
+        <SignInOrUp />
+      </>
+    );
+  }
+
   return (
     <>
       <form>
         <Stack>
-          <Box p='4' borderWidth='1px' borderRadius='lg'>
-            <Heading as='h2' size='lg'>
-              Select a username
-            </Heading>
-
-            <FormControl>
-              <FormLabel htmlFor='name'>Name</FormLabel>
-              <Input
-                autoFocus
-                name='name'
-                placeholder='Your name'
-                value={userName}
-                onChange={event => setUserName(event.target.value)}
-              />
-            </FormControl>
-          </Box>
+          <p>Current User: {userName}</p>
           <Box borderWidth='1px' borderRadius='lg'>
             <Heading p='4' as='h2' size='lg'>
               Create a New Town
