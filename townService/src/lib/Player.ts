@@ -9,9 +9,11 @@ export default class Player {
   public location: PlayerLocation;
 
   /** The unique identifier for this player * */
+  /** TO DO: make persistent */
   private readonly _id: string;
 
   /** The player's username, which is not guaranteed to be unique within the town * */
+  /** */
   private readonly _userName: string;
 
   /** The secret token that allows this client to access our Covey.Town service for this town * */
@@ -31,6 +33,8 @@ export default class Player {
       rotation: 'front',
     };
     this._userName = userName;
+    // we should try to input the id here
+    // TO DO make persistent
     this._id = nanoid();
     this._sessionToken = nanoid();
     this.townEmitter = townEmitter;

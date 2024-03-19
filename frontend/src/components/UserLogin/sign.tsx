@@ -3,8 +3,9 @@ import { Flex, Box, Heading, FormControl, FormLabel, Input, Button } from '@chak
 import { FormErrorMessage, FormHelperText, InputRightElement } from '@chakra-ui/react';
 import { CloseIcon, CheckIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
+import { auth, createUserWithEmailAndPassword } from 'firebase/auth';
 
-export default function LoginForm() {
+export default function SignUpForm() {
   const [inputEmail, setInputEmail] = useState('');
   const [values, setValues] = useState({
     password: '',
@@ -63,11 +64,10 @@ export default function LoginForm() {
 
   const handleSubmit = async (event: React.ChangeEvent<HTMLInputElement>) => {
     event.preventDefault();
-    alert(`Email: ${inputEmail} & Password: ${values.password}`);
     try {
       //make api call and send username, email, and password to backend
       //firebase will make the following call:
-      //const UserCred = await CreateUsersWithEmailAndPassword(auth, email, password)
+      const userCred = await createUserWithEmailAndPassword(auth, inputEmail, values.password);
       //this will return usercredentials that we should then store in the database
       // if success - 200
       // failure = throw error to be caught

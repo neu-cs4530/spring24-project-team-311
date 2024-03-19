@@ -58,3 +58,9 @@ export interface TownCreateParams {
    */
   mapFile?: string;
 }
+
+export interface User {
+  username: string;
+  email: string;
+  petID: string;
+}

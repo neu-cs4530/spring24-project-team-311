@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
-import { Flex, Box, Heading, FormControl, FormLabel, Input, Button } from '@chakra-ui/react';
+import { Flex, Box, Heading, FormControl, FormLabel, Input, Button, Link } from '@chakra-ui/react';
 import { FormErrorMessage, FormHelperText, InputRightElement } from '@chakra-ui/react';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
+import { auth } from '../../firebase';
 
 export default function LoginForm() {
+  const navigate = useNavigate();
   const [inputEmail, setInputEmail] = useState('');
   const [values, setValues] = useState({
     password: '',
     showPassword: false,
   });
-  const [passwordError, setPasswordError] = useState(false);
+  const [logInError, setLogInError] = useState(false);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) =>
     setInputEmail(event.target.value);
@@ -31,9 +35,21 @@ export default function LoginForm() {
     });
   };
 
-  const handleSubmit = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSubmit = async (event: React.ChangeEvent<HTMLInputElement>) => {
     event.preventDefault();
-    alert(`Email: ${inputEmail} & Password: ${values.password}`);
+    try {
+      //make api call and send username, email, and password to backend
+      //firebase will make the following call:
+      const userCred = await signInWithEmailAndPassword(auth, inputEmail, values.password);
+      //this will return usercredentials that we should then store in the database
+      // if success - 200
+      // failure = throw error to be caught
+      // custom UID = userCred.user
+      navigate('/'); // should navigate to the home page
+    } catch (error) {
+      console.error(error);
+      setLogInError(true);
+    }
   };
 
   return (
@@ -43,7 +59,7 @@ export default function LoginForm() {
           <Heading>Login</Heading>
         </Box>
         <Box my={4} textAlign='left'>
-          <form>
+          <form onSubmit={handleSubmit} className='login-form'>
             <FormControl isRequired isInvalid={isError}>
               <FormLabel>Email</FormLabel>
               <Input
@@ -82,6 +98,13 @@ export default function LoginForm() {
             <Button mt={4} width='full' type='submit' colorScheme='blue'>
               Sign In
             </Button>
+            {logInError && ( // Render sign-up button only when login fails
+              <Link to='/signup'>
+                <Button mt={4} width='full' colorScheme='blue'>
+                  Sign Up For Covey.town
+                </Button>
+              </Link>
+            )}
           </form>
         </Box>
       </Box>
