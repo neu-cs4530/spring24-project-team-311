@@ -33,7 +33,9 @@ const PetSelectionPopup = (props: PetSelectionPopupProps) => {
   };
 
   const handleSubmit = () => {
-    if (selectedPet && !petName) {
+    if (!selectedPet) {
+      setErrorMessage('Please select a pet');
+    } else if (!petName) {
       // Show error message when user clicks "Done" without entering a name
       setErrorMessage('Please enter a name for your pet');
     } else {
@@ -54,24 +56,27 @@ const PetSelectionPopup = (props: PetSelectionPopupProps) => {
           <ModalHeader>Select your pet and name them:</ModalHeader>
           <ModalBody display={'flex'} flexDirection={'column'} gap={6}>
             <Flex justifyContent={'space-evenly'}>
-              <Image boxSize='100px' src={dog.src} alt={'Cat'} />
-              <Image boxSize='100px' src={dog.src} alt={'Cat'} />
-              <Image boxSize='100px' src={dog.src} alt={'Cat'} />
+              <Image boxSize='100px' src={dog.src} alt={'Image1'} />
+              <Image boxSize='100px' src={dog.src} alt={'Image2'} />
+              <Image boxSize='100px' src={dog.src} alt={'Image3'} />
             </Flex>
             <Flex justifyContent={'space-evenly'}>
               <Button
                 onClick={() => handlePetSelection('cat')}
-                variant={selectedPet === 'cat' ? 'solid' : 'outline'}>
+                variant={selectedPet === 'cat' ? 'solid' : 'outline'}
+                colorScheme={selectedPet === 'cat' ? 'blue' : 'gray'}>
                 Cat
               </Button>
               <Button
                 onClick={() => handlePetSelection('dog')}
-                variant={selectedPet === 'dog' ? 'solid' : 'outline'}>
+                variant={selectedPet === 'dog' ? 'solid' : 'outline'}
+                colorScheme={selectedPet === 'dog' ? 'blue' : 'gray'}>
                 Dog
               </Button>
               <Button
                 onClick={() => handlePetSelection('duck')}
-                variant={selectedPet === 'duck' ? 'solid' : 'outline'}>
+                variant={selectedPet === 'duck' ? 'solid' : 'outline'}
+                colorScheme={selectedPet === 'duck' ? 'blue' : 'gray'}>
                 Duck
               </Button>
             </Flex>
