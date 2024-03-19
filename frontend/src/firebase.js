@@ -5,6 +5,7 @@ import { getAuth } from "firebase/auth";
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
+// TODO: put this in .env file
 const firebaseConfig = {
   apiKey: "AIzaSyA-w39Ll4vNuTKL8FH5qbUzNkZdNKlsEjE",
   authDomain: "swe-fin-proj-spr24-311.firebaseapp.com",
