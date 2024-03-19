@@ -56,9 +56,9 @@ const PetSelectionPopup = (props: PetSelectionPopupProps) => {
           <ModalHeader>Select your pet and name them:</ModalHeader>
           <ModalBody display={'flex'} flexDirection={'column'} gap={6}>
             <Flex justifyContent={'space-evenly'}>
-              <Image boxSize='100px' src={dog.src} alt={'CatImage1'} />
-              <Image boxSize='100px' src={dog.src} alt={'CatImage2'} />
-              <Image boxSize='100px' src={dog.src} alt={'CatImage3'} />
+              <Image boxSize='100px' src={dog.src} alt={'Image1'} />
+              <Image boxSize='100px' src={dog.src} alt={'Image2'} />
+              <Image boxSize='100px' src={dog.src} alt={'Image3'} />
             </Flex>
             <Flex justifyContent={'space-evenly'}>
               <Button
