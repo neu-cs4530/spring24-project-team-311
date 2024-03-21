@@ -104,6 +104,7 @@ function SignUpComponent(): JSX.Element {
     setIsSigningUp(true);
     let errorState = false;
     await createUserWithEmailAndPassword(auth, email, password).catch(async (error) => {
+      console.log(error.code, error.message)
       errorState = true;
       setIsSigningUp(false);
       switch (error.code) {
@@ -141,7 +142,7 @@ function SignUpComponent(): JSX.Element {
       <Flex width='full' align='center' justifyContent='center'>
         <Box p={8} maxWidth='500px' borderWidth={1} borderRadius={8} boxShadow='lg'>
           <Box textAlign='center'>
-            <Heading>Login</Heading>
+            <Heading>Sign Up</Heading>
           </Box>
           <Box my={4} textAlign='left'>
             <form>
@@ -176,7 +177,7 @@ function SignUpComponent(): JSX.Element {
                   </Button>
                 </InputRightElement>
               </FormControl>
-              <Button mt={4} width='full' type='submit' colorScheme='blue' isDisabled={isSigningUp} isLoading={isSigningUp}>
+              <Button mt={4} width='full' type='submit' colorScheme='blue' isDisabled={isSigningUp} isLoading={isSigningUp} onClick={handleSignUp}>
                 Sign Up
               </Button>
             </form>
