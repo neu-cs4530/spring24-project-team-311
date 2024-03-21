@@ -136,8 +136,11 @@ export default class TownGameScene extends Phaser.Scene {
       this._resourcePathPrefix + '/assets/atlas/atlas.json',
     );
 
-    // Load the image for the pet sprite
-    this.load.image('followerSpriteKey', '../../../images/dog.png');
+    // Load the image for the cat sprite
+    this.load.image('cat-front', this._resourcePathPrefix + '/assets/atlas/cat-front.png');
+    this.load.image('cat-back', this._resourcePathPrefix + '/assets/atlas/cat-back.png');
+    this.load.image('cat-left', this._resourcePathPrefix + '/assets/atlas/cat-left.png');
+    this.load.image('cat-right', this._resourcePathPrefix + '/assets/atlas/cat-right.png');
   }
 
   updatePlayers(players: PlayerController[]) {
@@ -302,6 +305,25 @@ export default class TownGameScene extends Phaser.Scene {
       // Setting the x and y position of the pet sprite relative to the player sprite to place pet next to avatar
       this._petSprite.x = playerSprite.x + 40;
       this._petSprite.y = playerSprite.y + 15;
+
+      const playerDirection = this.getNewMovementDirection();
+      switch (playerDirection) {
+        case 'back':
+          this._petSprite.setTexture('cat-back', 'cat-back.png');
+          break;
+        case 'front':
+          this._petSprite.setTexture('cat-front', 'cat-front.png');
+          break;
+        case 'left':
+          this._petSprite.setTexture('cat-left', 'cat-left.png');
+          break;
+        case 'right':
+          this._petSprite.setTexture('cat-right', 'cat-right.png');
+          break;
+        default:
+          // this._petSprite.setTexture('cat-front', 'cat-front.png');
+          break;
+      }
     }
   }
 
