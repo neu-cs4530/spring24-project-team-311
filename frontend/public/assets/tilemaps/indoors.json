@@ -668,6 +668,17 @@
                  "width":0,
                  "x":3672.06141819595,
                  "y":1187.60045123726
+                }, 
+                {
+                 "height":87.9669852302346,
+                 "id":72,
+                 "name":"Hospital Area",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":130.321459600348,
+                 "x":3935.7080799305,
+                 "y":897.046046915725
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -676,7 +687,7 @@
          "y":0
         }],
  "nextlayerid":8,
- "nextobjectid":68,
+ "nextobjectid":73,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.10.2",
