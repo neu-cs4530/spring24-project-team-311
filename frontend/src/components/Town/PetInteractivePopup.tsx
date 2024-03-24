@@ -56,8 +56,14 @@ const PetInteractivePopup = (props: PetInteractivePopupProps) => {
           <ModalHeader>Interact with your pet:</ModalHeader>
           <ModalBody display={'flex'} flexDirection={'column'} gap={6}>
             <Flex justifyContent={'space-evenly'}>
+              <progress value={0.5} />
+
               <Image boxSize='100px' src={dog.src} alt={'Image1'} />
+              <progress value={0.5} />
+
               <Image boxSize='100px' src={dog.src} alt={'Image2'} />
+              <progress value={0.5} />
+
               <Image boxSize='100px' src={dog.src} alt={'Image3'} />
             </Flex>
             <Flex justifyContent={'space-evenly'}>
@@ -65,27 +71,21 @@ const PetInteractivePopup = (props: PetInteractivePopupProps) => {
                 onClick={() => handlePetSelection('cat')}
                 variant={selectedPet === 'cat' ? 'solid' : 'outline'}
                 colorScheme={selectedPet === 'cat' ? 'blue' : 'gray'}>
-                Cat
+                Feed
               </Button>
               <Button
                 onClick={() => handlePetSelection('dog')}
                 variant={selectedPet === 'dog' ? 'solid' : 'outline'}
                 colorScheme={selectedPet === 'dog' ? 'blue' : 'gray'}>
-                Dog
+                Clean
               </Button>
               <Button
                 onClick={() => handlePetSelection('duck')}
                 variant={selectedPet === 'duck' ? 'solid' : 'outline'}
                 colorScheme={selectedPet === 'duck' ? 'blue' : 'gray'}>
-                Duck
+                Play
               </Button>
             </Flex>
-            <input
-              type={'text'}
-              placeholder={"Enter your pet's name"}
-              value={petName}
-              onChange={handleNameChange}
-            />
             {errorMessage && (
               <Text justifyContent={'center'} flex={1} color={'red'}>
                 {errorMessage}
