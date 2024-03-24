@@ -69,22 +69,34 @@ export default function TownMap(): JSX.Element {
           gravity: { y: 0 }, // Top down game, so no gravity
         },
       },
+      input: {
+        activePointers: 1,
+      },
     };
     const handlePetSpriteClicked = () => {
+      console.log('Received petSpriteClicked event');
       setIsPetInteractivePopupOpen(true);
     };
-
     const game = new Phaser.Game(config);
-    const newGameScene = new TownGameScene(coveyTownController);
+    const newGameScene = new TownGameScene(coveyTownController, handlePetSpriteClicked);
     game.scene.add('coveyBoard', newGameScene, true);
     const pauseListener = newGameScene.pause.bind(newGameScene);
     const unPauseListener = newGameScene.resume.bind(newGameScene);
     coveyTownController.addListener('pause', pauseListener);
     coveyTownController.addListener('unPause', unPauseListener);
 
+    const gameScene = game.scene.getScene('coveyBoard');
+
+    if (gameScene) {
+      console.log('Setting up event listener');
+      gameScene.events.on('petSpriteClicked', handlePetSpriteClicked);
+      console.log('Event listener set up');
+    }
+
     return () => {
-      game.scene.getScene('coveyBoard').events.on('petSpriteClicked', handlePetSpriteClicked);
-      game.scene.getScene('coveyBoard').events.off('petSpriteClicked', handlePetSpriteClicked);
+      if (gameScene) {
+        gameScene.events.off('petSpriteClicked', handlePetSpriteClicked);
+      }
       coveyTownController.removeListener('pause', pauseListener);
       coveyTownController.removeListener('unPause', unPauseListener);
       game.destroy(true);

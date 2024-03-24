@@ -68,6 +68,8 @@ export default class TownGameScene extends Phaser.Scene {
 
   private _petSprite?: Phaser.GameObjects.Sprite;
 
+  private _handlePetSpriteClicked: () => void;
+
   private _gameIsReady = new Promise<void>(resolve => {
     if (this._ready) {
       resolve();
@@ -90,11 +92,16 @@ export default class TownGameScene extends Phaser.Scene {
 
   private _resourcePathPrefix: string;
 
-  constructor(coveyTownController: TownController, resourcePathPrefix = '') {
+  constructor(
+    coveyTownController: TownController,
+    _handlePetSpriteClicked: () => void,
+    resourcePathPrefix = '',
+  ) {
     super('TownGameScene');
     this._resourcePathPrefix = resourcePathPrefix;
     this.coveyTownController = coveyTownController;
     this._players = this.coveyTownController.players;
+    this._handlePetSpriteClicked = _handlePetSpriteClicked;
   }
 
   preload() {
@@ -306,6 +313,7 @@ export default class TownGameScene extends Phaser.Scene {
       // Setting the x and y position of the pet sprite relative to the player sprite to place pet next to avatar
       this._petSprite.x = playerSprite.x + 40;
       this._petSprite.y = playerSprite.y + 15;
+      this._petSprite.setDepth(1000);
       this._petSprite.setInteractive().on('pointerdown', () => {
         this.events.emit('petSpriteClicked');
       });
@@ -325,7 +333,7 @@ export default class TownGameScene extends Phaser.Scene {
           this._petSprite.setTexture('cat-right', 'cat-right.png');
           break;
         default:
-          // this._petSprite.setTexture('cat-front', 'cat-front.png');
+          this._petSprite.setTexture('cat-front', 'cat-front.png');
           break;
       }
     }
@@ -554,10 +562,12 @@ export default class TownGameScene extends Phaser.Scene {
     this.coveyTownController.addListener('playersChanged', players => this.updatePlayers(players));
 
     this._petSprite = this.add.sprite(0, 0, 'petSpriteKey');
-    this._petSprite.setDepth(5);
-
+    this._petSprite.setDepth(2000);
+    this._petSprite.setInteractive();
     this._petSprite.setInteractive().on('pointerdown', () => {
+      console.log('Pet sprite clicked');
       this.events.emit('petSpriteClicked');
+      this._handlePetSpriteClicked();
     });
   }
 
