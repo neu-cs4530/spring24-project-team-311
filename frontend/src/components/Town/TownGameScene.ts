@@ -9,6 +9,7 @@ import ConversationArea from './interactables/ConversationArea';
 import GameArea from './interactables/GameArea';
 import Transporter from './interactables/Transporter';
 import ViewingArea from './interactables/ViewingArea';
+import PetInteractivePopup from './PetInteractivePopup';
 
 // Still not sure what the right type is here... "Interactable" doesn't do it
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -305,6 +306,9 @@ export default class TownGameScene extends Phaser.Scene {
       // Setting the x and y position of the pet sprite relative to the player sprite to place pet next to avatar
       this._petSprite.x = playerSprite.x + 40;
       this._petSprite.y = playerSprite.y + 15;
+      this._petSprite.setInteractive().on('pointerdown', () => {
+        this.events.emit('petSpriteClicked');
+      });
 
       const playerDirection = this.getNewMovementDirection();
       switch (playerDirection) {
@@ -551,6 +555,10 @@ export default class TownGameScene extends Phaser.Scene {
 
     this._petSprite = this.add.sprite(0, 0, 'petSpriteKey');
     this._petSprite.setDepth(5);
+
+    this._petSprite.setInteractive().on('pointerdown', () => {
+      this.events.emit('petSpriteClicked');
+    });
   }
 
   createPlayerSprites(player: PlayerController) {

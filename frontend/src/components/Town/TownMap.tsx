@@ -11,6 +11,7 @@ import ChatWindow from '../VideoCall/VideoFrontend/components/ChatWindow/ChatWin
 import clsx from 'clsx';
 import { createStyles, makeStyles, Theme } from '@material-ui/core';
 import PetSelectionPopup from './PetSelectionPopup';
+import PetInteractivePopup from './PetInteractivePopup';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -46,6 +47,7 @@ export default function TownMap(): JSX.Element {
   const { isChatWindowOpen } = useChatContext();
   const classes = useStyles();
   const [isPetSelectionOpen, setIsPetSelectionOpen] = useState<boolean>(true);
+  const [isPetInteractivePopupOpen, setIsPetInteractivePopupOpen] = useState(false);
 
   useEffect(() => {
     const config = {
@@ -68,6 +70,9 @@ export default function TownMap(): JSX.Element {
         },
       },
     };
+    const handlePetSpriteClicked = () => {
+      setIsPetInteractivePopupOpen(true);
+    };
 
     const game = new Phaser.Game(config);
     const newGameScene = new TownGameScene(coveyTownController);
@@ -76,7 +81,10 @@ export default function TownMap(): JSX.Element {
     const unPauseListener = newGameScene.resume.bind(newGameScene);
     coveyTownController.addListener('pause', pauseListener);
     coveyTownController.addListener('unPause', unPauseListener);
+
     return () => {
+      game.scene.getScene('coveyBoard').events.on('petSpriteClicked', handlePetSpriteClicked);
+      game.scene.getScene('coveyBoard').events.off('petSpriteClicked', handlePetSpriteClicked);
       coveyTownController.removeListener('pause', pauseListener);
       coveyTownController.removeListener('unPause', unPauseListener);
       game.destroy(true);
@@ -99,6 +107,12 @@ export default function TownMap(): JSX.Element {
         <PetSelectionPopup
           isOpen={isPetSelectionOpen}
           onClose={() => setIsPetSelectionOpen(false)}
+        />
+      )}
+      {isPetInteractivePopupOpen && (
+        <PetInteractivePopup
+          isOpen={isPetInteractivePopupOpen}
+          onClose={() => setIsPetInteractivePopupOpen(false)}
         />
       )}
     </div>
