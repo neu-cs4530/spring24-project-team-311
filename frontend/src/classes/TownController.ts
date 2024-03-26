@@ -30,12 +30,14 @@ import {
 import {
   isConnectFourArea,
   isConversationArea,
+  isHospitalArea,
   isTicTacToeArea,
   isViewingArea,
 } from '../types/TypeUtils';
 import ConnectFourAreaController from './interactable/ConnectFourAreaController';
 import ConversationAreaController from './interactable/ConversationAreaController';
 import GameAreaController, { GameEventTypes } from './interactable/GameAreaController';
+import HospitalAreaController from './interactable/HospitalAreaController';
 import InteractableAreaController, {
   BaseInteractableEventMap,
   GenericInteractableAreaController,
@@ -339,6 +341,13 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     return ret as GameAreaController<GameState, GameEventTypes>[];
   }
 
+  public get hospitalAreas() {
+    const ret = this._interactableControllers.filter(
+      eachInteractable => eachInteractable instanceof HospitalAreaController,
+    );
+    return ret as HospitalAreaController[];
+  }
+
   /**
    * Begin interacting with an interactable object. Emits an event to all listeners.
    * @param interactedObj
@@ -631,6 +640,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
             this._interactableControllers.push(
               new ConnectFourAreaController(eachInteractable.id, eachInteractable, this),
             );
+          } else if (isHospitalArea(eachInteractable)) {
+            this._interactableControllers.push(
+              new HospitalAreaController(eachInteractable.id, eachInteractable, this),
+            );
           }
         });
         this._userID = initialData.userID;
@@ -780,6 +793,27 @@ export function useInteractableAreaController<T>(interactableAreaID: string): T 
     throw new Error(`Requested interactable area ${interactableAreaID} does not exist`);
   }
   return interactableAreaController as unknown as T;
+}
+
+/**
+ * A react hook to retrieve an interactable hospital area controller
+ *
+ * This function will throw an error if the interactable hospital area controller does not exist.
+ *
+ * This hook relies on the TownControllerContext.
+ *
+ * @param interactableAreaID The ID of the interactable area to retrieve the controller for
+ * @throws Error if there is no interactable area controller matching the specified ID
+ */
+export function useInteractableHospitalAreaController(interactableAreaID: string): HospitalAreaController{
+  const townController = useTownController();
+  const interactableAreaController = townController.hospitalAreas.find(
+    eachArea => eachArea.id == interactableAreaID,
+  );
+  if (!interactableAreaController) {
+    throw new Error(`Requested interactable area ${interactableAreaID} does not exist`);
+  }
+  return interactableAreaController as unknown as HospitalAreaController;
 }
 
 /**
