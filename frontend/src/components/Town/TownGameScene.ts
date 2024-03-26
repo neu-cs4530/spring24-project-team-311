@@ -321,7 +321,7 @@ export default class TownGameScene extends Phaser.Scene {
           this._petSprite.setTexture('cat-right', 'cat-right.png');
           break;
         default:
-          // this._petSprite.setTexture('cat-front', 'cat-front.png');
+          this._petSprite.setTexture('cat-front', 'cat-front.png');
           break;
       }
     }
