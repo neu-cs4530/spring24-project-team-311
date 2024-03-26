@@ -564,7 +564,7 @@ export default class TownGameScene extends Phaser.Scene {
     this._petSprite = this.add.sprite(0, 0, 'petSpriteKey');
     this._petSprite.setDepth(2000);
     this._petSprite.setInteractive();
-    this._petSprite.setInteractive().on('pointerdown', () => {
+    this._petSprite.on('pointerdown', () => {
       console.log('Pet sprite clicked');
       this.events.emit('petSpriteClicked');
       this._handlePetSpriteClicked();
