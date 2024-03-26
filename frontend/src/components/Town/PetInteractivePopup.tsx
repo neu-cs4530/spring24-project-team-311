@@ -2,6 +2,7 @@ import {
   Button,
   Flex,
   Image,
+  Progress,
   Modal,
   ModalBody,
   ModalContent,
@@ -12,7 +13,6 @@ import {
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import React from 'react';
-import dog from './images/dog.png';
 
 interface PetInteractivePopupProps {
   isOpen: boolean;
@@ -20,18 +20,17 @@ interface PetInteractivePopupProps {
 }
 
 const PetInteractivePopup = (props: PetInteractivePopupProps) => {
-  const [selectedPet, setSelectedPet] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const [progressValues, setProgressValues] = useState<number[]>([0.3, 0.5, 0.7]); // Initial progress values
+  const [progressValues, setProgressValues] = useState<number[]>([30, 50, 70]); // Initial progress values
 
   const handleProgressIncrement = (index: number, action: string) => {
     const updatedProgressValues = [...progressValues];
-    if (updatedProgressValues[index] === 1) {
+    if (updatedProgressValues[index] === 100) {
       setErrorMessage(`You've performed the ${action} interaction enough!`);
     } else {
       setErrorMessage('');
     }
-    updatedProgressValues[index] = Math.min(updatedProgressValues[index] + 0.1, 1); // Increase progress by 10%
+    updatedProgressValues[index] = Math.min(updatedProgressValues[index] + 10, 100); // Increase progress by 10%
     setProgressValues(updatedProgressValues);
   };
 
@@ -54,23 +53,35 @@ const PetInteractivePopup = (props: PetInteractivePopupProps) => {
             <Flex display={'flex'} flexDirection={'row'} gap={6}>
               <Flex justifyContent={'space-evenly'} direction={'column'}>
                 {progressValues.map((value, index) => (
-                  <progress key={index} value={value} style={{ margin: '10px 10px' }} />
+                  <Progress key={index} value={value * 100} />
                 ))}
+                console.log({progressValues});
+                {/* {progressValues.map((value, index) => (
+                  <Progress
+                    key={index}
+                    value={progressValues[value] * 100}
+                    colorScheme='green'
+                    style={{ margin: '10px 10px' }}
+                  />
+                ))} */}
               </Flex>
               <Flex direction='column' gap={4} style={{ margin: '10px 10px' }}>
                 <Button
+                  colorScheme='teal'
                   onClick={() => {
                     handleProgressIncrement(0, 'Feed');
                   }}>
                   Feed
                 </Button>
                 <Button
+                  colorScheme='teal'
                   onClick={() => {
                     handleProgressIncrement(1, 'Clean');
                   }}>
                   Clean
                 </Button>
                 <Button
+                  colorScheme='teal'
                   onClick={() => {
                     handleProgressIncrement(2, 'Play');
                   }}>
