@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid';
+import { Pet as PetModel, TownEmitter } from '../types/CoveyTownSocket';
 // get all of the players in the town and assign
 /**
  * Each pet following a user is connected to a userID
