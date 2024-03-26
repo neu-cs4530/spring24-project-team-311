@@ -101,6 +101,72 @@ export default class PlayersController {
     });
   }
 
+  async getHealth(ownerID: string, petID: string): Promise<number | undefined> {
+    const petRef = ref(db);
+    return new Promise<number | undefined>((resolve, reject) => {
+      get(child(petRef, `users/${ownerID}/pets/${petID}`))
+        .then(snapshot => {
+          if (snapshot.exists()) {
+            const petData = snapshot.val();
+            if (petData.currentPet) {
+              resolve(petData.health);
+            } else {
+              resolve(100);
+            }
+          } else {
+            resolve(undefined);
+          }
+        })
+        .catch(error => {
+          reject(error);
+        });
+    });
+  }
+
+  async getHappiness(ownerID: string, petID: string): Promise<number | undefined> {
+    const petRef = ref(db);
+    return new Promise<number | undefined>((resolve, reject) => {
+      get(child(petRef, `users/${ownerID}/pets/${petID}`))
+        .then(snapshot => {
+          if (snapshot.exists()) {
+            const petData = snapshot.val();
+            if (petData.currentPet) {
+              resolve(petData.happiness);
+            } else {
+              resolve(100);
+            }
+          } else {
+            resolve(undefined);
+          }
+        })
+        .catch(error => {
+          reject(error);
+        });
+    });
+  }
+
+  async getHunger(ownerID: string, petID: string): Promise<number | undefined> {
+    const petRef = ref(db);
+    return new Promise<number | undefined>((resolve, reject) => {
+      get(child(petRef, `users/${ownerID}/pets/${petID}`))
+        .then(snapshot => {
+          if (snapshot.exists()) {
+            const petData = snapshot.val();
+            if (petData.currentPet) {
+              resolve(petData.hunger);
+            } else {
+              resolve(100);
+            }
+          } else {
+            resolve(undefined);
+          }
+        })
+        .catch(error => {
+          reject(error);
+        });
+    });
+  }
+
   async changeHappiness(ownerID: string, petID: string, delta: number) {
     const userPetsRef = ref(db, `users/${ownerID}/pets/${petID}`);
     const snapshot = await get(userPetsRef);
