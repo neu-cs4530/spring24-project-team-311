@@ -22,19 +22,15 @@ interface PetInteractivePopupProps {
 const PetInteractivePopup = (props: PetInteractivePopupProps) => {
   const [selectedPet, setSelectedPet] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const [petName, setPetName] = useState<string>('');
   const [progressValues, setProgressValues] = useState<number[]>([0.3, 0.5, 0.7]); // Initial progress values
 
-  const handlePetSelection = (pet: string) => {
-    setSelectedPet(pet);
-  };
-
-  const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setPetName(event.target.value);
-  };
-
-  const handleProgressIncrement = (index: number) => {
+  const handleProgressIncrement = (index: number, action: string) => {
     const updatedProgressValues = [...progressValues];
+    if (updatedProgressValues[index] === 1) {
+      setErrorMessage(`You've performed the ${action} interaction enough!`);
+    } else {
+      setErrorMessage('');
+    }
     updatedProgressValues[index] = Math.min(updatedProgressValues[index] + 0.1, 1); // Increase progress by 10%
     setProgressValues(updatedProgressValues);
   };
@@ -54,40 +50,33 @@ const PetInteractivePopup = (props: PetInteractivePopupProps) => {
       <ModalOverlay>
         <ModalContent>
           <ModalHeader>Interact with your pet [name] </ModalHeader>
-          <ModalBody display={'flex'} flexDirection={'column'} gap={6}>
-            <Flex justifyContent={'space-evenly'}>
-              {progressValues.map((value, index) => (
-                <progress key={index} value={value} style={{ margin: '0 10px' }} />
-              ))}
-            </Flex>
-            <Flex justifyContent={'space-evenly'}>
-              <Button
-                onClick={() => {
-                  handlePetSelection('cat');
-                  handleProgressIncrement(0);
-                }}
-                variant={selectedPet === 'cat' ? 'solid' : 'outline'}
-                colorScheme={selectedPet === 'cat' ? 'blue' : 'gray'}>
-                Feed
-              </Button>
-              <Button
-                onClick={() => {
-                  handlePetSelection('dog');
-                  handleProgressIncrement(1);
-                }}
-                variant={selectedPet === 'dog' ? 'solid' : 'outline'}
-                colorScheme={selectedPet === 'dog' ? 'blue' : 'gray'}>
-                Clean
-              </Button>
-              <Button
-                onClick={() => {
-                  handlePetSelection('duck');
-                  handleProgressIncrement(2);
-                }}
-                variant={selectedPet === 'duck' ? 'solid' : 'outline'}
-                colorScheme={selectedPet === 'duck' ? 'blue' : 'gray'}>
-                Play
-              </Button>
+          <ModalBody>
+            <Flex display={'flex'} flexDirection={'row'} gap={6}>
+              <Flex justifyContent={'space-evenly'} direction={'column'}>
+                {progressValues.map((value, index) => (
+                  <progress key={index} value={value} style={{ margin: '10px 10px' }} />
+                ))}
+              </Flex>
+              <Flex direction='column' gap={4} style={{ margin: '10px 10px' }}>
+                <Button
+                  onClick={() => {
+                    handleProgressIncrement(0, 'Feed');
+                  }}>
+                  Feed
+                </Button>
+                <Button
+                  onClick={() => {
+                    handleProgressIncrement(1, 'Clean');
+                  }}>
+                  Clean
+                </Button>
+                <Button
+                  onClick={() => {
+                    handleProgressIncrement(2, 'Play');
+                  }}>
+                  Play
+                </Button>
+              </Flex>
             </Flex>
             {errorMessage && (
               <Text justifyContent={'center'} flex={1} color={'red'}>
