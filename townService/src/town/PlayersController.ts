@@ -1,4 +1,4 @@
-import { getDatabase, ref, set, get, child, update } from 'firebase/database';
+import { getDatabase, ref, set, get, child, update, remove } from 'firebase/database';
 import Pet, { PetType } from '../lib/Pet';
 
 /*
@@ -7,9 +7,10 @@ API Calls to make
  - add a pet
  - update a pet
  - delete a pet
- - 
+ - transfer a pet --> for future use
 */
 const db = getDatabase();
+
 export default class PlayersController {
   async addUser(userID: string, username: string, email: string) {
     await set(ref(db, `users/${userID}`), {
@@ -21,11 +22,7 @@ export default class PlayersController {
 
   async addPet(petName: string, petID: string, petType: PetType, ownerID: string) {
     const userPetsRef = ref(db, `users/${ownerID}/pets`);
-
-    // Fetch existing pets
     const snapshot = await get(userPetsRef);
-
-    // If user has other pets, set their isVisible values to false
     if (snapshot.exists()) {
       const existingPets = snapshot.val();
       for (const existingPetID in existingPets) {
@@ -73,7 +70,6 @@ export default class PlayersController {
                 pet.id,
               );
               resolve(currentPet);
-              // Do something with isVisible value
             });
           }
         }
@@ -96,7 +92,7 @@ export default class PlayersController {
               resolve(false);
             }
           } else {
-            resolve(undefined); // or you can reject with an error
+            resolve(undefined);
           }
         })
         .catch(error => {
@@ -114,7 +110,11 @@ export default class PlayersController {
       if (petData.currentPet) {
         const happinessVal = petData.happiness;
         const updates: Record<string, number> = {};
-        updates[`$/happiness`] = happinessVal + delta;
+        if (delta > 0) {
+          updates[`$/happiness`] = Math.max(happinessVal + delta, 100);
+        } else {
+          updates[`$/happiness`] = Math.min(happinessVal + delta, 0);
+        }
         update(userPetsRef, updates);
       }
     }
@@ -128,7 +128,11 @@ export default class PlayersController {
       if (petData.currentPet) {
         const healthVal = petData.health;
         const updates: Record<string, number> = {};
-        updates[`$/health`] = healthVal + delta;
+        if (delta > 0) {
+          updates[`$/health`] = Math.max(healthVal + delta, 100);
+        } else {
+          updates[`$/health`] = Math.min(healthVal + delta, 0);
+        }
         update(userPetsRef, updates);
       }
     }
@@ -142,9 +146,28 @@ export default class PlayersController {
       if (petData.currentPet) {
         const hungerVal = petData.hunger;
         const updates: Record<string, number> = {};
-        updates[`$/hunger`] = hungerVal + delta;
+        if (delta > 0) {
+          updates[`$/hunger`] = Math.max(hungerVal + delta, 100);
+        } else {
+          updates[`$/hunger`] = Math.min(hungerVal + delta, 0);
+        }
         update(userPetsRef, updates);
       }
+    }
+  }
+
+  async deletePet(ownerID: string, petID: string) {
+    const userPetsRef = ref(db, `users/${ownerID}/pets/${petID}`);
+    await remove(userPetsRef);
+  }
+
+  async changeOwner(currentOwner: string, newOwner: string, petID: string) {
+    const userPetsRef = ref(db, `users/${currentOwner}/pets/${petID}`);
+    const snapshot = await get(userPetsRef);
+    if (snapshot.exists()) {
+      const petData = snapshot.val();
+      this.addPet(petData.name, petID, petData.type, newOwner);
+      this.deletePet(currentOwner, petID);
     }
   }
 }
