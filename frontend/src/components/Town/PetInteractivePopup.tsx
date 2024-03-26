@@ -21,7 +21,7 @@ interface PetInteractivePopupProps {
 
 const PetInteractivePopup = (props: PetInteractivePopupProps) => {
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const [progressValues, setProgressValues] = useState<number[]>([30, 50, 70]); // Initial progress values
+  const [progressValues, setProgressValues] = useState<number[]>([20, 80, 70]); // Initial progress values
 
   const handleProgressIncrement = (index: number, action: string) => {
     const updatedProgressValues = [...progressValues];
@@ -44,6 +44,8 @@ const PetInteractivePopup = (props: PetInteractivePopupProps) => {
     props.onClose();
   };
 
+  //   console.log({progressValues});
+
   return (
     <Modal closeOnOverlayClick={false} isOpen={props.isOpen} onClose={props.onClose}>
       <ModalOverlay>
@@ -53,17 +55,14 @@ const PetInteractivePopup = (props: PetInteractivePopupProps) => {
             <Flex display={'flex'} flexDirection={'row'} gap={6}>
               <Flex justifyContent={'space-evenly'} direction={'column'}>
                 {progressValues.map((value, index) => (
-                  <Progress key={index} value={value * 100} />
-                ))}
-                console.log({progressValues});
-                {/* {progressValues.map((value, index) => (
                   <Progress
                     key={index}
-                    value={progressValues[value] * 100}
-                    colorScheme='green'
-                    style={{ margin: '10px 10px' }}
+                    value={value}
+                    borderRadius={'5px'}
+                    colorScheme={value <= 25 ? 'red' : value >= 75 ? 'green' : 'yellow'}
                   />
-                ))} */}
+                ))}
+                console.log({progressValues});
               </Flex>
               <Flex direction='column' gap={4} style={{ margin: '10px 10px' }}>
                 <Button
