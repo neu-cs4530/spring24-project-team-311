@@ -25,7 +25,9 @@ export default class Player {
   /** A special town emitter that will emit events to the entire town BUT NOT to this player */
   public readonly townEmitter: TownEmitter;
 
-  constructor(userName: string, townEmitter: TownEmitter) {
+  public readonly _email: string;
+
+  constructor(userName: string, userID: string, userEmail: string, townEmitter: TownEmitter) {
     this.location = {
       x: 0,
       y: 0,
@@ -35,9 +37,10 @@ export default class Player {
     this._userName = userName;
     // we should try to input the id here
     // TO DO make persistent
-    this._id = nanoid();
+    this._id = userID;
     this._sessionToken = nanoid();
     this.townEmitter = townEmitter;
+    this._email = userEmail;
   }
 
   get userName(): string {
@@ -65,6 +68,7 @@ export default class Player {
       id: this._id,
       location: this.location,
       userName: this._userName,
+      email: this._email,
     };
   }
 }
