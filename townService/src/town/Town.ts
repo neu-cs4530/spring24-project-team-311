@@ -122,6 +122,7 @@ export default class Town {
     socket: CoveyTownSocket,
   ): Promise<Player> {
     const newPlayer = new Player(userName, userID, email, socket.to(this._townID));
+
     this._players.push(newPlayer);
 
     this._connectedSockets.add(socket);
