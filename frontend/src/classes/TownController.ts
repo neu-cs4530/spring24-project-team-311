@@ -1,9 +1,8 @@
 import assert from 'assert';
-import { generateKey } from 'crypto';
 import EventEmitter from 'events';
 import _ from 'lodash';
 import { nanoid } from 'nanoid';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import TypedEmitter from 'typed-emitter';
 import Interactable from '../components/Town/Interactable';
@@ -805,7 +804,9 @@ export function useInteractableAreaController<T>(interactableAreaID: string): T 
  * @param interactableAreaID The ID of the interactable area to retrieve the controller for
  * @throws Error if there is no interactable area controller matching the specified ID
  */
-export function useInteractableHospitalAreaController(interactableAreaID: string): HospitalAreaController{
+export function useInteractableHospitalAreaController(
+  interactableAreaID: string,
+): HospitalAreaController {
   const townController = useTownController();
   const interactableAreaController = townController.hospitalAreas.find(
     eachArea => eachArea.id == interactableAreaID,
