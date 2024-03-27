@@ -3,6 +3,7 @@ import {
   Interactable,
   TicTacToeGameState,
   ViewingArea,
+  HospitalArea,
   GameArea,
   ConnectFourGameState,
 } from './CoveyTownSocket';
@@ -30,4 +31,11 @@ export function isConnectFourArea(
   interactable: Interactable,
 ): interactable is GameArea<ConnectFourGameState> {
   return interactable.type === 'ConnectFourArea';
+}
+
+/**
+ * Test to see if an interactable is a hospital area
+ */
+export function isHospitalArea(interactable: Interactable): interactable is HospitalArea {
+  return interactable.type === 'HospitalArea';
 }

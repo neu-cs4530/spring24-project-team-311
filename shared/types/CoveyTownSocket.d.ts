@@ -19,7 +19,7 @@ export type TownJoinResponse = {
   currentPets: Pet[];
 }
 
-export type InteractableType = 'ConversationArea' | 'ViewingArea' | 'TicTacToeArea' | 'ConnectFourArea';
+export type InteractableType = 'ConversationArea' | 'ViewingArea' | 'TicTacToeArea' | 'ConnectFourArea' | 'HospitalArea';
 export interface Interactable {
   type: InteractableType;
   id: InteractableID;
@@ -78,6 +78,9 @@ export interface BoundingBox {
   width: number;
   height: number;
 };
+
+export interface HospitalArea extends Interactable {
+}
 
 export interface ViewingArea extends Interactable {
   video?: string;
