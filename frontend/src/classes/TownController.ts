@@ -43,6 +43,7 @@ import InteractableAreaController, {
 import TicTacToeAreaController from './interactable/TicTacToeAreaController';
 import ViewingAreaController from './interactable/ViewingAreaController';
 import PlayerController from './PlayerController';
+import PetController from './PetController';
 
 const CALCULATE_NEARBY_PLAYERS_DELAY_MS = 300;
 const SOCKET_COMMAND_TIMEOUT_MS = 5000;
@@ -148,6 +149,11 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   private _playersInternal: PlayerController[] = [];
 
   /**
+   * The current list of pets in the town. Adding or removing pets might replace the array
+   */
+  private _petsInternal: PetController[] = [];
+
+  /**
    * The current list of interactable areas in the town. Adding or removing interactable areas might replace the array.
    */
   private _interactableControllers: InteractableAreaController<
@@ -226,9 +232,15 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
 
     const url = process.env.NEXT_PUBLIC_TOWNS_SERVICE_URL;
     assert(url);
+    console.log(`Connecting to ${url} as ${userName} in town ${townID}`);
     this._socket = io(url, { auth: { userName, townID } });
+    console.log('Socket created');
     this._townsService = new TownsServiceClient({ BASE: url }).towns;
+    console.log('Town service created');
     this.registerSocketListeners();
+    console.log('Socket listeners registered');
+    // TEMP CODE TO ADD PET FOR USER
+    console.log('Creating pet');
   }
 
   public get sessionToken() {
@@ -281,6 +293,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     return ret;
   }
 
+  public get ourPet() {
+    return this._petsInternal.find(eachPet => eachPet.playerID === this.userID);
+  }
+
   public get townID() {
     return this._townID;
   }
@@ -306,6 +322,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   private set _players(newPlayers: PlayerController[]) {
     this.emit('playersChanged', newPlayers);
     this._playersInternal = newPlayers;
+  }
+
+  private set _pets(newPets: PetController[]) {
+    this._petsInternal = newPets;
   }
 
   public getPlayer(id: PlayerID) {
@@ -635,6 +655,13 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         });
         this._userID = initialData.userID;
         this._ourPlayer = this.players.find(eachPlayer => eachPlayer.id == this.userID);
+        const newPet = new PetController(this.userID, '0', 'dog', 'Rover', {
+          x: 0,
+          y: 0,
+          moving: false,
+          rotation: 'back',
+        });
+        this._petsInternal = [newPet];
         this.emit('connect', initialData.providerVideoToken);
         resolve();
       });

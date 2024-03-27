@@ -95,14 +95,18 @@ export default function TownSelection(): JSX.Element {
           }
         }, 1000);
         setIsJoining(true);
+        console.log('Joining town', coveyRoomID);
         const newController = new TownController({
           userName,
           townID: coveyRoomID,
           loginController,
         });
+        console.log('Connecting to town', coveyRoomID);
         await newController.connect();
+        console.log('Connected to town', coveyRoomID);
         const videoToken = newController.providerVideoToken;
         assert(videoToken);
+        console.log('Connecting to video', coveyRoomID);
         await videoConnect(videoToken);
         setIsJoining(false);
         if (loadingToast) {
