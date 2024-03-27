@@ -317,6 +317,13 @@ export default class TownGameScene extends Phaser.Scene {
       this._petSprite.setInteractive().on('pointerdown', () => {
         this.events.emit('petSpriteClicked');
       });
+      const canvas = this.sys.game.canvas;
+      this._petSprite.on('pointerover', () => {
+        canvas.style.cursor = 'pointer';
+      });
+      this._petSprite.on('pointerout', () => {
+        canvas.style.cursor = 'default';
+      });
 
       const playerDirection = this.getNewMovementDirection();
       switch (playerDirection) {

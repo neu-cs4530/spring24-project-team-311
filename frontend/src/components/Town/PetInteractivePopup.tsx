@@ -74,8 +74,8 @@ const PetInteractivePopup = (props: PetInteractivePopupProps) => {
                     />
                     {value === 0 && (
                       <Text color='grey' textAlign='center'>
-                        You can't {index === 0 ? 'feed' : index === 1 ? 'clean' : 'play'} your pet
-                        right now :( It's been too long! Please take them to the hospital.
+                        You can&apos;t {index === 0 ? 'feed' : index === 1 ? 'clean' : 'play'} your
+                        pet right now :( It&apos;s been too long! Please take them to the hospital.
                       </Text>
                     )}
                   </Flex>
