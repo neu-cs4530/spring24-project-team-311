@@ -402,6 +402,7 @@ export default class TownGameScene extends Phaser.Scene {
 
       // Normalize and scale the velocity so that pet can't move faster along a diagonal
       petObjects.sprite.body.velocity.normalize().scale(MOVEMENT_SPEED);
+
       // replace with emit later
       this.coveyTownController.ourPet!.location = {
         x: petObjects.sprite.getBounds().centerX,
@@ -409,40 +410,9 @@ export default class TownGameScene extends Phaser.Scene {
         rotation: primaryDirection || 'front',
         moving: primaryDirection !== undefined,
       };
-      // const isMoving = primaryDirection !== undefined;
-      // const x = petObjects.sprite.getBounds().centerX;
-      // const y = petObjects.sprite.getBounds().centerY;
-      // //Move the sprite
-      // if (
-      //   !petLocation ||
-      //   (isMoving && petLocation.rotation !== primaryDirection) ||
-      //   petLocation.moving !== isMoving
-      // ) {
-      //   if (!this._lastLocation) {
-      //     this._lastLocation = {
-      //       x,
-      //       y,
-      //       rotation: primaryDirection || 'front',
-      //       moving: isMoving,
-      //     };
-      //   }
-      //   this._lastLocation.x = x;
-      //   this._lastLocation.y = y;
-      //   this._lastLocation.rotation = primaryDirection || this._lastLocation.rotation || 'front';
-      //   this._lastLocation.moving = isMoving;
-      //   this._pendingOverlapExits.forEach((cb, interactable) => {
-      //     if (
-      //       !Phaser.Geom.Rectangle.Overlaps(
-      //         interactable.getBounds(),
-      //         gameObjects.sprite.getBounds(),
-      //       )
-      //     ) {
-      //       this._pendingOverlapExits.delete(interactable);
-      //       cb();
-      //     }
-      //   });
-      //   // this.coveyTownController.emitMovement(this._lastLocation);
-      // }
+
+      // If pet is in hospital, set invisible
+      petObjects.sprite.visible = !this.coveyTownController.ourPet!.isInHospital;
     }
   }
 

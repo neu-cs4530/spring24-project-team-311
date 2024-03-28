@@ -42,9 +42,7 @@ export default class PetController extends (EventEmitter as new () => TypedEmitt
     petName: string,
     location: PlayerLocation,
   ) {
-    console.log('PetController constructor');
     super();
-    console.log('PetController constructor super');
     this._playerID = playerID;
     this._petID = petID;
     this._petType = petType;
