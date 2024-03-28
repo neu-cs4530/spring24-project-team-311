@@ -4,6 +4,7 @@ import { BroadcastOperator } from 'socket.io';
 import InvalidParametersError from '../lib/InvalidParametersError';
 import IVideoClient from '../lib/IVideoClient';
 import Player from '../lib/Player';
+import Pet from '../lib/Pet';
 import TwilioVideo from '../lib/TwilioVideo';
 import { isViewingArea } from '../TestUtils';
 import {
@@ -17,6 +18,8 @@ import {
   ServerToClientEvents,
   SocketData,
   ViewingArea as ViewingAreaModel,
+  Player as PlayerModel,
+  Pet as PetModel,
 } from '../types/CoveyTownSocket';
 import { logError } from '../Utils';
 import ConversationArea from './ConversationArea';
@@ -74,6 +77,8 @@ export default class Town {
   /** The list of players currently in the town * */
   private _players: Player[] = [];
 
+  private _pets: Pet[] = [];
+
   /** The videoClient that this CoveyTown will use to provision video resources * */
   private _videoClient: IVideoClient = TwilioVideo.getInstance();
 
@@ -122,9 +127,29 @@ export default class Town {
     socket: CoveyTownSocket,
   ): Promise<Player> {
     const playerController = new PlayersController();
-    const user = await playerController.getUserObject(userID, socket.to(this._townID));
-    const newPlayer =
-      user === undefined ? new Player(userName, userID, email, socket.to(this._townID)) : user;
+    const user = await playerController.getUserObject(userID, {
+      x: 0,
+      y: 0,
+      moving: false,
+      rotation: 'front',
+    });
+    const newPlayer = new Player(userName, userID, email, socket.to(this._townID));
+
+    if (user !== undefined && user.pet !== undefined) {
+      const pet = new Pet(
+        user.pet.userName,
+        user.pet.type,
+        user.pet.ownerID,
+        user.pet.health,
+        user.pet.hunger,
+        user.pet.happiness,
+        user.pet.inHospital,
+        user.pet.isSick,
+        user.pet.id,
+      );
+      newPlayer.addPet(pet);
+      this._pets.push(pet);
+    }
 
     this._players.push(newPlayer);
 

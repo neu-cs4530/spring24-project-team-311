@@ -43,11 +43,17 @@ export interface Player {
 };
 
 export type PetID = string;
+export type PetType = 'Cat' | 'Dog' | 'Duck';
 export interface Pet {
   id: PetID;
   userName: string;
-  location: PlayerLocation;
-  ownerID: PlayerID;
+  ownerID: string;
+  type: PetType;
+  health: number;
+  hunger: number;
+  happiness: number;
+  inHospital: boolean;
+  isSick: boolean;
 };
 
 export type XY = { x: number, y: number };

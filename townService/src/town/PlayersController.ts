@@ -1,7 +1,8 @@
 import { getDatabase, ref, set, get, child, update, remove } from 'firebase/database';
-import Pet, { PetType } from '../lib/Pet';
-import Player from '../lib/Player';
-import { TownEmitter } from '../types/CoveyTownSocket';
+// import Pet from '../lib/Pet';
+
+// import Player from '../lib/Player';
+import { PetType, Pet, Player, PlayerLocation } from '../types/CoveyTownSocket';
 
 /*
 API Calls to make
@@ -46,22 +47,32 @@ export default class PlayersController {
       happiness: 100,
       inHospital: false,
       currentPet: true,
+      isSick: false,
     });
   }
 
-  async getUserObject(userID: string, townEmitter: TownEmitter): Promise<Player | undefined> {
+  async getUserObject(userID: string, location: PlayerLocation): Promise<Player | undefined> {
     const userRef = ref(db, `users/${userID}`);
     const snapshot = await get(userRef);
     if (snapshot.exists()) {
       const user = snapshot.val();
-      const existingPlayer = new Player(user.userName, user.userID, user.email, townEmitter);
+      let existingPlayer: Player = {
+        userName: user.userName,
+        id: user.userID,
+        email: user.email,
+        location,
+      };
       const pet: Pet | undefined = await this.getPet(userID);
       if (pet !== undefined) {
-        existingPlayer.addPet(pet);
+        existingPlayer = {
+          userName: user.userName,
+          id: user.userID,
+          email: user.email,
+          location,
+          pet,
+        };
       }
-      return new Promise<Player | undefined>((resolve, reject) => {
-        resolve(existingPlayer);
-      });
+      return existingPlayer;
     }
     return undefined;
   }
@@ -77,17 +88,17 @@ export default class PlayersController {
           const { pet } = existingPets[existingPetID];
           if (pet.currentPet === true) {
             return new Promise<Pet | undefined>((resolve, reject) => {
-              const currentPet = new Pet(
-                pet.name,
-                pet.type,
-                pet.ownerID,
-                pet.health,
-                pet.hunger,
-                pet.happiness,
-                pet.inHospital,
-                pet.currentPet,
-                pet.id,
-              );
+              const currentPet = {
+                userName: pet.name,
+                type: pet.type,
+                ownerID: pet.ownerID,
+                health: pet.health,
+                hunger: pet.hunger,
+                happiness: pet.happiness,
+                inHospital: pet.inHospital,
+                isSick: pet.isSick,
+                id: pet.id,
+              };
               resolve(currentPet);
             });
           }
@@ -236,6 +247,32 @@ export default class PlayersController {
         } else {
           updates[`$/hunger`] = Math.min(hungerVal + delta, 0);
         }
+        update(userPetsRef, updates);
+      }
+    }
+  }
+
+  async updateHospitalStatus(ownerID: string, petID: string, status: boolean) {
+    const userPetsRef = ref(db, `users/${ownerID}/pets/${petID}`);
+    const snapshot = await get(userPetsRef);
+    if (snapshot.exists()) {
+      const petData = snapshot.val();
+      if (petData.currentPet) {
+        const updates: Record<string, boolean> = {};
+        updates[`$/inHospital`] = status;
+        update(userPetsRef, updates);
+      }
+    }
+  }
+
+  async updateSickStatus(ownerID: string, petID: string, status: boolean) {
+    const userPetsRef = ref(db, `users/${ownerID}/pets/${petID}`);
+    const snapshot = await get(userPetsRef);
+    if (snapshot.exists()) {
+      const petData = snapshot.val();
+      if (petData.currentPet) {
+        const updates: Record<string, boolean> = {};
+        updates[`$/isSick`] = status;
         update(userPetsRef, updates);
       }
     }
