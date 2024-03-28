@@ -11,6 +11,7 @@ import ChatWindow from '../VideoCall/VideoFrontend/components/ChatWindow/ChatWin
 import clsx from 'clsx';
 import { createStyles, makeStyles, Theme } from '@material-ui/core';
 import PetSelectionPopup from './PetSelectionPopup';
+import HospitalAreaPopup from './HospitalAreaPopup';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -46,6 +47,7 @@ export default function TownMap(): JSX.Element {
   const { isChatWindowOpen } = useChatContext();
   const classes = useStyles();
   const [isPetSelectionOpen, setIsPetSelectionOpen] = useState<boolean>(true);
+  const [isHospitalPopupOpen, setIsHospitalPopupOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const config = {
@@ -87,6 +89,7 @@ export default function TownMap(): JSX.Element {
     <div id='app-container'>
       <NewConversationModal />
       <GameAreaWrapper />
+      <HospitalAreaPopup />
       <aside className={clsx(classes.chatWindowContainer, { [classes.hide]: !isChatWindowOpen })}>
         <ChatWindow />
       </aside>

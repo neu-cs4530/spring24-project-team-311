@@ -674,7 +674,7 @@
                  "id":72,
                  "name":"Hospital Area",
                  "rotation":0,
-                 "type":"",
+                 "type":"HospitalArea",
                  "visible":true,
                  "width":130.321459600348,
                  "x":3935.7080799305,
