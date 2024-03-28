@@ -23,7 +23,7 @@ import ConversationArea from './ConversationArea';
 import GameAreaFactory from './games/GameAreaFactory';
 import InteractableArea from './InteractableArea';
 import ViewingArea from './ViewingArea';
-
+import PlayersController from './PlayersController';
 /**
  * The Town class implements the logic for each town: managing the various events that
  * can occur (e.g. joining a town, moving, leaving a town)
@@ -121,7 +121,10 @@ export default class Town {
     email: string,
     socket: CoveyTownSocket,
   ): Promise<Player> {
-    const newPlayer = new Player(userName, userID, email, socket.to(this._townID));
+    const playerController = new PlayersController();
+    const user = await playerController.getUserObject(userID, socket.to(this._townID));
+    const newPlayer =
+      user === undefined ? new Player(userName, userID, email, socket.to(this._townID)) : user;
 
     this._players.push(newPlayer);
 

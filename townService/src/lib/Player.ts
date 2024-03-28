@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 import { Player as PlayerModel, PlayerLocation, TownEmitter } from '../types/CoveyTownSocket';
-import Pet, { PetType } from './Pet';
+import Pet from './Pet';
 
 /**
  * Each user who is connected to a town is represented by a Player object
@@ -28,7 +28,7 @@ export default class Player {
 
   public readonly _email: string;
 
-  private readonly _pets: Pet[];
+  private _pet?: Pet;
 
   constructor(userName: string, userID: string, userEmail: string, townEmitter: TownEmitter) {
     this.location = {
@@ -38,13 +38,11 @@ export default class Player {
       rotation: 'front',
     };
     this._userName = userName;
-    // we should try to input the id here
-    // TO DO make persistent
     this._id = userID;
     this._sessionToken = nanoid();
     this.townEmitter = townEmitter;
     this._email = userEmail;
-    this._pets = [];
+    this._pet = undefined;
   }
 
   get userName(): string {
@@ -67,12 +65,17 @@ export default class Player {
     return this._sessionToken;
   }
 
+  addPet(pet: Pet) {
+    this._pet = pet;
+  }
+
   toPlayerModel(): PlayerModel {
     return {
       id: this._id,
       location: this.location,
       userName: this._userName,
       email: this._email,
+      pet: this._pet?.toPetModel(),
     };
   }
 }

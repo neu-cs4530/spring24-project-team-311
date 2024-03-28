@@ -1,11 +1,11 @@
 import { nanoid } from 'nanoid';
-import { Pet as PetModel, TownEmitter } from '../types/CoveyTownSocket';
+import { Pet as PetModel, Player as PlayerModel, PlayerLocation } from '../types/CoveyTownSocket';
 // get all of the players in the town and assign
 /**
  * Each pet following a user is connected to a userID
  */
 
-export type PetType = 'Cat' | 'Dog' | 'Other';
+export type PetType = 'Cat' | 'Dog' | 'Duck';
 
 export default class Pet {
   /** The unique identifier for this player * */
@@ -15,7 +15,7 @@ export default class Pet {
   /**
    * The ID of the pet's user
    */
-  private readonly _user: string;
+  private readonly _user: PlayerModel;
 
   /** The pet's username, which is not guaranteed to be unique within the town * */
   /** */
@@ -49,7 +49,7 @@ export default class Pet {
   constructor(
     petName: string,
     type: PetType,
-    user: string,
+    user: PlayerModel,
     health = 100,
     hunger = 100,
     happiness = 100,
@@ -93,11 +93,20 @@ export default class Pet {
     return this._sessionToken;
   }
 
-  get user(): string {
+  get owner(): PlayerModel {
     return this._user;
   }
 
   get petType(): PetType {
     return this._type;
+  }
+
+  toPetModel(): PetModel {
+    return {
+      id: this._id,
+      location: this._user.location,
+      userName: this._petName,
+      ownerID: this._user.id,
+    };
   }
 }

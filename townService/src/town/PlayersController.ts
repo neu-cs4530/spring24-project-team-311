@@ -1,5 +1,7 @@
 import { getDatabase, ref, set, get, child, update, remove } from 'firebase/database';
 import Pet, { PetType } from '../lib/Pet';
+import Player from '../lib/Player';
+import { TownEmitter } from '../types/CoveyTownSocket';
 
 /*
 API Calls to make
@@ -45,6 +47,23 @@ export default class PlayersController {
       inHospital: false,
       currentPet: true,
     });
+  }
+
+  async getUserObject(userID: string, townEmitter: TownEmitter): Promise<Player | undefined> {
+    const userRef = ref(db, `users/${userID}`);
+    const snapshot = await get(userRef);
+    if (snapshot.exists()) {
+      const user = snapshot.val();
+      const existingPlayer = new Player(user.userName, user.userID, user.email, townEmitter);
+      const pet: Pet | undefined = await this.getPet(userID);
+      if (pet !== undefined) {
+        existingPlayer.addPet(pet);
+      }
+      return new Promise<Player | undefined>((resolve, reject) => {
+        resolve(existingPlayer);
+      });
+    }
+    return undefined;
   }
 
   async getPet(userID: string): Promise<Pet | undefined> {

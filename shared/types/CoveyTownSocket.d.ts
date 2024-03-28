@@ -39,6 +39,7 @@ export interface Player {
   userName: string;
   location: PlayerLocation;
   email: string;
+  pet?: Pet
 };
 
 export type PetID = string;
