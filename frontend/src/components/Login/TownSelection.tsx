@@ -24,7 +24,7 @@ import { Town } from '../../generated/client';
 import useLoginController from '../../hooks/useLoginController';
 import TownController from '../../classes/TownController';
 import useVideoContext from '../VideoCall/VideoFrontend/hooks/useVideoContext/useVideoContext';
-import { getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { getAuth, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { set } from 'lodash';
 import SignInOrUp from './SignInOrUp';
 import { auth } from '../../firebase';
@@ -62,14 +62,13 @@ export default function TownSelection(): JSX.Element {
         setLoggedIn(true);
         // set username here
         setUserName(user.displayName || 'DUMMY_USERNAME');
-        console.log(userName);
+        // console.log(userName);
       } else {
         setLoggedIn(false);
       }
     });
     return () => unsubscribe();
   });
-
 
   const handleJoin = useCallback(
     async (coveyRoomID: string) => {
@@ -160,7 +159,9 @@ export default function TownSelection(): JSX.Element {
   );
 
   const handleCreate = async () => {
-    if (!loggedIn) { return; }
+    if (!loggedIn) {
+      return;
+    }
     if (!userName || userName.length === 0) {
       toast({
         title: 'Unable to create town',
@@ -260,7 +261,7 @@ export default function TownSelection(): JSX.Element {
 
   const firebaseSignOut = async () => {
     await signOut(auth);
-  }
+  };
 
   if (!loggedIn) {
     return (
@@ -268,12 +269,15 @@ export default function TownSelection(): JSX.Element {
         <SignInOrUp />
       </>
     );
-  } 
+  }
   return (
     <>
       <Box borderWidth='1px' borderRadius='lg'>
         <Box p='4' flex='1'>
-          Current User: {userName} <Button onClick={firebaseSignOut} size='xs' colorScheme='red'>Sign Out</Button>
+          Current User: {userName}{' '}
+          <Button onClick={firebaseSignOut} size='xs' colorScheme='red'>
+            Sign Out
+          </Button>
         </Box>
       </Box>
       <form>
