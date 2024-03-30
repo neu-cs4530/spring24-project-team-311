@@ -232,13 +232,9 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
 
     const url = process.env.NEXT_PUBLIC_TOWNS_SERVICE_URL;
     assert(url);
-    console.log(`Connecting to ${url} as ${userName} in town ${townID}`);
     this._socket = io(url, { auth: { userName, townID } });
-    console.log('Socket created');
     this._townsService = new TownsServiceClient({ BASE: url }).towns;
-    console.log('Town service created');
     this.registerSocketListeners();
-    console.log('Socket listeners registered');
     // TEMP CODE TO ADD PET FOR USER
     console.log('Creating pet');
   }
@@ -655,7 +651,8 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         });
         this._userID = initialData.userID;
         this._ourPlayer = this.players.find(eachPlayer => eachPlayer.id == this.userID);
-        const newPet = new PetController(this.userID, '0', 'dog', 'Rover', {
+        // TODO: get pet from backend or from new pet dialog. This will create a pet for the user for now.
+        const newPet = new PetController(this.userID, '0', 'duck', 'Dummy', {
           x: 0,
           y: 0,
           moving: false,

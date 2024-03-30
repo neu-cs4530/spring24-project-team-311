@@ -1,7 +1,7 @@
 import EventEmitter from 'events';
 import TypedEmitter from 'typed-emitter';
 import { MOVEMENT_SPEED } from './PlayerController';
-import { Pet as PetModel, PlayerLocation } from '../types/CoveyTownSocket';
+import { Pet, Pet as PetModel, PlayerLocation } from '../types/CoveyTownSocket';
 
 export type PetEvents = {
   movement: (newLocation: PlayerLocation) => void;
@@ -12,6 +12,8 @@ export type PetGameObjects = {
   locationManagedByGameScene: boolean;
 };
 
+export type PetType = 'dog' | 'cat' | 'duck';
+
 export default class PetController extends (EventEmitter as new () => TypedEmitter<PetEvents>) {
   private _location: PlayerLocation;
 
@@ -21,7 +23,7 @@ export default class PetController extends (EventEmitter as new () => TypedEmitt
 
   private readonly _petID: string;
 
-  private readonly _petType: string;
+  private readonly _petType: PetType;
 
   private _petHealth: number;
 
@@ -38,7 +40,7 @@ export default class PetController extends (EventEmitter as new () => TypedEmitt
   constructor(
     playerID: string,
     petID: string,
-    petType: string,
+    petType: PetType,
     petName: string,
     location: PlayerLocation,
   ) {
@@ -77,7 +79,7 @@ export default class PetController extends (EventEmitter as new () => TypedEmitt
     return this._petName;
   }
 
-  get petType(): string {
+  get petType(): PetType {
     return this._petType;
   }
 
