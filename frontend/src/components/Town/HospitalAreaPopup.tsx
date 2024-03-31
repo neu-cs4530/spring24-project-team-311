@@ -28,12 +28,6 @@ export default function HospitalAreaPopup(): JSX.Element {
   const isOpen = hospital !== undefined;
   const [progressValues, setProgressValues] = useState<number[]>([20, 0, 70]); // Initial progress values
 
-  const handleProgressIncrement = (index: number, action: string) => {
-    const updatedProgressValues = [...progressValues];
-    updatedProgressValues[index] = Math.min(updatedProgressValues[index] + 10, 100); // Increase progress by 10%
-    setProgressValues(updatedProgressValues);
-  };
-
   const handleSelectTreatment = (treatment: string) => {
     setSelectedTreatment(treatment);
   };

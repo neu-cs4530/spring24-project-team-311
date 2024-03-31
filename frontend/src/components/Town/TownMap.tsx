@@ -47,7 +47,6 @@ export default function TownMap(): JSX.Element {
   const { isChatWindowOpen } = useChatContext();
   const classes = useStyles();
   const [isPetSelectionOpen, setIsPetSelectionOpen] = useState<boolean>(true);
-  const [isHospitalPopupOpen, setIsHospitalPopupOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const config = {
