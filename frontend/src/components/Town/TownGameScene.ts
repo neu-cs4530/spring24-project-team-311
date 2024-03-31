@@ -169,6 +169,11 @@ export default class TownGameScene extends Phaser.Scene {
       this._resourcePathPrefix + '/assets/atlas/duck-sprites.png',
       this._resourcePathPrefix + '/assets/atlas/duck-sprites.json',
     );
+    // Load the image for the cat sprite
+    this.load.image('cat-front', this._resourcePathPrefix + '/assets/atlas/cat-front.png');
+    this.load.image('cat-back', this._resourcePathPrefix + '/assets/atlas/cat-back.png');
+    this.load.image('cat-left', this._resourcePathPrefix + '/assets/atlas/cat-left.png');
+    this.load.image('cat-right', this._resourcePathPrefix + '/assets/atlas/cat-right.png');
   }
 
   updatePlayers(players: PlayerController[]) {
@@ -562,6 +567,30 @@ export default class TownGameScene extends Phaser.Scene {
           petObjects.sprite.setTexture('duck-sprites', 'duck-back');
         } else if (prevVelocity.y > 0) petObjects.sprite.setTexture('duck-sprites', 'duck-front');
         break;
+//     const playerSprite = this.coveyTownController.ourPlayer.gameObjects?.sprite;
+//     if (playerSprite && this._petSprite) {
+//       // Setting the x and y position of the pet sprite relative to the player sprite to place pet next to avatar
+//       this._petSprite.x = playerSprite.x + 40;
+//       this._petSprite.y = playerSprite.y + 15;
+
+//       const playerDirection = this.getNewMovementDirection();
+//       switch (playerDirection) {
+//         case 'back':
+//           this._petSprite.setTexture('cat-back', 'cat-back.png');
+//           break;
+//         case 'front':
+//           this._petSprite.setTexture('cat-front', 'cat-front.png');
+//           break;
+//         case 'left':
+//           this._petSprite.setTexture('cat-left', 'cat-left.png');
+//           break;
+//         case 'right':
+//           this._petSprite.setTexture('cat-right', 'cat-right.png');
+//           break;
+//         default:
+//           this._petSprite.setTexture('cat-front', 'cat-front.png');
+//           break;
+//       }
     }
   }
 
@@ -956,6 +985,8 @@ export default class TownGameScene extends Phaser.Scene {
           .setOffset(0, 24)
           .setDepth(5);
     }
+//     this._petSprite = this.add.sprite(0, 0, 'petSpriteKey');
+//     this._petSprite.setDepth(5);
   }
 
   createPlayerSprites(player: PlayerController) {

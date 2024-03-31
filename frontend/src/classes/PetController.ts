@@ -1,7 +1,9 @@
 import EventEmitter from 'events';
 import TypedEmitter from 'typed-emitter';
+
 import { MOVEMENT_SPEED } from './PlayerController';
 import { Pet, Pet as PetModel, PlayerLocation } from '../types/CoveyTownSocket';
+export const MOVEMENT_SPEED = 175;
 
 export type PetEvents = {
   movement: (newLocation: PlayerLocation) => void;
@@ -55,6 +57,26 @@ export default class PetController extends (EventEmitter as new () => TypedEmitt
     this._petHunger = 100;
     this._isInHospital = false;
     this._timePlacedInHospital = undefined;
+//   label: Phaser.GameObjects.Text;
+//   locationManagedByGameScene: boolean /* For the local player, the game scene will calculate the current location, and we should NOT apply updates when we receive events */;
+// };
+// export default class PetController extends (EventEmitter as new () => TypedEmitter<PetEvents>) {
+//   private _location: PlayerLocation;
+
+//   private readonly _id: string;
+
+//   private readonly _userName: string;
+
+//   public gameObjects?: PetGameObjects;
+
+//   private readonly _ownerID: string;
+
+//   constructor(id: string, userName: string, location: PlayerLocation, owner: string) {
+//     super();
+//     this._id = id;
+//     this._userName = userName;
+//     this._location = location;
+//     this._ownerID = owner;
   }
 
   set location(newLocation: PlayerLocation) {
@@ -121,6 +143,13 @@ export default class PetController extends (EventEmitter as new () => TypedEmitt
 
   set timePlacedInHospital(newTimePlacedInHospital: Date | undefined) {
     this._timePlacedInHospital = newTimePlacedInHospital;
+
+  get userName(): string {
+    return this._userName;
+  }
+
+  get id(): string {
+    return this._id;
   }
 
   toPetModel(): PetModel {
@@ -171,5 +200,15 @@ export default class PetController extends (EventEmitter as new () => TypedEmitt
         }
       }
     }
+
+//       id: this.id,
+//       userName: this.userName,
+//       location: this.location,
+//       ownerID: this._ownerID,
+//     };
+//   }
+
+//   static fromPlayerModel(modelPet: PetModel): PetController {
+//     return new PetController(modelPet.id, modelPet.userName, modelPet.location, modelPet.ownerID);
   }
 }

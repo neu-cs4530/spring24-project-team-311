@@ -186,7 +186,7 @@ describe('ConnectFourArea', () => {
     );
   }
   beforeEach(() => {
-    ourPlayer = new PlayerController('player x', 'player x', randomLocation());
+    ourPlayer = new PlayerController('player x', 'player x', randomLocation(), 'test@test.com');
     mockGameArea.name = nanoid();
     mockReset(townController);
     gameAreaController.mockClear();
@@ -293,11 +293,13 @@ describe('ConnectFourArea', () => {
         'player red',
         'player red',
         randomLocation(),
+        'test@test.com',
       );
       gameAreaController.mockYellow = new PlayerController(
         'player y',
         'player y',
         randomLocation(),
+        'test@test.com',
       );
       gameAreaController.mockIsPlayer = true;
       renderConnectFourArea();
@@ -317,6 +319,7 @@ describe('ConnectFourArea', () => {
         'player O',
         'player O',
         randomLocation(),
+        'test@test.com',
       );
       gameAreaController.mockIsPlayer = false;
       renderConnectFourArea();
@@ -329,6 +332,7 @@ describe('ConnectFourArea', () => {
         'player O',
         'player O',
         randomLocation(),
+        'test@test.com',
       );
       gameAreaController.mockIsPlayer = false;
       renderConnectFourArea();
@@ -386,11 +390,13 @@ describe('ConnectFourArea', () => {
           'player red',
           'player red',
           randomLocation(),
+          'test@test.com',
         );
         gameAreaController.mockYellow = new PlayerController(
           'player yellow',
           'player yellow',
           randomLocation(),
+          'test@test.com',
         );
         renderConnectFourArea();
         expect(screen.queryByText('Join New Game')).not.toBeInTheDocument();
@@ -409,6 +415,7 @@ describe('ConnectFourArea', () => {
           'player yellow',
           'player yellow',
           randomLocation(),
+          'test@test.com',
         );
         renderConnectFourArea();
         expect(screen.queryByText('Join New Game')).toBeInTheDocument();
@@ -429,6 +436,7 @@ describe('ConnectFourArea', () => {
         'player y',
         'player y',
         randomLocation(),
+        'test@test.com',
       );
       gameAreaController.mockIsPlayer = true;
       renderConnectFourArea();
@@ -448,6 +456,7 @@ describe('ConnectFourArea', () => {
         'player y',
         'player y',
         randomLocation(),
+        'test@test.com',
       );
       gameAreaController.mockIsPlayer = true;
       renderConnectFourArea();
@@ -461,6 +470,7 @@ describe('ConnectFourArea', () => {
           'player y',
           'player y',
           randomLocation(),
+          'test@test.com',
         );
         gameAreaController.mockIsPlayer = true;
         renderConnectFourArea();
@@ -475,6 +485,7 @@ describe('ConnectFourArea', () => {
           'player y',
           'player y',
           randomLocation(),
+          'test@test.com',
         );
         gameAreaController.mockIsPlayer = true;
         renderConnectFourArea();
@@ -501,6 +512,7 @@ describe('ConnectFourArea', () => {
           'player y',
           'player y',
           randomLocation(),
+          'test@test.com',
         );
         gameAreaController.mockIsPlayer = true;
         renderConnectFourArea();
@@ -528,6 +540,7 @@ describe('ConnectFourArea', () => {
             'player y',
             'player y',
             randomLocation(),
+            'test@test.com',
           );
           gameAreaController.emit('gameUpdated');
         });
@@ -540,6 +553,7 @@ describe('ConnectFourArea', () => {
           'player y',
           'player y',
           randomLocation(),
+          'test@test.com',
         );
         gameAreaController.mockIsPlayer = true;
         renderConnectFourArea();
@@ -554,7 +568,12 @@ describe('ConnectFourArea', () => {
   });
   describe('[T3.4] Players in game text', () => {
     it('Displays the username of the Red player if there is one', () => {
-      gameAreaController.mockRed = new PlayerController(nanoid(), nanoid(), randomLocation());
+      gameAreaController.mockRed = new PlayerController(
+        nanoid(),
+        nanoid(),
+        randomLocation(),
+        'test@test.com',
+      );
       gameAreaController.mockStatus = 'WAITING_FOR_PLAYERS';
       gameAreaController.mockIsPlayer = false;
       renderConnectFourArea();
@@ -564,7 +583,12 @@ describe('ConnectFourArea', () => {
       ).toBeInTheDocument();
     });
     it('Displays the username of the Yellow player if there is one', () => {
-      gameAreaController.mockYellow = new PlayerController(nanoid(), nanoid(), randomLocation());
+      gameAreaController.mockYellow = new PlayerController(
+        nanoid(),
+        nanoid(),
+        randomLocation(),
+        'test@test.com',
+      );
       gameAreaController.mockStatus = 'WAITING_FOR_PLAYERS';
       gameAreaController.mockIsPlayer = false;
       renderConnectFourArea();
@@ -596,7 +620,12 @@ describe('ConnectFourArea', () => {
       renderConnectFourArea();
       const listOfPlayers = screen.getByLabelText('list of players in the game');
       expect(within(listOfPlayers).getByText(`Red: (No player yet!)`)).toBeInTheDocument();
-      gameAreaController.mockRed = new PlayerController(nanoid(), nanoid(), randomLocation());
+      gameAreaController.mockRed = new PlayerController(
+        nanoid(),
+        nanoid(),
+        randomLocation(),
+        'test@test.com',
+      );
       act(() => {
         gameAreaController.emit('gameUpdated');
       });
@@ -611,7 +640,12 @@ describe('ConnectFourArea', () => {
       renderConnectFourArea();
       const listOfPlayers = screen.getByLabelText('list of players in the game');
       expect(within(listOfPlayers).getByText(`Yellow: (No player yet!)`)).toBeInTheDocument();
-      gameAreaController.mockYellow = new PlayerController(nanoid(), nanoid(), randomLocation());
+      gameAreaController.mockYellow = new PlayerController(
+        nanoid(),
+        nanoid(),
+        randomLocation(),
+        'test@test.com',
+      );
       act(() => {
         gameAreaController.emit('gameUpdated');
       });
@@ -652,6 +686,7 @@ describe('ConnectFourArea', () => {
           'player y',
           'player y',
           randomLocation(),
+          'test@test.com',
         );
         gameAreaController.mockIsPlayer = true;
         gameAreaController.mockIsOurTurn = true;
@@ -732,6 +767,7 @@ describe('ConnectFourArea', () => {
           'player y',
           'player y',
           randomLocation(),
+          'test@test.com',
         );
         renderConnectFourArea();
         gameAreaController.mockWinner = ourPlayer;
@@ -752,6 +788,7 @@ describe('ConnectFourArea', () => {
           'player y',
           'player y',
           randomLocation(),
+          'test@test.com',
         );
         renderConnectFourArea();
         gameAreaController.mockWinner = gameAreaController.mockYellow;
@@ -772,6 +809,7 @@ describe('ConnectFourArea', () => {
           'player y',
           'player y',
           randomLocation(),
+          'test@test.com',
         );
         renderConnectFourArea();
         gameAreaController.mockWinner = undefined;
