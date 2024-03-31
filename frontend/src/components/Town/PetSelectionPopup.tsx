@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import React from 'react';
-import dog from './images/dog.png';
+import dog from './images/dog-front.png';
 import cat from './images/cat-front.png';
 import duck from './images/duck-front.png';
 
