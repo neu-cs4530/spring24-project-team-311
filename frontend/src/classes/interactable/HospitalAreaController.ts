@@ -1,7 +1,5 @@
 import { HospitalArea as HospitalAreaModel } from '../../types/CoveyTownSocket';
-import {
-  InteractableID,
-} from '../../types/CoveyTownSocket';
+import { InteractableID } from '../../types/CoveyTownSocket';
 import TownController from '../TownController';
 import InteractableAreaController, {
   BaseInteractableEventMap,
