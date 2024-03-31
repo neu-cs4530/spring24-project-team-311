@@ -1,20 +1,21 @@
+// Import the functions you need from the SDKs you need
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import dotenv from 'dotenv';
 
-dotenv.config();
-console.log(process.env.TEST_VAR);
-console.log(process.env.NEXT_TEST_VAR);
 // Your web app's Firebase configuration
 // TODO: put this in .env file
+
+dotenv.config();
+console.log(process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
 const firebaseConfig = {
-  apiKey: 'AIzaSyCIOW_Yip0CHd5hJe5mjO674dpm40YOeTk',
-  authDomain: 'covey-town-pets.firebaseapp.com',
-  projectId: 'covey-town-pets',
-  storageBucket: 'covey-town-pets.appspot.com',
-  messagingSenderId: '209075765212',
-  appId: '1:209075765212:web:530a8d8586598b760cd919',
-  databaseURL: 'https://covey-town-pets-default-rtdb.firebaseio.com',
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
 };
 
 // Initialize Firebase
