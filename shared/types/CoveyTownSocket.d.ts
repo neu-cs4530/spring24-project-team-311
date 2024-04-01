@@ -15,6 +15,8 @@ export type TownJoinResponse = {
   isPubliclyListed: boolean;
   /** Current state of interactables in this town */
   interactables: TypedInteractable[];
+  /** List of Pets currenlty in the town. Cannot be more than the list of players. */
+  currentPets: Pet[];
 }
 
 export type InteractableType = 'ConversationArea' | 'ViewingArea' | 'TicTacToeArea' | 'ConnectFourArea' | 'HospitalArea';
@@ -36,6 +38,15 @@ export interface Player {
   id: PlayerID;
   userName: string;
   location: PlayerLocation;
+  email: string;
+};
+
+export type PetID = string;
+export interface Pet {
+  id: PetID;
+  userName: string;
+  location: PlayerLocation;
+  ownerID: PlayerID;
 };
 
 export interface Pet {

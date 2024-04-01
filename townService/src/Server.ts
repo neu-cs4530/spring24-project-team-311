@@ -29,7 +29,8 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 
 // Initialize Realtime Database and get a reference to the service
-const database = getDatabase(firebaseApp);
+// eslint-disable-next-line import/prefer-default-export
+export const database = getDatabase(firebaseApp);
 
 // Create the server instances
 const app = Express();

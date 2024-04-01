@@ -161,6 +161,7 @@ export async function mockTownControllerConnection(
           id: ourUserID,
           userName: testController.userName,
           location: { moving: false, x: 0, y: 0, rotation: 'back' },
+          email: 'test@test.com',
         },
       ],
       friendlyName: nanoid(),
@@ -168,6 +169,7 @@ export async function mockTownControllerConnection(
       providerVideoToken: nanoid(),
       sessionToken: nanoid(),
       userID: ourUserID,
+      currentPets: [],
     };
     responseToSendController.interactables.push({
       id: nanoid(),
@@ -181,6 +183,7 @@ export async function mockTownControllerConnection(
         id: playerID,
         userName: nanoid(),
         location: { moving: false, x: 0, y: 0, rotation: 'back' },
+        email: 'test@test.com',
       });
       responseToSendController.interactables.push({
         id: nanoid(),
