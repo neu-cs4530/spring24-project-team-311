@@ -42,11 +42,11 @@ export default function PreJoinScreens() {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(user => {
       if (user) {
-        setLoggedIn(true);
-        // set username here
         if (!newSignUp) {
+          setLoggedIn(true);
           setUserName(user.displayName || 'DUMMY_USERNAME');
         }
+        
       } else {
         setLoggedIn(false);
       }

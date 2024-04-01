@@ -217,7 +217,7 @@ function SignInOrUp({
 }): JSX.Element {
   const [isSigningIn, setIsSigningIn] = useState(true); // to toggle between sign in and sign up
   if (isSigningIn) {
-    newSignUp(true);
+    newSignUp(false);
     return (
       <>
         <Flex width='full' align='center' justifyContent='center'>
@@ -232,7 +232,7 @@ function SignInOrUp({
       </>
     );
   } else {
-    newSignUp(false);
+    newSignUp(true);
     return (
       <>
         <Flex width='full' align='center' justifyContent='center'>
