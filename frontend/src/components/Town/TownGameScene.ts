@@ -927,6 +927,27 @@ export default class TownGameScene extends Phaser.Scene {
         sprite: petSprite,
         locationManagedByGameScene: true,
       };
+      // petSprite.setInteractive().on('pointerdown', () => {
+      //   this.events.emit('petSpriteClicked');
+      // });
+      // const canvas = this.sys.game.canvas;
+      // petSprite.on('pointerover', () => {
+      //   canvas.style.cursor = 'pointer';
+      // });
+      // petSprite.on('pointerout', () => {
+      //   canvas.style.cursor = 'default';
+      // });
+      this.coveyTownController.ourPet.gameObjects.sprite.setInteractive().on('pointerdown', () => {
+        this.game.events.emit('petSpriteClicked');
+        console.log('Pet sprite clicked');
+      });
+      const canvas = this.sys.game.canvas;
+      this.coveyTownController.ourPet.gameObjects.sprite.on('pointerover', () => {
+        canvas.style.cursor = 'pointer';
+      });
+      this.coveyTownController.ourPet.gameObjects.sprite.on('pointerout', () => {
+        canvas.style.cursor = 'default';
+      });
     }
   }
 

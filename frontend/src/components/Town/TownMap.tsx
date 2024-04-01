@@ -85,18 +85,10 @@ export default function TownMap(): JSX.Element {
     coveyTownController.addListener('pause', pauseListener);
     coveyTownController.addListener('unPause', unPauseListener);
 
-    const gameScene = game.scene.getScene('coveyBoard');
-
-    if (gameScene) {
-      console.log('Setting up event listener');
-      gameScene.events.on('petSpriteClicked', handlePetSpriteClicked);
-      console.log('Event listener set up');
-    }
+    game.events.on('petSpriteClicked', handlePetSpriteClicked);
 
     return () => {
-      if (gameScene) {
-        gameScene.events.off('petSpriteClicked', handlePetSpriteClicked);
-      }
+      game.events.off('petSpriteClicked', handlePetSpriteClicked);
       coveyTownController.removeListener('pause', pauseListener);
       coveyTownController.removeListener('unPause', unPauseListener);
       game.destroy(true);
