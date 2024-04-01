@@ -34,15 +34,9 @@ function SignInComponent(): JSX.Element {
             status: 'error',
           });
           break;
-        case 'auth/user-not-found':
+        case 'auth/invalid-credential':
           toast({
-            title: 'No user found with this email address',
-            status: 'error',
-          });
-          break;
-        case 'auth/wrong-password':
-          toast({
-            title: 'Incorrect password',
+            title: 'Invalid email/password, plase try again',
             status: 'error',
           });
           break;
@@ -104,7 +98,11 @@ function SignInComponent(): JSX.Element {
   );
 }
 
-function SignUpComponent(): JSX.Element {
+function SignUpComponent({
+  updateUserName,
+}: {
+  updateUserName: (newName: string) => void;
+}): JSX.Element {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userName, setUserName] = useState('');
@@ -114,39 +112,43 @@ function SignUpComponent(): JSX.Element {
   const handleSignUp = async () => {
     setIsSigningUp(true);
     let errorState = false;
-    await createUserWithEmailAndPassword(auth, email, password).catch(async error => {
-      console.log(error.code, error.message);
-      errorState = true;
-      setIsSigningUp(false);
-      switch (error.code) {
-        case 'auth/invalid-email':
-          toast({
-            title: 'Invalid email address',
-            status: 'error',
-          });
-          break;
-        case 'auth/email-already-in-use':
-          toast({
-            title: 'Email address already in use',
-            status: 'error',
-          });
-          break;
-        case 'auth/weak-password':
-          toast({
-            title: 'Weak password',
-            status: 'error',
-          });
-          break;
-        default:
-          toast({
-            title: 'An error occurred while signing up',
-            status: 'error',
-          });
-      }
-    });
-    if (!errorState) {
-      await updateProfile(auth.currentUser!, { displayName: userName });
-    }
+    await createUserWithEmailAndPassword(auth, email, password)
+      .catch(async error => {
+        console.log(error.code, error.message);
+        errorState = true;
+        setIsSigningUp(false);
+        switch (error.code) {
+          case 'auth/invalid-email':
+            toast({
+              title: 'Invalid email address',
+              status: 'error',
+            });
+            break;
+          case 'auth/email-already-in-use':
+            toast({
+              title: 'Email address already in use',
+              status: 'error',
+            });
+            break;
+          case 'auth/weak-password':
+            toast({
+              title: 'Weak password',
+              status: 'error',
+            });
+            break;
+          default:
+            toast({
+              title: 'An error occurred while signing up',
+              status: 'error',
+            });
+        }
+      })
+      .then(async () => {
+        if (!errorState) {
+          updateUserName(userName);
+          await updateProfile(auth.currentUser!, { displayName: userName });
+        }
+      });
   };
   return (
     <>
@@ -206,9 +208,16 @@ function SignUpComponent(): JSX.Element {
   );
 }
 
-function SignInOrUp(): JSX.Element {
+function SignInOrUp({
+  updateUserName,
+  newSignUp,
+}: {
+  updateUserName: (newName: string) => void;
+  newSignUp: (val: boolean) => void;
+}): JSX.Element {
   const [isSigningIn, setIsSigningIn] = useState(true); // to toggle between sign in and sign up
   if (isSigningIn) {
+    newSignUp(true);
     return (
       <>
         <Flex width='full' align='center' justifyContent='center'>
@@ -223,6 +232,7 @@ function SignInOrUp(): JSX.Element {
       </>
     );
   } else {
+    newSignUp(false);
     return (
       <>
         <Flex width='full' align='center' justifyContent='center'>
@@ -233,7 +243,7 @@ function SignInOrUp(): JSX.Element {
             </Link>
           </Stack>
         </Flex>
-        <SignUpComponent />
+        <SignUpComponent updateUserName={updateUserName} />
       </>
     );
   }

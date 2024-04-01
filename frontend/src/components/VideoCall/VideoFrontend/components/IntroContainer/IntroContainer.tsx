@@ -6,6 +6,7 @@ import TwilioLogo from './TwilioLogo';
 import { useAppState } from '../../state';
 import UserMenu from './UserMenu/UserMenu';
 import { useLocation } from 'react-router-dom';
+import { height } from '@material-ui/system';
 
 const useStyles = makeStyles((theme: Theme) => ({
   background: {
@@ -18,6 +19,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   container: {
     position: 'relative',
     flex: '1',
+    minHeight: '100vh',
   },
   innerContainer: {
     display: 'block',
