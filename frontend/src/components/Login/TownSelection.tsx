@@ -24,8 +24,8 @@ import { Town } from '../../generated/client';
 import useLoginController from '../../hooks/useLoginController';
 import TownController from '../../classes/TownController';
 import useVideoContext from '../VideoCall/VideoFrontend/hooks/useVideoContext/useVideoContext';
-import { getAuth, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { set } from 'lodash';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { signOut } from 'firebase/auth';
 import SignInOrUp from './SignInOrUp';
 import { auth } from '../../firebase';
 
