@@ -6,9 +6,13 @@ import RoomNameScreen from './RoomNameScreen/RoomNameScreen';
 import { useAppState } from '../../state';
 import { useParams } from 'react-router-dom';
 import useVideoContext from '../../hooks/useVideoContext/useVideoContext';
-import { Heading, Text } from '@chakra-ui/react';
+import { Box, Button, Heading, Text } from '@chakra-ui/react';
 import TownSelection from '../../../../Login/TownSelection';
 import { TownJoinResponse } from '../../../../../types/CoveyTownSocket';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { signOut } from 'firebase/auth';
+import SignInOrUp from '../../../../Login/SignInOrUp';
+import { auth } from '../../../../../firebase';
 
 export enum Steps {
   roomNameStep,
@@ -16,7 +20,10 @@ export enum Steps {
 }
 
 export default function PreJoinScreens() {
-  const { user } = useAppState();
+  const [loggedIn, setLoggedIn] = useState<boolean>(false);
+  const [newSignUp, setNewSignUp] = useState<boolean>(false);
+  const [userName, setUserName] = useState<string>('');
+  // const { user } = useAppState();
   const { getAudioAndVideoTracks } = useVideoContext();
 
   const [mediaError, setMediaError] = useState<Error>();
@@ -32,6 +39,40 @@ export default function PreJoinScreens() {
     }
   }, [getAudioAndVideoTracks, mediaError]);
 
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(user => {
+      if (user) {
+        if (!newSignUp) {
+          setLoggedIn(true);
+          setUserName(user.displayName || 'DUMMY_USERNAME');
+        }
+        
+      } else {
+        setLoggedIn(false);
+      }
+    });
+    return () => unsubscribe();
+  });
+
+  const firebaseSignOut = async () => {
+    await signOut(auth);
+  };
+
+  const updateUserName = (newUserName: string) => {
+    setUserName(newUserName);
+  }
+
+  const updateNewSignUp = (newSignUp: boolean) => {
+    setNewSignUp(newSignUp);
+  }
+
+  if (!loggedIn) {
+    return (
+      <IntroContainer>
+        <SignInOrUp updateUserName={updateUserName} newSignUp={updateNewSignUp}/>
+      </IntroContainer>
+    );
+  }
 
   return (
     <IntroContainer>
@@ -43,7 +84,15 @@ export default function PreJoinScreens() {
         to hang out in, or join an existing one.
       </Text>
         <DeviceSelectionScreen />
-        <TownSelection />
+        <Box borderWidth='1px' borderRadius='lg'>
+          <Box p='4' flex='1'>
+            Current User: {userName}{' '}
+            <Button onClick={firebaseSignOut} size='xs' colorScheme='red'>
+              Sign Out
+            </Button>
+          </Box>
+        </Box>
+        <TownSelection username={userName}/>
     </IntroContainer>
   );
 }

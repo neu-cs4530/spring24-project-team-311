@@ -1,10 +1,21 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import { updateProfile } from 'firebase/auth';
 import React, { useState } from 'react';
-import { Box, Button, Flex, FormControl, FormErrorMessage, FormHelperText, FormLabel, Heading, Input, InputRightElement, Link, Stack, StylesProvider, useToast } from '@chakra-ui/react';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
-import { isError, set, values } from 'lodash';
+import {
+  Box,
+  Button,
+  Flex,
+  FormControl,
+  FormLabel,
+  Heading,
+  Input,
+  InputRightElement,
+  Link,
+  Stack,
+  useToast,
+} from '@chakra-ui/react';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../firebase';
-import { FirebaseError } from 'firebase/app';
 
 function SignInComponent(): JSX.Element {
   const [email, setEmail] = useState('');
@@ -14,7 +25,7 @@ function SignInComponent(): JSX.Element {
   const toast = useToast();
   const handleSignIn = async () => {
     setIsSigningIn(true);
-    signInWithEmailAndPassword(auth, email, password).catch((error) => {
+    signInWithEmailAndPassword(auth, email, password).catch(error => {
       setIsSigningIn(false);
       switch (error.code) {
         case 'auth/invalid-email':
@@ -23,15 +34,9 @@ function SignInComponent(): JSX.Element {
             status: 'error',
           });
           break;
-        case 'auth/user-not-found':
+        case 'auth/invalid-credential':
           toast({
-            title: 'No user found with this email address',
-            status: 'error',
-          });
-          break;
-        case 'auth/wrong-password':
-          toast({
-            title: 'Incorrect password',
+            title: 'Invalid email/password, plase try again',
             status: 'error',
           });
           break;
@@ -75,14 +80,14 @@ function SignInComponent(): JSX.Element {
                   </Button>
                 </InputRightElement>
               </FormControl>
-              <Button mt={4}
-                width='full' 
-                type='submit' 
-                colorScheme='blue' 
-                isLoading={isSigningIn} 
+              <Button
+                mt={4}
+                width='full'
+                type='submit'
+                colorScheme='blue'
+                isLoading={isSigningIn}
                 isDisabled={isSigningIn}
-                onClick={handleSignIn}
-              >
+                onClick={handleSignIn}>
                 Sign In
               </Button>
             </form>
@@ -93,7 +98,11 @@ function SignInComponent(): JSX.Element {
   );
 }
 
-function SignUpComponent(): JSX.Element {
+function SignUpComponent({
+  updateUserName,
+}: {
+  updateUserName: (newName: string) => void;
+}): JSX.Element {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userName, setUserName] = useState('');
@@ -103,39 +112,43 @@ function SignUpComponent(): JSX.Element {
   const handleSignUp = async () => {
     setIsSigningUp(true);
     let errorState = false;
-    await createUserWithEmailAndPassword(auth, email, password).catch(async (error) => {
-      console.log(error.code, error.message)
-      errorState = true;
-      setIsSigningUp(false);
-      switch (error.code) {
-        case 'auth/invalid-email':
-          toast({
-            title: 'Invalid email address',
-            status: 'error',
-          });
-          break;
-        case 'auth/email-already-in-use':
-          toast({
-            title: 'Email address already in use',
-            status: 'error',
-          });
-          break;
-        case 'auth/weak-password':
-          toast({
-            title: 'Weak password',
-            status: 'error',
-          });
-          break;
-        default:
-          toast({
-            title: 'An error occurred while signing up',
-            status: 'error',
-          });
-      }
-    });
-    if (!errorState) {
-      await updateProfile(auth.currentUser!, { displayName: userName });
-    }
+    await createUserWithEmailAndPassword(auth, email, password)
+      .catch(async error => {
+        console.log(error.code, error.message);
+        errorState = true;
+        setIsSigningUp(false);
+        switch (error.code) {
+          case 'auth/invalid-email':
+            toast({
+              title: 'Invalid email address',
+              status: 'error',
+            });
+            break;
+          case 'auth/email-already-in-use':
+            toast({
+              title: 'Email address already in use',
+              status: 'error',
+            });
+            break;
+          case 'auth/weak-password':
+            toast({
+              title: 'Weak password',
+              status: 'error',
+            });
+            break;
+          default:
+            toast({
+              title: 'An error occurred while signing up',
+              status: 'error',
+            });
+        }
+      })
+      .then(async () => {
+        if (!errorState) {
+          updateUserName(userName);
+          await updateProfile(auth.currentUser!, { displayName: userName });
+        }
+      });
   };
   return (
     <>
@@ -177,7 +190,14 @@ function SignUpComponent(): JSX.Element {
                   </Button>
                 </InputRightElement>
               </FormControl>
-              <Button mt={4} width='full' type='submit' colorScheme='blue' isDisabled={isSigningUp} isLoading={isSigningUp} onClick={handleSignUp}>
+              <Button
+                mt={4}
+                width='full'
+                type='submit'
+                colorScheme='blue'
+                isDisabled={isSigningUp}
+                isLoading={isSigningUp}
+                onClick={handleSignUp}>
                 Sign Up
               </Button>
             </form>
@@ -188,31 +208,42 @@ function SignUpComponent(): JSX.Element {
   );
 }
 
-
-function SignInOrUp(): JSX.Element {
-  const [isSigningIn, setIsSigningIn] = useState(true);  // to toggle between sign in and sign up
+function SignInOrUp({
+  updateUserName,
+  newSignUp,
+}: {
+  updateUserName: (newName: string) => void;
+  newSignUp: (val: boolean) => void;
+}): JSX.Element {
+  const [isSigningIn, setIsSigningIn] = useState(true); // to toggle between sign in and sign up
   if (isSigningIn) {
+    newSignUp(false);
     return (
       <>
         <Flex width='full' align='center' justifyContent='center'>
           <Stack align='center' justifyContent='center'>
             <p>No account? Sign up for one!</p>
-            <Link color='blue' onClick={() => setIsSigningIn(false)}>Create New Account</Link>
+            <Link color='blue' onClick={() => setIsSigningIn(false)}>
+              Create New Account
+            </Link>
           </Stack>
         </Flex>
         <SignInComponent />
       </>
     );
   } else {
+    newSignUp(true);
     return (
       <>
         <Flex width='full' align='center' justifyContent='center'>
           <Stack align='center' justifyContent='center'>
             <p>Have an account? Log in here:</p>
-            <Link color='blue' onClick={() => setIsSigningIn(true)}>Sign In</Link>
+            <Link color='blue' onClick={() => setIsSigningIn(true)}>
+              Sign In
+            </Link>
           </Stack>
         </Flex>
-        <SignUpComponent />
+        <SignUpComponent updateUserName={updateUserName} />
       </>
     );
   }
