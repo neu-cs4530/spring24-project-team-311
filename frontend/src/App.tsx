@@ -1,4 +1,4 @@
-import { ChakraProvider } from '@chakra-ui/react';
+import { Button, ChakraProvider } from '@chakra-ui/react';
 import { MuiThemeProvider } from '@material-ui/core/styles';
 import assert from 'assert';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -19,6 +19,9 @@ import LoginControllerContext from './contexts/LoginControllerContext';
 import { TownsServiceClient } from './generated/client';
 import { nanoid } from 'nanoid';
 import ToggleChatButton from './components/VideoCall/VideoFrontend/components/Buttons/ToggleChatButton/ToggleChatButton';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { signOut } from 'firebase/auth';
+import { auth } from './firebase';
 
 function App() {
   const [townController, setTownController] = useState<TownController | null>(null);
@@ -29,11 +32,18 @@ function App() {
     townController?.disconnect();
   }, [townController]);
 
+  const handleSignOut = async () => {
+    townController?.disconnect();
+    setTownController(null);
+    await signOut(auth);
+  };
+
   let page: JSX.Element;
   if (townController) {
     page = (
       <TownControllerContext.Provider value={townController}>
         <ChatProvider>
+          <Button onClick={handleSignOut}>Sign Out</Button>
           <TownMap />
           <VideoOverlay preferredMode='fullwidth' />
         </ChatProvider>
