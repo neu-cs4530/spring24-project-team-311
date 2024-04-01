@@ -567,7 +567,6 @@ export default class TownGameScene extends Phaser.Scene {
           petObjects.sprite.setTexture('duck-sprites', 'duck-back');
         } else if (prevVelocity.y > 0) petObjects.sprite.setTexture('duck-sprites', 'duck-front');
         break;
-//       }
     }
   }
 
@@ -962,8 +961,8 @@ export default class TownGameScene extends Phaser.Scene {
           .setOffset(0, 24)
           .setDepth(5);
     }
-//     this._petSprite = this.add.sprite(0, 0, 'petSpriteKey');
-//     this._petSprite.setDepth(5);
+    //     this._petSprite = this.add.sprite(0, 0, 'petSpriteKey');
+    //     this._petSprite.setDepth(5);
   }
 
   createPlayerSprites(player: PlayerController) {
