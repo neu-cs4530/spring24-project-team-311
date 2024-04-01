@@ -12,7 +12,9 @@ import {
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import React from 'react';
-import dog from './images/dog.png';
+import dog from './images/dog-front.png';
+import cat from './images/cat-front.png';
+import duck from './images/duck-front.png';
 
 interface PetSelectionPopupProps {
   isOpen: boolean;
@@ -56,9 +58,9 @@ const PetSelectionPopup = (props: PetSelectionPopupProps) => {
           <ModalHeader>Select your pet and name them:</ModalHeader>
           <ModalBody display={'flex'} flexDirection={'column'} gap={6}>
             <Flex justifyContent={'space-evenly'}>
-              <Image boxSize='100px' src={dog.src} alt={'Image1'} />
-              <Image boxSize='100px' src={dog.src} alt={'Image2'} />
-              <Image boxSize='100px' src={dog.src} alt={'Image3'} />
+              <Image boxSize='100px' src={cat.src} alt={'Cat'} />
+              <Image boxSize='100px' src={dog.src} alt={'Dog'} />
+              <Image boxSize='100px' src={duck.src} alt={'Duck'} />
             </Flex>
             <Flex justifyContent={'space-evenly'}>
               <Button

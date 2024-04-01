@@ -8,7 +8,7 @@ jest.mock('nanoid', () => ({
   nanoid: jest.fn(() => 'mockedId'), // Mocked nanoid function always returns 'mockedId'
 }));
 
-jest.mock('./images/dog.png', () => 'dog-image-placeholder');
+jest.mock('./images/dog-front.png', () => 'dog-image-placeholder');
 
 describe('PetSelectionPopup', () => {
   it('should display error message when user clicks "Done" without selecting a pet', () => {
