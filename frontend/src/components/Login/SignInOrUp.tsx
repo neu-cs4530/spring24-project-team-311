@@ -1,22 +1,7 @@
 import { updateProfile } from 'firebase/auth';
 import React, { useState } from 'react';
-import {
-  Box,
-  Button,
-  Flex,
-  FormControl,
-  FormErrorMessage,
-  FormHelperText,
-  FormLabel,
-  Heading,
-  Input,
-  InputRightElement,
-  Link,
-  Stack,
-  StylesProvider,
-  useToast,
-} from '@chakra-ui/react';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { Box, Button, Flex, FormControl, FormErrorMessage, FormHelperText, FormLabel, Heading, Input, InputRightElement, Link, Stack, StylesProvider, useToast } from '@chakra-ui/react';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { isError, set, values } from 'lodash';
 import { auth } from '../../firebase';
 import { FirebaseError } from 'firebase/app';
@@ -29,7 +14,7 @@ function SignInComponent(): JSX.Element {
   const toast = useToast();
   const handleSignIn = async () => {
     setIsSigningIn(true);
-    signInWithEmailAndPassword(auth, email, password).catch(error => {
+    signInWithEmailAndPassword(auth, email, password).catch((error) => {
       setIsSigningIn(false);
       switch (error.code) {
         case 'auth/invalid-email':
@@ -90,14 +75,14 @@ function SignInComponent(): JSX.Element {
                   </Button>
                 </InputRightElement>
               </FormControl>
-              <Button
-                mt={4}
-                width='full'
-                type='submit'
-                colorScheme='blue'
-                isLoading={isSigningIn}
+              <Button mt={4}
+                width='full' 
+                type='submit' 
+                colorScheme='blue' 
+                isLoading={isSigningIn} 
                 isDisabled={isSigningIn}
-                onClick={handleSignIn}>
+                onClick={handleSignIn}
+              >
                 Sign In
               </Button>
             </form>
@@ -118,8 +103,8 @@ function SignUpComponent(): JSX.Element {
   const handleSignUp = async () => {
     setIsSigningUp(true);
     let errorState = false;
-    await createUserWithEmailAndPassword(auth, email, password).catch(async error => {
-      console.log(error.code, error.message);
+    await createUserWithEmailAndPassword(auth, email, password).catch(async (error) => {
+      console.log(error.code, error.message)
       errorState = true;
       setIsSigningUp(false);
       switch (error.code) {
@@ -192,14 +177,7 @@ function SignUpComponent(): JSX.Element {
                   </Button>
                 </InputRightElement>
               </FormControl>
-              <Button
-                mt={4}
-                width='full'
-                type='submit'
-                colorScheme='blue'
-                isDisabled={isSigningUp}
-                isLoading={isSigningUp}
-                onClick={handleSignUp}>
+              <Button mt={4} width='full' type='submit' colorScheme='blue' isDisabled={isSigningUp} isLoading={isSigningUp} onClick={handleSignUp}>
                 Sign Up
               </Button>
             </form>
@@ -210,17 +188,16 @@ function SignUpComponent(): JSX.Element {
   );
 }
 
+
 function SignInOrUp(): JSX.Element {
-  const [isSigningIn, setIsSigningIn] = useState(true); // to toggle between sign in and sign up
+  const [isSigningIn, setIsSigningIn] = useState(true);  // to toggle between sign in and sign up
   if (isSigningIn) {
     return (
       <>
         <Flex width='full' align='center' justifyContent='center'>
           <Stack align='center' justifyContent='center'>
             <p>No account? Sign up for one!</p>
-            <Link color='blue' onClick={() => setIsSigningIn(false)}>
-              Create New Account
-            </Link>
+            <Link color='blue' onClick={() => setIsSigningIn(false)}>Create New Account</Link>
           </Stack>
         </Flex>
         <SignInComponent />
@@ -232,9 +209,7 @@ function SignInOrUp(): JSX.Element {
         <Flex width='full' align='center' justifyContent='center'>
           <Stack align='center' justifyContent='center'>
             <p>Have an account? Log in here:</p>
-            <Link color='blue' onClick={() => setIsSigningIn(true)}>
-              Sign In
-            </Link>
+            <Link color='blue' onClick={() => setIsSigningIn(true)}>Sign In</Link>
           </Stack>
         </Flex>
         <SignUpComponent />
