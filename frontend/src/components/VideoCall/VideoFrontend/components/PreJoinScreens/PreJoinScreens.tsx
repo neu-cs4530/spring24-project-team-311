@@ -43,10 +43,10 @@ export default function PreJoinScreens() {
     const unsubscribe = auth.onAuthStateChanged(user => {
       if (user) {
         if (!newSignUp) {
+          // if pre-existing user, get username from firebase.
           setLoggedIn(true);
           setUserName(user.displayName || 'DUMMY_USERNAME');
         }
-        
       } else {
         setLoggedIn(false);
       }
