@@ -16,10 +16,12 @@ import React from 'react';
 import feed from './images/feed.png';
 import clean from './images/clean.png';
 import play from './images/play.png';
+import TownController from '../../classes/TownController';
 
 interface PetInteractivePopupProps {
   isOpen: boolean;
   onClose: () => void;
+  townController: TownController;
 }
 
 const PetInteractivePopup = (props: PetInteractivePopupProps) => {
@@ -59,7 +61,7 @@ const PetInteractivePopup = (props: PetInteractivePopupProps) => {
     <Modal closeOnOverlayClick={false} isOpen={props.isOpen} onClose={props.onClose} size='xl'>
       <ModalOverlay>
         <ModalContent>
-          <ModalHeader>Interact with your pet [name] </ModalHeader>
+          <ModalHeader>Interact with your pet {props.townController.ourPet?.petName} </ModalHeader>
           <ModalBody>
             <Flex flexDirection={'row'} gap={10}>
               <Flex justifyContent={'space-evenly'} direction={'column'} gap={10}>

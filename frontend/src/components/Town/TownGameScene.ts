@@ -10,7 +10,7 @@ import GameArea from './interactables/GameArea';
 import Transporter from './interactables/Transporter';
 import ViewingArea from './interactables/ViewingArea';
 import PetInteractivePopup from './PetInteractivePopup';
-import { PetGameObjects, PetType } from '../../classes/PetController';
+import PetController, { PetGameObjects, PetType } from '../../classes/PetController';
 
 export class NoPetError extends Error {
   constructor(msg = 'No pet found') {
@@ -47,6 +47,8 @@ export default class TownGameScene extends Phaser.Scene {
   }
 
   private _players: PlayerController[] = [];
+
+  private _pet: PetController | undefined = undefined;
 
   private _interactables: Interactable[] = [];
 
@@ -271,6 +273,10 @@ export default class TownGameScene extends Phaser.Scene {
   }
 
   update() {
+    const spawnPoint = this.map.findObject(
+      'Objects',
+      obj => obj.name === 'Spawn Point',
+    ) as unknown as Phaser.GameObjects.Components.Transform;
     if (this._paused) {
       return;
     }
@@ -367,6 +373,28 @@ export default class TownGameScene extends Phaser.Scene {
           player.gameObjects.label.setY(player.gameObjects.sprite.body.y + LABEL_OFFSET_Y);
         }
       }
+    }
+
+    if (this.coveyTownController.ourPet && this._pet != this.coveyTownController.ourPet) {
+      this._pet = this.coveyTownController.ourPet;
+      const petSprite = this._addInitialPetSprite(
+        this.coveyTownController.ourPet.petType,
+        spawnPoint,
+      );
+      this.coveyTownController.ourPet.gameObjects = {
+        sprite: petSprite,
+        locationManagedByGameScene: true,
+      };
+      this.coveyTownController.ourPet.gameObjects.sprite.setInteractive().on('pointerdown', () => {
+        this.game.events.emit('petSpriteClicked');
+      });
+      const canvas = this.sys.game.canvas;
+      this.coveyTownController.ourPet.gameObjects.sprite.on('pointerover', () => {
+        canvas.style.cursor = 'pointer';
+      });
+      this.coveyTownController.ourPet.gameObjects.sprite.on('pointerout', () => {
+        canvas.style.cursor = 'default';
+      });
     }
 
     // Update the position of the follower sprite to follow the player sprite
@@ -918,37 +946,8 @@ export default class TownGameScene extends Phaser.Scene {
     this._onGameReadyListeners = [];
     this.coveyTownController.addListener('playersChanged', players => this.updatePlayers(players));
 
-    if (this.coveyTownController.ourPet) {
-      const petSprite = this._addInitialPetSprite(
-        this.coveyTownController.ourPet.petType,
-        spawnPoint,
-      );
-      this.coveyTownController.ourPet!.gameObjects = {
-        sprite: petSprite,
-        locationManagedByGameScene: true,
-      };
-      // petSprite.setInteractive().on('pointerdown', () => {
-      //   this.events.emit('petSpriteClicked');
-      // });
-      // const canvas = this.sys.game.canvas;
-      // petSprite.on('pointerover', () => {
-      //   canvas.style.cursor = 'pointer';
-      // });
-      // petSprite.on('pointerout', () => {
-      //   canvas.style.cursor = 'default';
-      // });
-      this.coveyTownController.ourPet.gameObjects.sprite.setInteractive().on('pointerdown', () => {
-        this.game.events.emit('petSpriteClicked');
-        console.log('Pet sprite clicked');
-      });
-      const canvas = this.sys.game.canvas;
-      this.coveyTownController.ourPet.gameObjects.sprite.on('pointerover', () => {
-        canvas.style.cursor = 'pointer';
-      });
-      this.coveyTownController.ourPet.gameObjects.sprite.on('pointerout', () => {
-        canvas.style.cursor = 'default';
-      });
-    }
+    console.log('checking for pet');
+    console.log(this.coveyTownController.ourPet);
   }
 
   private _addInitialPetSprite(

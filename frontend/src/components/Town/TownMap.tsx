@@ -12,6 +12,8 @@ import clsx from 'clsx';
 import { createStyles, makeStyles, Theme } from '@material-ui/core';
 import PetSelectionPopup from './PetSelectionPopup';
 import PetInteractivePopup from './PetInteractivePopup';
+import { PetType } from '../../classes/PetController';
+import TownController from '../../classes/TownController';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -48,6 +50,9 @@ export default function TownMap(): JSX.Element {
   const classes = useStyles();
   const [isPetSelectionOpen, setIsPetSelectionOpen] = useState<boolean>(true);
   const [isPetInteractivePopupOpen, setIsPetInteractivePopupOpen] = useState(false);
+
+  console.log('Town controller after context');
+  console.log(coveyTownController);
 
   useEffect(() => {
     const config = {
@@ -111,12 +116,14 @@ export default function TownMap(): JSX.Element {
         <PetSelectionPopup
           isOpen={isPetSelectionOpen}
           onClose={() => setIsPetSelectionOpen(false)}
+          townController={coveyTownController}
         />
       )}
       {isPetInteractivePopupOpen && (
         <PetInteractivePopup
           isOpen={isPetInteractivePopupOpen}
           onClose={() => setIsPetInteractivePopupOpen(false)}
+          townController={coveyTownController}
         />
       )}
     </div>
