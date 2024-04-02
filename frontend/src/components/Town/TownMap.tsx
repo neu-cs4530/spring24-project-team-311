@@ -48,7 +48,9 @@ export default function TownMap(): JSX.Element {
   const coveyTownController = useTownController();
   const { isChatWindowOpen } = useChatContext();
   const classes = useStyles();
-  const [isPetSelectionOpen, setIsPetSelectionOpen] = useState<boolean>(true);
+  const [isPetSelectionOpen, setIsPetSelectionOpen] = useState<boolean>(
+    coveyTownController.ourPet === undefined,
+  );
   const [isPetInteractivePopupOpen, setIsPetInteractivePopupOpen] = useState(false);
 
   console.log('Town controller after context');

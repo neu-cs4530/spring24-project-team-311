@@ -10,8 +10,9 @@ import {
   ModalHeader,
   ModalOverlay,
   Text,
+  HStack,
 } from '@chakra-ui/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import React from 'react';
 import feed from './images/feed.png';
 import clean from './images/clean.png';
@@ -26,7 +27,12 @@ interface PetInteractivePopupProps {
 
 const PetInteractivePopup = (props: PetInteractivePopupProps) => {
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const [progressValues, setProgressValues] = useState<number[]>([20, 0, 70]); // Initial progress values
+  const ourPet = props.townController.ourPet;
+  const [progressValues, setProgressValues] = useState<number[]>([
+    ourPet ? ourPet.petHunger : 20,
+    ourPet ? ourPet.petHealth : 0,
+    ourPet ? ourPet.petHappiness : 70,
+  ]); // Initial progress values
 
   const handleProgressIncrement = (index: number, action: string) => {
     const updatedProgressValues = [...progressValues];
@@ -36,7 +42,16 @@ const PetInteractivePopup = (props: PetInteractivePopupProps) => {
       setErrorMessage('');
     }
     updatedProgressValues[index] = Math.min(updatedProgressValues[index] + 10, 100); // Increase progress by 10%
-    setProgressValues(updatedProgressValues);
+    props.townController.setPetStats(ourPet!.petID, {
+      hunger: updatedProgressValues[0],
+      health: updatedProgressValues[1],
+      happiness: updatedProgressValues[2],
+    });
+    setProgressValues([
+      ourPet?.petHunger || updatedProgressValues[0],
+      ourPet?.petHealth || updatedProgressValues[1],
+      ourPet?.petHappiness || updatedProgressValues[2],
+    ]);
   };
 
   const handleZeroProgressAction = (action: string) => {
@@ -57,17 +72,28 @@ const PetInteractivePopup = (props: PetInteractivePopupProps) => {
     props.onClose();
   };
 
+  useEffect(() => {
+    ourPet?.addListener('petStatsUpdated', newStats => {
+      setProgressValues([newStats.petHunger, newStats.petHealth, newStats.petHappiness]);
+    });
+  }, [ourPet]);
+
   return (
     <Modal closeOnOverlayClick={false} isOpen={props.isOpen} onClose={props.onClose} size='xl'>
       <ModalOverlay>
         <ModalContent>
-          <ModalHeader>Interact with your pet {props.townController.ourPet?.petName} </ModalHeader>
+          <ModalHeader>Interact with {props.townController.ourPet?.petName}! </ModalHeader>
           <ModalBody>
             <Flex flexDirection={'row'} gap={10}>
               <Flex justifyContent={'space-evenly'} direction={'column'} gap={10}>
                 {progressValues.map((value, index) => (
                   <Flex key={index} style={{ display: 'inline' }} alignItems='center'>
-                    <Image src={interactionImages[index]} boxSize='20px' />
+                    <HStack>
+                      <Image src={interactionImages[index]} boxSize='20px' />
+                      <Text>
+                        {index === 0 ? 'Hunger' : index === 1 ? 'Cleanliness' : 'Happiness'}
+                      </Text>
+                    </HStack>
                     <Progress
                       value={value}
                       borderRadius={'5px'}
@@ -88,7 +114,7 @@ const PetInteractivePopup = (props: PetInteractivePopupProps) => {
                 <Button
                   colorScheme='teal'
                   onClick={() => {
-                    progressValues[0] === 0
+                    return progressValues[0] === 0
                       ? handleZeroProgressAction('feed')
                       : handleProgressIncrement(0, 'Feed');
                   }}
@@ -98,7 +124,7 @@ const PetInteractivePopup = (props: PetInteractivePopupProps) => {
                 <Button
                   colorScheme='teal'
                   onClick={() => {
-                    progressValues[1] === 0
+                    return progressValues[1] === 0
                       ? handleZeroProgressAction('clean')
                       : handleProgressIncrement(1, 'Clean');
                   }}
@@ -108,7 +134,7 @@ const PetInteractivePopup = (props: PetInteractivePopupProps) => {
                 <Button
                   colorScheme='teal'
                   onClick={() => {
-                    progressValues[2] === 0
+                    return progressValues[2] === 0
                       ? handleZeroProgressAction('play')
                       : handleProgressIncrement(2, 'Play');
                   }}

@@ -21,6 +21,8 @@ export class NoPetError extends Error {
 
 const LABEL_OFFSET_Y = -20;
 
+const STAT_DECAY_SECONDS = 1;
+
 // Still not sure what the right type is here... "Interactable" doesn't do it
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function interactableTypeForObjectType(type: string): any {
@@ -948,6 +950,27 @@ export default class TownGameScene extends Phaser.Scene {
 
     console.log('checking for pet');
     console.log(this.coveyTownController.ourPet);
+
+    //temporary stat decaying. This should be accomplished by the backend emitting an event later
+    const decayEvent = this.time.addEvent({
+      delay: STAT_DECAY_SECONDS * 1000,
+      loop: true,
+      callback: () => {
+        this._decayPetStats();
+      },
+      callbackScope: this,
+    });
+  }
+
+  private _decayPetStats() {
+    if (this.coveyTownController.ourPet) {
+      this.coveyTownController.updatePetStats(this.coveyTownController.ourPet!.petID, -1);
+      console.log([
+        this.coveyTownController.ourPet.petHappiness,
+        this.coveyTownController.ourPet.petHunger,
+        this.coveyTownController.ourPet.petHealth,
+      ]);
+    }
   }
 
   private _addInitialPetSprite(

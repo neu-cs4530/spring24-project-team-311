@@ -5,6 +5,7 @@ import { Pet, Pet as PetModel, PlayerLocation } from '../types/CoveyTownSocket';
 
 export type PetEvents = {
   movement: (newLocation: PlayerLocation) => void;
+  petStatsUpdated: (newStats: Pet) => void;
 };
 
 export type PetGameObjects = {
@@ -50,9 +51,9 @@ export default class PetController extends (EventEmitter as new () => TypedEmitt
     this._petType = petType;
     this._petName = petName;
     this._location = location;
-    this._petHealth = 100;
-    this._petHappiness = 100;
-    this._petHunger = 100;
+    this._petHealth = 50;
+    this._petHappiness = 50;
+    this._petHunger = 50;
     this._isInHospital = false;
     this._timePlacedInHospital = undefined;
   }
@@ -89,6 +90,7 @@ export default class PetController extends (EventEmitter as new () => TypedEmitt
 
   set petHealth(newHealth: number) {
     this._petHealth = newHealth;
+    this.emit('petStatsUpdated', this.toPetModel());
   }
 
   get petHappiness(): number {
@@ -97,6 +99,7 @@ export default class PetController extends (EventEmitter as new () => TypedEmitt
 
   set petHappiness(newHappiness: number) {
     this._petHappiness = newHappiness;
+    this.emit('petStatsUpdated', this.toPetModel());
   }
 
   get petHunger(): number {
@@ -105,6 +108,7 @@ export default class PetController extends (EventEmitter as new () => TypedEmitt
 
   set petHunger(newHunger: number) {
     this._petHunger = newHunger;
+    this.emit('petStatsUpdated', this.toPetModel());
   }
 
   get isInHospital(): boolean {
