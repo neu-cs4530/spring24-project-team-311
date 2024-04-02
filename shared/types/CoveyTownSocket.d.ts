@@ -38,6 +38,19 @@ export interface Player {
   location: PlayerLocation;
 };
 
+export interface Pet {
+  playerID: PlayerID;
+  petID: string;
+  location: PlayerLocation;
+  petType: string;
+  petName: string;
+  petHealth: number;
+  petHappiness: number;
+  petHunger: number;
+  isInHospital: boolean;
+  timePlacedInHospital: Date | undefined;
+}
+
 export type XY = { x: number, y: number };
 
 export interface PlayerLocation {
