@@ -324,6 +324,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     this._petsInternal = newPets;
   }
 
+  public addPet(newPet: PetController) {
+    this._petsInternal = [newPet];
+  }
+
   public getPlayer(id: PlayerID) {
     const ret = this._playersInternal.find(eachPlayer => eachPlayer.id === id);
     assert(ret);
@@ -651,14 +655,6 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         });
         this._userID = initialData.userID;
         this._ourPlayer = this.players.find(eachPlayer => eachPlayer.id == this.userID);
-        // TODO: get pet from backend or from new pet dialog. This will create a pet for the user for now.
-        const newPet = new PetController(this.userID, '0', 'duck', 'Dummy', {
-          x: 0,
-          y: 0,
-          moving: false,
-          rotation: 'back',
-        });
-        this._petsInternal = [newPet];
         this.emit('connect', initialData.providerVideoToken);
         resolve();
       });

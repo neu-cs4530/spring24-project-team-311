@@ -1,4 +1,5 @@
 /* eslint-disable import/no-extraneous-dependencies */
+
 import React, { useState } from 'react';
 import {
   Box,
@@ -216,6 +217,7 @@ function SignUpComponent({
                 colorScheme='blue'
                 isDisabled={isSigningUp}
                 isLoading={isSigningUp}
+
                 onClick={handleSignUp}
                 data-testid='SignUpButton'>
                 Sign Up

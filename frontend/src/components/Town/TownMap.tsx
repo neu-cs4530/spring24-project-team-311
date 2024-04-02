@@ -11,6 +11,9 @@ import ChatWindow from '../VideoCall/VideoFrontend/components/ChatWindow/ChatWin
 import clsx from 'clsx';
 import { createStyles, makeStyles, Theme } from '@material-ui/core';
 import PetSelectionPopup from './PetSelectionPopup';
+import PetInteractivePopup from './PetInteractivePopup';
+import { PetType } from '../../classes/PetController';
+import TownController from '../../classes/TownController';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -46,6 +49,10 @@ export default function TownMap(): JSX.Element {
   const { isChatWindowOpen } = useChatContext();
   const classes = useStyles();
   const [isPetSelectionOpen, setIsPetSelectionOpen] = useState<boolean>(true);
+  const [isPetInteractivePopupOpen, setIsPetInteractivePopupOpen] = useState(false);
+
+  console.log('Town controller after context');
+  console.log(coveyTownController);
 
   useEffect(() => {
     const config = {
@@ -67,16 +74,26 @@ export default function TownMap(): JSX.Element {
           gravity: { y: 0 }, // Top down game, so no gravity
         },
       },
+      input: {
+        activePointers: 1,
+      },
     };
-
+    const handlePetSpriteClicked = () => {
+      console.log('Received petSpriteClicked event');
+      setIsPetInteractivePopupOpen(true);
+    };
     const game = new Phaser.Game(config);
-    const newGameScene = new TownGameScene(coveyTownController);
+    const newGameScene = new TownGameScene(coveyTownController, handlePetSpriteClicked);
     game.scene.add('coveyBoard', newGameScene, true);
     const pauseListener = newGameScene.pause.bind(newGameScene);
     const unPauseListener = newGameScene.resume.bind(newGameScene);
     coveyTownController.addListener('pause', pauseListener);
     coveyTownController.addListener('unPause', unPauseListener);
+
+    game.events.on('petSpriteClicked', handlePetSpriteClicked);
+
     return () => {
+      game.events.off('petSpriteClicked', handlePetSpriteClicked);
       coveyTownController.removeListener('pause', pauseListener);
       coveyTownController.removeListener('unPause', unPauseListener);
       game.destroy(true);
@@ -99,6 +116,14 @@ export default function TownMap(): JSX.Element {
         <PetSelectionPopup
           isOpen={isPetSelectionOpen}
           onClose={() => setIsPetSelectionOpen(false)}
+          townController={coveyTownController}
+        />
+      )}
+      {isPetInteractivePopupOpen && (
+        <PetInteractivePopup
+          isOpen={isPetInteractivePopupOpen}
+          onClose={() => setIsPetInteractivePopupOpen(false)}
+          townController={coveyTownController}
         />
       )}
     </div>
