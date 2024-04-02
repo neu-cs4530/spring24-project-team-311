@@ -9,6 +9,7 @@ import ConversationArea from './interactables/ConversationArea';
 import GameArea from './interactables/GameArea';
 import Transporter from './interactables/Transporter';
 import ViewingArea from './interactables/ViewingArea';
+import HospitalArea from './interactables/HospitalArea';
 import PetInteractivePopup from './PetInteractivePopup';
 import PetController, { PetGameObjects, PetType } from '../../classes/PetController';
 
@@ -34,6 +35,8 @@ function interactableTypeForObjectType(type: string): any {
     return ViewingArea;
   } else if (type === 'GameArea') {
     return GameArea;
+  } else if (type === 'HospitalArea') {
+    return HospitalArea;
   } else {
     throw new Error(`Unknown object type: ${type}`);
   }

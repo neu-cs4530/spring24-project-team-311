@@ -14,6 +14,7 @@ import PetSelectionPopup from './PetSelectionPopup';
 import PetInteractivePopup from './PetInteractivePopup';
 import { PetType } from '../../classes/PetController';
 import TownController from '../../classes/TownController';
+import HospitalAreaPopup from './HospitalAreaPopup';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -106,6 +107,7 @@ export default function TownMap(): JSX.Element {
     <div id='app-container'>
       <NewConversationModal />
       <GameAreaWrapper />
+      <HospitalAreaPopup />
       <aside className={clsx(classes.chatWindowContainer, { [classes.hide]: !isChatWindowOpen })}>
         <ChatWindow />
       </aside>
