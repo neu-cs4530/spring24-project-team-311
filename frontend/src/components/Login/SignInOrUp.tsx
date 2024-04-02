@@ -1,5 +1,5 @@
 /* eslint-disable import/no-extraneous-dependencies */
-import { updateProfile } from 'firebase/auth';
+
 import React, { useState } from 'react';
 import {
   Box,
@@ -14,7 +14,11 @@ import {
   Stack,
   useToast,
 } from '@chakra-ui/react';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import {
+  updateProfile,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+} from 'firebase/auth';
 import { auth } from '../../firebase';
 
 function SignInComponent(): JSX.Element {
@@ -25,28 +29,39 @@ function SignInComponent(): JSX.Element {
   const toast = useToast();
   const handleSignIn = async () => {
     setIsSigningIn(true);
-    signInWithEmailAndPassword(auth, email, password).catch(error => {
-      setIsSigningIn(false);
-      switch (error.code) {
-        case 'auth/invalid-email':
+    let errorState = false;
+    signInWithEmailAndPassword(auth, email, password)
+      .catch(error => {
+        setIsSigningIn(false);
+        errorState = true;
+        switch (error.code) {
+          case 'auth/invalid-email':
+            toast({
+              title: 'Invalid email address',
+              status: 'error',
+            });
+            break;
+          case 'auth/invalid-credential':
+            toast({
+              title: 'Invalid email/password, please try again',
+              status: 'error',
+            });
+            break;
+          default:
+            toast({
+              title: 'An error occurred while signing in',
+              status: 'error',
+            });
+        }
+      })
+      .then(() => {
+        if (!errorState) {
           toast({
-            title: 'Invalid email address',
-            status: 'error',
+            title: 'Signed in successfully',
+            status: 'success',
           });
-          break;
-        case 'auth/invalid-credential':
-          toast({
-            title: 'Invalid email/password, plase try again',
-            status: 'error',
-          });
-          break;
-        default:
-          toast({
-            title: 'An error occurred while signing in',
-            status: 'error',
-          });
-      }
-    });
+        }
+      });
   };
   return (
     <>
@@ -87,7 +102,8 @@ function SignInComponent(): JSX.Element {
                 colorScheme='blue'
                 isLoading={isSigningIn}
                 isDisabled={isSigningIn}
-                onClick={handleSignIn}>
+                onClick={handleSignIn}
+                data-testid='SignInButton'>
                 Sign In
               </Button>
             </form>
@@ -145,6 +161,10 @@ function SignUpComponent({
       })
       .then(async () => {
         if (!errorState) {
+          toast({
+            title: 'Signed up successfully',
+            status: 'success',
+          });
           updateUserName(userName);
           await updateProfile(auth.currentUser!, { displayName: userName });
         }
@@ -197,7 +217,9 @@ function SignUpComponent({
                 colorScheme='blue'
                 isDisabled={isSigningUp}
                 isLoading={isSigningUp}
-                onClick={handleSignUp}>
+
+                onClick={handleSignUp}
+                data-testid='SignUpButton'>
                 Sign Up
               </Button>
             </form>
