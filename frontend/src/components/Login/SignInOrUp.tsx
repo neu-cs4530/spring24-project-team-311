@@ -13,9 +13,11 @@ import {
   Link,
   Stack,
   useToast,
+  Image,
 } from '@chakra-ui/react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../firebase';
+import paws from '../Town/images/paws-town.png';
 
 function SignInComponent(): JSX.Element {
   const [email, setEmail] = useState('');
@@ -53,6 +55,12 @@ function SignInComponent(): JSX.Element {
       <Flex width='full' align='center' justifyContent='center'>
         <Box p={8} maxWidth='500px' borderWidth={1} borderRadius={8} boxShadow='lg'>
           <Box textAlign='center'>
+          <Image
+          width='auto' 
+          height='55px' 
+          src={paws.src}
+          alt={'Logo'}
+          />
             <Heading>Login</Heading>
           </Box>
           <Box my={4} textAlign='left'>
@@ -155,6 +163,12 @@ function SignUpComponent({
       <Flex width='full' align='center' justifyContent='center'>
         <Box p={8} maxWidth='500px' borderWidth={1} borderRadius={8} boxShadow='lg'>
           <Box textAlign='center'>
+          <Image
+          width='auto' 
+          height='55px' 
+          src={paws.src}
+          alt={'Logo'}
+          />
             <Heading>Sign Up</Heading>
           </Box>
           <Box my={4} textAlign='left'>
@@ -168,7 +182,7 @@ function SignUpComponent({
                   onChange={event => setEmail(event.target.value)}
                 />
               </FormControl>
-              <FormControl isRequired>
+              <FormControl isRequired mt={6}>
                 <FormLabel>Username</FormLabel>
                 <Input
                   type='text'
@@ -221,12 +235,14 @@ function SignInOrUp({
     return (
       <>
         <Flex width='full' align='center' justifyContent='center'>
+        <Box mt={4} mb={4}>
           <Stack align='center' justifyContent='center'>
             <p>No account? Sign up for one!</p>
             <Link color='blue' onClick={() => setIsSigningIn(false)}>
               Create New Account
             </Link>
           </Stack>
+        </Box>
         </Flex>
         <SignInComponent />
       </>
@@ -236,12 +252,14 @@ function SignInOrUp({
     return (
       <>
         <Flex width='full' align='center' justifyContent='center'>
+        <Box mt={4} mb={4}>
           <Stack align='center' justifyContent='center'>
             <p>Have an account? Log in here:</p>
             <Link color='blue' onClick={() => setIsSigningIn(true)}>
               Sign In
             </Link>
           </Stack>
+        </Box>
         </Flex>
         <SignUpComponent updateUserName={updateUserName} />
       </>
