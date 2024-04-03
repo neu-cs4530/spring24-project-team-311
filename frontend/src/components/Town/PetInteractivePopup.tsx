@@ -84,70 +84,56 @@ const PetInteractivePopup = (props: PetInteractivePopupProps) => {
         <ModalContent>
           <ModalHeader>Interact with {props.townController.ourPet?.petName}! </ModalHeader>
           <ModalBody>
-            <Flex flexDirection={'row'} gap={10}>
-              <Flex justifyContent={'space-evenly'} direction={'column'} gap={10}>
-                {progressValues.map((value, index) => (
-                  <Flex key={index} style={{ display: 'inline' }} alignItems='center'>
-                    <HStack>
-                      <Image src={interactionImages[index]} boxSize='20px' />
-                      <Text>
-                        {index === 0 ? 'Hunger' : index === 1 ? 'Cleanliness' : 'Happiness'}
-                      </Text>
-                    </HStack>
+            <Flex flexDirection='column' gap={8}>
+              {progressValues.map((value, index) => (
+                <Flex
+                  key={index}
+                  alignItems='flex-start'
+                  justifyContent='space-between'
+                  width='100%'
+                  padding={4}
+                  borderWidth={1}
+                  borderRadius={8}
+                  flexDirection='column'>
+                  <Flex alignItems='center' gap={4}>
+                    <Image src={interactionImages[index]} boxSize='40px' />
+                    <Text fontSize='lg'>
+                      {index === 0 ? 'Hunger' : index === 1 ? 'Cleanliness' : 'Happiness'}
+                    </Text>
+                  </Flex>
+                  <Flex alignItems='center' gap={8}>
                     <Progress
                       value={value}
-                      borderRadius={'5px'}
+                      borderRadius={'8px'}
                       colorScheme={value <= 25 ? 'red' : value >= 75 ? 'green' : 'yellow'}
-                      style={{ margin: '20px' }}
+                      width='375px'
+                      height='24px'
                     />
-                    {value === 0 && (
-                      <Text color='grey' textAlign='center'>
-                        You can&apos;t {index === 0 ? 'feed' : index === 1 ? 'clean' : 'play'} your
-                        pet right now :( It&apos;s been too long! Please take them to the hospital.
-                      </Text>
-                    )}
+                    <Button
+                      colorScheme='blue'
+                      onClick={() => {
+                        return value === 0
+                          ? handleZeroProgressAction(
+                              index === 0 ? 'feed' : index === 1 ? 'clean' : 'play',
+                            )
+                          : handleProgressIncrement(
+                              index,
+                              index === 0 ? 'Feed' : index === 1 ? 'Clean' : 'Play',
+                            );
+                      }}
+                      disabled={value === 0}>
+                      {index === 0 ? 'Feed' : index === 1 ? 'Clean' : 'Play'}
+                    </Button>
                   </Flex>
-                ))}
-                _____________________________________________
-              </Flex>
-              <Flex direction='column' gap={24} style={{ margin: '10px 10px' }}>
-                <Button
-                  colorScheme='teal'
-                  onClick={() => {
-                    return progressValues[0] === 0
-                      ? handleZeroProgressAction('feed')
-                      : handleProgressIncrement(0, 'Feed');
-                  }}
-                  disabled={progressValues[0] === 0}>
-                  Feed
-                </Button>
-                <Button
-                  colorScheme='teal'
-                  onClick={() => {
-                    return progressValues[1] === 0
-                      ? handleZeroProgressAction('clean')
-                      : handleProgressIncrement(1, 'Clean');
-                  }}
-                  disabled={progressValues[1] === 0}>
-                  Clean
-                </Button>
-                <Button
-                  colorScheme='teal'
-                  onClick={() => {
-                    return progressValues[2] === 0
-                      ? handleZeroProgressAction('play')
-                      : handleProgressIncrement(2, 'Play');
-                  }}
-                  disabled={progressValues[2] === 0}>
-                  Play
-                </Button>
-              </Flex>
+                  {value === 0 && (
+                    <Text color='grey' textAlign='left' marginTop={2}>
+                      You can&apos;t {index === 0 ? 'feed' : index === 1 ? 'clean' : 'play'} your
+                      pet right now :( It&apos;s been too long! Please take them to the hospital.
+                    </Text>
+                  )}
+                </Flex>
+              ))}
             </Flex>
-            {errorMessage && (
-              <Text justifyContent={'center'} flex={1} color={'red'}>
-                {errorMessage}
-              </Text>
-            )}
           </ModalBody>
           <ModalFooter>
             <Button onClick={handleSubmit}>Done</Button>

@@ -27,6 +27,7 @@ export default function HospitalAreaPopup(): JSX.Element {
   const hospital = useInteractable('hospitalArea');
   const isOpen = hospital !== undefined;
   const [progressValues, setProgressValues] = useState<number[]>([20, 0, 70]); // Initial progress values
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const handleSelectTreatment = (treatment: string) => {
     setSelectedTreatment(treatment);
@@ -59,8 +60,14 @@ export default function HospitalAreaPopup(): JSX.Element {
 
   const handleSubmit = () => {
     if (selectedTreatment) {
-      setShowProgressScreen(true);
-      simulateLoading();
+      const selectedIndex = ['health', 'happiness', 'hunger'].indexOf(selectedTreatment);
+      if (progressValues[selectedIndex] !== 0) {
+        setErrorMessage("You can't give your pet that treatment!");
+      } else {
+        setErrorMessage('');
+        setShowProgressScreen(true);
+        simulateLoading();
+      }
     }
   };
 
@@ -160,7 +167,8 @@ export default function HospitalAreaPopup(): JSX.Element {
                           ? 'green'
                           : 'yellow'
                       }
-                      style={{ width: '150px' }}
+                      width='150px'
+                      height='15px'
                     />
                   </Box>
                 </Flex>
@@ -188,7 +196,8 @@ export default function HospitalAreaPopup(): JSX.Element {
                           ? 'green'
                           : 'yellow'
                       }
-                      style={{ width: '150px' }}
+                      width='150px'
+                      height='15px'
                     />
                   </Box>
                 </Flex>
@@ -216,11 +225,17 @@ export default function HospitalAreaPopup(): JSX.Element {
                           ? 'green'
                           : 'yellow'
                       }
-                      style={{ width: '150px' }}
+                      width='150px'
+                      height='15px'
                     />
                   </Box>
                 </Flex>
               </Box>
+              {errorMessage && (
+                <Text color='red' textAlign='center' mt={4}>
+                  {errorMessage}
+                </Text>
+              )}
               <ModalFooter>
                 <Button colorScheme='blue' onClick={handleSubmit}>
                   Done
