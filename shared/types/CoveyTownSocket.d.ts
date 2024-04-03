@@ -15,9 +15,11 @@ export type TownJoinResponse = {
   isPubliclyListed: boolean;
   /** Current state of interactables in this town */
   interactables: TypedInteractable[];
+  /** List of Pets currenlty in the town. Cannot be more than the list of players. */
+  currentPets: Pet[];
 }
 
-export type InteractableType = 'ConversationArea' | 'ViewingArea' | 'TicTacToeArea' | 'ConnectFourArea' | 'HospitalArea';
+export type InteractableType = 'ConversationArea' | 'ViewingArea' | 'TicTacToeArea' | 'ConnectFourArea';
 export interface Interactable {
   type: InteractableType;
   id: InteractableID;
@@ -36,19 +38,28 @@ export interface Player {
   id: PlayerID;
   userName: string;
   location: PlayerLocation;
+  email: string;
+  pet?: Pet
 };
 
+export type PetID = string;
+export type PetType = 'Cat' | 'Dog' | 'Duck';
 export interface Pet {
-  playerID: PlayerID;
-  petID: string;
-  location: PlayerLocation;
-  petType: string;
-  petName: string;
-  petHealth: number;
-  petHappiness: number;
-  petHunger: number;
-  isInHospital: boolean;
-  timePlacedInHospital: Date | undefined;
+  id: PetID;
+  userName: string;
+  ownerID: string;
+  type: PetType;
+  health: number;
+  hunger: number;
+  happiness: number;
+  inHospital: boolean;
+  isSick: boolean;
+};
+
+export type PetSettingsUpdate = {
+  health: number;
+  hunger: number;
+  happiness: number;
 }
 
 export type XY = { x: number, y: number };
@@ -80,9 +91,6 @@ export interface BoundingBox {
   width: number;
   height: number;
 };
-
-export interface HospitalArea extends Interactable {
-}
 
 export interface ViewingArea extends Interactable {
   video?: string;
@@ -277,6 +285,7 @@ export interface ServerToClientEvents {
   chatMessage: (message: ChatMessage) => void;
   interactableUpdate: (interactable: Interactable) => void;
   commandResponse: (response: InteractableCommandResponse) => void;
+  
 }
 
 export interface ClientToServerEvents {
