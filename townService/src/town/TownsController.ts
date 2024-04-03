@@ -34,7 +34,7 @@ import {
 // TSOA (which we use to generate the REST API from this file) does not support default exports, so the controller can't be a default export.
 // eslint-disable-next-line import/prefer-default-export
 export class TownsController extends Controller {
-  private _townsStore: CoveyTownsStore = CoveyTownsStore.getInstance();
+  protected _townsStore: CoveyTownsStore = CoveyTownsStore.getInstance();
 
   /**
    * List all towns that are set to be publicly available
@@ -198,7 +198,12 @@ export class TownsController extends Controller {
    */
   public async joinTown(socket: CoveyTownSocket) {
     // Parse the client's requested username from the connection
-    const { userName, townID } = socket.handshake.auth as { userName: string; townID: string };
+    const { userName, userID, email, townID } = socket.handshake.auth as {
+      userName: string;
+      userID: string;
+      email: string;
+      townID: string;
+    };
 
     const town = this._townsStore.getTownByID(townID);
     if (!town) {
@@ -208,8 +213,7 @@ export class TownsController extends Controller {
 
     // Connect the client to the socket.io broadcast room for this town
     socket.join(town.townID);
-
-    const newPlayer = await town.addPlayer(userName, socket);
+    const newPlayer = await town.addPlayer(userName, userID, email, socket);
     assert(newPlayer.videoToken);
     socket.emit('initialize', {
       userID: newPlayer.id,
@@ -219,6 +223,7 @@ export class TownsController extends Controller {
       friendlyName: town.friendlyName,
       isPubliclyListed: town.isPubliclyListed,
       interactables: town.interactables.map(eachInteractable => eachInteractable.toModel()),
+      currentPets: [],
     });
   }
 }
