@@ -1,6 +1,6 @@
 import EventEmitter from 'events';
 import TypedEmitter from 'typed-emitter';
-import { Pet as PetModel, PlayerLocation } from '../types/CoveyTownSocket';
+import { Pet as PetModel, PetType, PlayerLocation } from '../types/CoveyTownSocket';
 export const MOVEMENT_SPEED = 175;
 
 export type PetEvents = {
@@ -13,8 +13,6 @@ export type PetGameObjects = {
   locationManagedByGameScene: boolean /* For the local player, the game scene will calculate the current location, and we should NOT apply updates when we receive events */;
 };
 export default class PetController extends (EventEmitter as new () => TypedEmitter<PetEvents>) {
-  private _location: PlayerLocation;
-
   private readonly _id: string;
 
   private readonly _userName: string;
@@ -23,21 +21,39 @@ export default class PetController extends (EventEmitter as new () => TypedEmitt
 
   private readonly _ownerID: string;
 
-  constructor(id: string, userName: string, location: PlayerLocation, owner: string) {
+  private readonly _type: PetType;
+
+  private _health: number;
+
+  private _hunger: number;
+
+  private _happiness: number;
+
+  private _inHospital: boolean;
+
+  private _isSick: boolean;
+
+  constructor(
+    id: string,
+    userName: string,
+    owner: string,
+    type: PetType,
+    health = 100,
+    hunger = 100,
+    happiness = 100,
+    inHospital = false,
+    isSick = false,
+  ) {
     super();
     this._id = id;
     this._userName = userName;
-    this._location = location;
     this._ownerID = owner;
-  }
-
-  set location(newLocation: PlayerLocation) {
-    this._location = newLocation;
-    this.emit('movement', newLocation);
-  }
-
-  get location(): PlayerLocation {
-    return this._location;
+    this._type = type;
+    this._happiness = happiness;
+    this._health = health;
+    this._hunger = hunger;
+    this._inHospital = inHospital;
+    this._isSick = isSick;
   }
 
   get userName(): string {
@@ -52,12 +68,27 @@ export default class PetController extends (EventEmitter as new () => TypedEmitt
     return {
       id: this.id,
       userName: this.userName,
-      location: this.location,
       ownerID: this._ownerID,
+      type: this._type,
+      health: this._health,
+      hunger: this._hunger,
+      happiness: this._happiness,
+      inHospital: this._inHospital,
+      isSick: this._isSick,
     };
   }
 
   static fromPlayerModel(modelPet: PetModel): PetController {
-    return new PetController(modelPet.id, modelPet.userName, modelPet.location, modelPet.ownerID);
+    return new PetController(
+      modelPet.id,
+      modelPet.userName,
+      modelPet.ownerID,
+      modelPet.type,
+      modelPet.health,
+      modelPet.hunger,
+      modelPet.happiness,
+      modelPet.inHospital,
+      modelPet.isSick,
+    );
   }
 }

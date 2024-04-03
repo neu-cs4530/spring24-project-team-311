@@ -1,6 +1,7 @@
 import EventEmitter from 'events';
 import TypedEmitter from 'typed-emitter';
-import { Player as PlayerModel, PlayerLocation } from '../types/CoveyTownSocket';
+import { Player as PlayerModel, PlayerLocation, Pet as PetModel } from '../types/CoveyTownSocket';
+import PetController from './PetController';
 export const MOVEMENT_SPEED = 175;
 
 export type PlayerEvents = {
@@ -23,12 +24,21 @@ export default class PlayerController extends (EventEmitter as new () => TypedEm
 
   private readonly _email: string;
 
-  constructor(id: string, userName: string, location: PlayerLocation, email: string) {
+  private _pet?: PetController;
+
+  constructor(
+    id: string,
+    userName: string,
+    location: PlayerLocation,
+    email: string,
+    pet?: PetController,
+  ) {
     super();
     this._id = id;
     this._userName = userName;
     this._location = location;
     this._email = email;
+    this._pet = pet;
   }
 
   set location(newLocation: PlayerLocation) {
@@ -50,7 +60,27 @@ export default class PlayerController extends (EventEmitter as new () => TypedEm
   }
 
   toPlayerModel(): PlayerModel {
-    return { id: this.id, userName: this.userName, location: this.location, email: this._email };
+    return {
+      id: this.id,
+      userName: this.userName,
+      location: this.location,
+      email: this._email,
+      pet: this._pet?.toPetModel(),
+    };
+  }
+
+  addPetController(pet: PetModel) {
+    this._pet = new PetController(
+      pet.id,
+      pet.userName,
+      pet.ownerID,
+      pet.type,
+      pet.health,
+      pet.hunger,
+      pet.happiness,
+      pet.inHospital,
+      pet.isSick,
+    );
   }
 
   private _updateGameComponentLocation() {
@@ -87,11 +117,15 @@ export default class PlayerController extends (EventEmitter as new () => TypedEm
   }
 
   static fromPlayerModel(modelPlayer: PlayerModel): PlayerController {
-    return new PlayerController(
+    const newPlayer = new PlayerController(
       modelPlayer.id,
       modelPlayer.userName,
       modelPlayer.location,
       modelPlayer.email,
     );
+    if (modelPlayer.pet != undefined) {
+      newPlayer.addPetController(modelPlayer.pet);
+    }
+    return newPlayer;
   }
 }
