@@ -13,6 +13,7 @@ import {
   Interactable,
   InteractableCommand,
   InteractableCommandBase,
+  Pet,
   PlayerLocation,
   ServerToClientEvents,
   SocketData,
@@ -23,7 +24,6 @@ import ConversationArea from './ConversationArea';
 import GameAreaFactory from './games/GameAreaFactory';
 import InteractableArea from './InteractableArea';
 import ViewingArea from './ViewingArea';
-
 /**
  * The Town class implements the logic for each town: managing the various events that
  * can occur (e.g. joining a town, moving, leaving a town)
@@ -74,6 +74,9 @@ export default class Town {
   /** The list of players currently in the town * */
   private _players: Player[] = [];
 
+  /** The list of pets currently in the town * */
+  private _pets: Pet[] = [];
+
   /** The videoClient that this CoveyTown will use to provision video resources * */
   private _videoClient: IVideoClient = TwilioVideo.getInstance();
 
@@ -107,6 +110,21 @@ export default class Town {
     this._isPubliclyListed = isPubliclyListed;
     this._friendlyName = friendlyName;
     this._broadcastEmitter = broadcastEmitter;
+  }
+
+  async addPet(petName: string, socket: CoveyTownSocket): Promise<Pet> {
+    const newPet = new Pet(petName, socket.to(this.townID));
+    this._pets.push(newPet);
+    this._connectedSockets.add(socket);
+    // Notify other players that this pet has been added
+    this._broadcastEmitter.emit('newPet', newPet.toPetModel());
+    // Register an event listener for the client socket: if the client disconnects,
+    // remove the pet
+    socket.on('disconnect', () => {
+      // this._removePet(newPet);
+      this._connectedSockets.delete(socket);
+    });
+    return newPet;
   }
 
   /**

@@ -9,6 +9,7 @@ export type PetEvents = {
 
 export type PetGameObjects = {
   sprite: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+  // label: Phaser.GameObjects.Text;
   locationManagedByGameScene: boolean;
 };
 
@@ -138,13 +139,16 @@ export default class PetController extends (EventEmitter as new () => TypedEmitt
     };
   }
 
-  fromPetModel(pet: PetModel): void {
-    this.location = pet.location;
-    this.petHealth = pet.petHealth;
-    this.petHappiness = pet.petHappiness;
-    this.petHunger = pet.petHunger;
-    this.isInHospital = pet.isInHospital;
-    this.timePlacedInHospital = pet.timePlacedInHospital;
+  static fromPetModel(pet: PetModel): PetController {
+    // this.location = pet.location;
+    // this.petHealth = pet.petHealth;
+    // this.petHappiness = pet.petHappiness;
+    // this.petHunger = pet.petHunger;
+    // this.isInHospital = pet.isInHospital;
+    // this.timePlacedInHospital = pet.timePlacedInHospital;
+
+    // temp setting for pet type
+    return new PetController(pet.playerID, pet.petID, 'cat', pet.petName, pet.location);
   }
 
   private _updateGameComponentLocation() {

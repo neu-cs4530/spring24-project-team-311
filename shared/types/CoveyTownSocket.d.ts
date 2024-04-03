@@ -262,7 +262,7 @@ export type InteractableCommandResponse<MessageType> = {
   interactableID: InteractableID;
   error?: string;
   payload?: InteractableCommandResponseMap[MessageType];
-}
+} 
 
 export interface ServerToClientEvents {
   playerMoved: (movedPlayer: Player) => void;
@@ -274,6 +274,7 @@ export interface ServerToClientEvents {
   chatMessage: (message: ChatMessage) => void;
   interactableUpdate: (interactable: Interactable) => void;
   commandResponse: (response: InteractableCommandResponse) => void;
+  newPet: (newPet: Pet) => void;
 }
 
 export interface ClientToServerEvents {
@@ -281,4 +282,5 @@ export interface ClientToServerEvents {
   playerMovement: (movementData: PlayerLocation) => void;
   interactableUpdate: (update: Interactable) => void;
   interactableCommand: (command: InteractableCommand & InteractableCommandBase) => void;
+  newPet: (newPet: Pet) => void;
 }

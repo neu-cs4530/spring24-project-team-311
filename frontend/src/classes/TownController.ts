@@ -22,6 +22,7 @@ import {
   InteractableCommandBase,
   InteractableCommandResponse,
   InteractableID,
+  Pet,
   PlayerID,
   PlayerLocation,
   TownSettingsUpdate,
@@ -110,6 +111,8 @@ export type TownEvents = {
    * @param obj the interactable that is being interacted with
    */
   interact: <T extends Interactable>(typeName: T['name'], obj: T) => void;
+
+  newPet: (newPet: Pet) => void;
 };
 
 /**
@@ -321,11 +324,15 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   }
 
   private set _pets(newPets: PetController[]) {
+    // this.emit('petsChanged', newPets);
     this._petsInternal = newPets;
   }
 
   public addPet(newPet: PetController) {
-    this._petsInternal = [newPet];
+    // this._petsInternal = [newPet];
+    this._petsInternal.push(newPet);
+    // this.emit('newPet', newPet.toPetModel);
+    this._socket.emit('newPet', newPet.toPetModel());
   }
 
   public getPlayer(id: PlayerID) {
@@ -391,6 +398,12 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
    * Registers listeners for the events that can come from the server to our socket
    */
   registerSocketListeners() {
+    this._socket.on('newPet', pet => {
+      const newPetObj = PetController.fromPetModel(pet);
+      this._pets = this._pets.concat([newPetObj]);
+      this.emit('newPet', newPetObj);
+    });
+
     /**
      * On chat messages, forward the messages to listeners who subscribe to the controller's events
      */
