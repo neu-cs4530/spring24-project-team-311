@@ -1,6 +1,7 @@
 import { ITiledMap, ITiledMapObjectLayer } from '@jonbell/tiled-map-type-guard';
 import { nanoid } from 'nanoid';
 import { BroadcastOperator } from 'socket.io';
+import e from 'cors';
 import InvalidParametersError from '../lib/InvalidParametersError';
 import IVideoClient from '../lib/IVideoClient';
 import Player from '../lib/Player';
@@ -20,13 +21,13 @@ import {
   ViewingArea as ViewingAreaModel,
   Player as PlayerModel,
   Pet as PetModel,
+  PetType,
 } from '../types/CoveyTownSocket';
 import { logError } from '../Utils';
 import ConversationArea from './ConversationArea';
 import GameAreaFactory from './games/GameAreaFactory';
 import InteractableArea from './InteractableArea';
 import ViewingArea from './ViewingArea';
-import PlayersController from './PlayersController';
 /**
  * The Town class implements the logic for each town: managing the various events that
  * can occur (e.g. joining a town, moving, leaving a town)
@@ -114,6 +115,67 @@ export default class Town {
     this._broadcastEmitter = broadcastEmitter;
   }
 
+  async getPet(petID: string): Promise<Pet | undefined> {
+    const pet = this._pets.find(p => p.id === petID);
+    return pet;
+  }
+
+  async addNewPet(
+    user: PlayerModel,
+    petName: string,
+    petID: string,
+    petType: PetType,
+  ): Promise<Pet | undefined> {
+    if (user !== undefined) {
+      const playerObject = this._players.find(
+        player =>
+          player.userName === user.userName &&
+          player.id === user.id &&
+          player._email === user.email,
+      );
+      if (user.pet === undefined && playerObject !== undefined && playerObject.pet === undefined) {
+        const pet = new Pet(petName, petType, user.id, 100, 100, 100, false, false, petID);
+        user.pet = pet.toPetModel();
+        playerObject.addNewPet(pet);
+        this._pets.push(pet);
+        return pet;
+      }
+    }
+    return undefined;
+  }
+  /*
+   * if the given user Player has a pet, then that pet is added to the town
+   */
+
+  async addExistingPet(user: PlayerModel | undefined): Promise<Pet | undefined> {
+    let returnedPet;
+    if (user !== undefined) {
+      const playerObject = this._players.find(
+        player =>
+          player.userName === user.userName &&
+          player.id === user.id &&
+          player._email === user.email,
+      );
+      if (user.pet !== undefined && playerObject !== undefined && playerObject.pet === undefined) {
+        const pet = new Pet(
+          user.pet.userName,
+          user.pet.type,
+          user.pet.ownerID,
+          user.pet.health,
+          user.pet.hunger,
+          user.pet.happiness,
+          user.pet.inHospital,
+          user.pet.isSick,
+          user.pet.id,
+        );
+        playerObject.addNewPet(pet);
+        this._pets.push(pet);
+        returnedPet = pet;
+      }
+    }
+    return returnedPet;
+  }
+
   /**
    * Adds a player to this Covey Town, provisioning the necessary credentials for the
    * player, and returning them
@@ -126,30 +188,7 @@ export default class Town {
     email: string,
     socket: CoveyTownSocket,
   ): Promise<Player> {
-    const playerController = new PlayersController();
-    const user = await playerController.getUserObject(userID, {
-      x: 0,
-      y: 0,
-      moving: false,
-      rotation: 'front',
-    });
     const newPlayer = new Player(userName, userID, email, socket.to(this._townID));
-
-    if (user !== undefined && user.pet !== undefined) {
-      const pet = new Pet(
-        user.pet.userName,
-        user.pet.type,
-        user.pet.ownerID,
-        user.pet.health,
-        user.pet.hunger,
-        user.pet.happiness,
-        user.pet.inHospital,
-        user.pet.isSick,
-        user.pet.id,
-      );
-      newPlayer.addPet(pet);
-      this._pets.push(pet);
-    }
 
     this._players.push(newPlayer);
 
@@ -187,6 +226,14 @@ export default class Town {
         logError(err);
       }
     });
+
+    // socket.on('petAdded', (player: PlayerModel) => {
+    //   try {
+    //     this._addNewPet(newPlayer, player);
+    //   } catch (err) {
+    //     logError(err);
+    //   }
+    // });
 
     // Set up a listener to process updates to interactables.
     // Currently only knows how to process updates for ViewingArea's, and

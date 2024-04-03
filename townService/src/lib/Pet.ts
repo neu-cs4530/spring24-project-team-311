@@ -1,6 +1,5 @@
 import { nanoid } from 'nanoid';
 import { Pet as PetModel, PetType } from '../types/CoveyTownSocket';
-import PlayersController from '../town/PlayersController';
 // get all of the players in the town and assign
 /**
  * Each pet following a user is connected to a userID
@@ -35,8 +34,6 @@ export default class Pet {
 
   private _isSick: boolean;
 
-  private _playersController: PlayersController;
-
   /**
    * This is a representation of a new pet that always stands some set distance behind its user
    * @param petName the name that the user wants to give the pet
@@ -65,7 +62,6 @@ export default class Pet {
     this._happiness = happiness;
     this._inHospital = inHospital;
     this._isSick = isSick;
-    this._playersController = new PlayersController();
   }
 
   get petName(): string {
@@ -92,6 +88,26 @@ export default class Pet {
     return this._type;
   }
 
+  get happiness(): number {
+    return this._happiness;
+  }
+
+  get hunger(): number {
+    return this._hunger;
+  }
+
+  get health(): number {
+    return this._health;
+  }
+
+  get sick(): boolean {
+    return this._isSick;
+  }
+
+  get hospitalStatus(): boolean {
+    return this._inHospital;
+  }
+
   private async _checkHealth() {
     if (this._hunger > 10 && this._health > 10 && this._happiness > 10 && this._isSick) {
       await this._updateSickStatus(false);
@@ -99,7 +115,6 @@ export default class Pet {
   }
 
   private async _updateHunger(delta: number) {
-    await this._playersController.changeHunger(this.owner, this._id, delta);
     this._hunger =
       delta > 0 ? Math.max(100, this._hunger + delta) : Math.min(0, this._hunger - delta);
     if (this._hunger < 10 && !this._isSick) {
@@ -109,7 +124,6 @@ export default class Pet {
   }
 
   private async _updateHealth(delta: number) {
-    await this._playersController.changeHunger(this.owner, this._id, delta);
     this._health =
       delta > 0 ? Math.max(100, this._health + delta) : Math.min(0, this._health - delta);
     if (this._health < 10 && !this._isSick) {
@@ -119,7 +133,6 @@ export default class Pet {
   }
 
   private async _updateHappiness(delta: number) {
-    await this._playersController.changeHunger(this.owner, this._id, delta);
     this._happiness =
       delta > 0 ? Math.max(100, this._happiness + delta) : Math.min(0, this._happiness - delta);
     if (this._happiness < 10 && !this._isSick) {
@@ -129,13 +142,11 @@ export default class Pet {
   }
 
   private async _updateSickStatus(isSick: boolean) {
-    await this._playersController.updateSickStatus(this.owner, this._id, isSick);
     this._isSick = isSick;
   }
 
   private async _updateHospitalStatus(isSick: boolean) {
-    await this._playersController.updateHospitalStatus(this.owner, this._id, isSick);
-    this._isSick = isSick;
+    this._inHospital = isSick;
   }
 
   decreseStats(delta: number) {
@@ -147,24 +158,24 @@ export default class Pet {
   }
 
   // returns whether or not it was a success
-  feedPet(): boolean {
-    if (this._hunger > 10) {
+  feedPet(delta: number): boolean {
+    if (this._hunger > 0) {
       this._updateHunger(30);
       return true;
     }
     return false;
   }
 
-  playWithPet(): boolean {
-    if (this._happiness > 10) {
+  playWithPet(delta: number): boolean {
+    if (this._happiness > 0) {
       this._updateHappiness(30);
       return true;
     }
     return false;
   }
 
-  cleanPet(): boolean {
-    if (this._health > 10) {
+  cleanPet(delta: number): boolean {
+    if (this._health > 0) {
       this._updateHealth(30);
       return true;
     }

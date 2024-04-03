@@ -14,7 +14,6 @@ import {
   MockedPlayer,
 } from '../TestUtils';
 import { TownsController } from './TownsController';
-import TestDB from '../TestDB';
 
 type TestTownData = {
   friendlyName: string;
@@ -22,8 +21,6 @@ type TestTownData = {
   isPubliclyListed: boolean;
   townUpdatePassword: string;
 };
-
-const testDatabase = new TestDB();
 
 function expectTownListMatches(towns: Town[], town: TestTownData) {
   const matching = towns.find(townInfo => townInfo.townID === town.townID);

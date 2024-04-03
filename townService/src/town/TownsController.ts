@@ -34,7 +34,7 @@ import {
 // TSOA (which we use to generate the REST API from this file) does not support default exports, so the controller can't be a default export.
 // eslint-disable-next-line import/prefer-default-export
 export class TownsController extends Controller {
-  private _townsStore: CoveyTownsStore = CoveyTownsStore.getInstance();
+  protected _townsStore: CoveyTownsStore = CoveyTownsStore.getInstance();
 
   /**
    * List all towns that are set to be publicly available
@@ -202,7 +202,6 @@ export class TownsController extends Controller {
       userName: string;
       userID: string;
       email: string;
-      firstSignOn: boolean;
       townID: string;
     };
 

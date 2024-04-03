@@ -65,7 +65,11 @@ export default class Player {
     return this._sessionToken;
   }
 
-  addPet(pet: Pet) {
+  get pet(): Pet | undefined {
+    return this._pet;
+  }
+
+  addNewPet(pet: Pet) {
     this._pet = pet;
   }
 

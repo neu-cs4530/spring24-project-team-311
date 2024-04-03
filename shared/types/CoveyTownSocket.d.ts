@@ -56,6 +56,12 @@ export interface Pet {
   isSick: boolean;
 };
 
+export type PetSettingsUpdate = {
+  health: number;
+  hunger: number;
+  happiness: number;
+}
+
 export type XY = { x: number, y: number };
 
 export interface PlayerLocation {

@@ -22,10 +22,6 @@ import {
 import ConversationArea from './ConversationArea';
 import Town from './Town';
 
-import TestDB from '../TestDB';
-
-const testDatabase = new TestDB();
-
 const mockTwilioVideo = mockDeep<TwilioVideo>();
 jest.spyOn(TwilioVideo, 'getInstance').mockReturnValue(mockTwilioVideo);
 
