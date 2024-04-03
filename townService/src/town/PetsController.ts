@@ -132,7 +132,7 @@ export class PetsController extends TownsController {
     return success;
   }
 
-  @Patch('{townID}/{userID}/{petID}/happiness')
+  @Patch('{townID}/{userID}/{petID}/health')
   public async cleanPet(
     @Body() request: PetSettingsUpdate,
     @Path() townID: string,
