@@ -1,9 +1,8 @@
 import assert from 'assert';
-import { generateKey } from 'crypto';
 import EventEmitter from 'events';
 import _ from 'lodash';
 import { nanoid } from 'nanoid';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import TypedEmitter from 'typed-emitter';
 import Interactable from '../components/Town/Interactable';
@@ -30,12 +29,14 @@ import {
 import {
   isConnectFourArea,
   isConversationArea,
+  isHospitalArea,
   isTicTacToeArea,
   isViewingArea,
 } from '../types/TypeUtils';
 import ConnectFourAreaController from './interactable/ConnectFourAreaController';
 import ConversationAreaController from './interactable/ConversationAreaController';
 import GameAreaController, { GameEventTypes } from './interactable/GameAreaController';
+import HospitalAreaController from './interactable/HospitalAreaController';
 import InteractableAreaController, {
   BaseInteractableEventMap,
   GenericInteractableAreaController,
@@ -43,6 +44,7 @@ import InteractableAreaController, {
 import TicTacToeAreaController from './interactable/TicTacToeAreaController';
 import ViewingAreaController from './interactable/ViewingAreaController';
 import PlayerController from './PlayerController';
+import PetController from './PetController';
 
 const CALCULATE_NEARBY_PLAYERS_DELAY_MS = 300;
 const SOCKET_COMMAND_TIMEOUT_MS = 5000;
@@ -148,6 +150,11 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   private _playersInternal: PlayerController[] = [];
 
   /**
+   * The current list of pets in the town. Adding or removing pets might replace the array
+   */
+  private _petsInternal: PetController[] = [];
+
+  /**
    * The current list of interactable areas in the town. Adding or removing interactable areas might replace the array.
    */
   private _interactableControllers: InteractableAreaController<
@@ -229,6 +236,8 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     this._socket = io(url, { auth: { userName, townID } });
     this._townsService = new TownsServiceClient({ BASE: url }).towns;
     this.registerSocketListeners();
+    // TEMP CODE TO ADD PET FOR USER
+    console.log('Creating pet');
   }
 
   public get sessionToken() {
@@ -281,6 +290,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     return ret;
   }
 
+  public get ourPet() {
+    return this._petsInternal.find(eachPet => eachPet.playerID === this.userID);
+  }
+
   public get townID() {
     return this._townID;
   }
@@ -306,6 +319,39 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   private set _players(newPlayers: PlayerController[]) {
     this.emit('playersChanged', newPlayers);
     this._playersInternal = newPlayers;
+  }
+
+  private set _pets(newPets: PetController[]) {
+    this._petsInternal = newPets;
+  }
+
+  public addPet(newPet: PetController) {
+    // TODO: update backend
+    this._petsInternal = [newPet];
+  }
+
+  public setPetStats(
+    petID: string,
+    newStats: { health: number; happiness: number; hunger: number },
+  ) {
+    const petToUpdate = this._petsInternal.find(eachPet => eachPet.petID === petID);
+    if (petToUpdate) {
+      petToUpdate.petHealth = Math.max(newStats.health, 0);
+      petToUpdate.petHappiness = Math.max(newStats.happiness, 0);
+      petToUpdate.petHunger = Math.max(newStats.hunger, 0);
+      // TODO: update backend
+    }
+  }
+
+  public updatePetStats(petID: string, delta: number) {
+    const petToUpdate = this._petsInternal.find(eachPet => eachPet.petID === petID);
+    if (petToUpdate) {
+      this.setPetStats(petID, {
+        health: petToUpdate.petHealth + delta,
+        happiness: petToUpdate.petHappiness + delta,
+        hunger: petToUpdate.petHunger + delta,
+      });
+    }
   }
 
   public getPlayer(id: PlayerID) {
@@ -337,6 +383,13 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
       eachInteractable => eachInteractable instanceof GameAreaController,
     );
     return ret as GameAreaController<GameState, GameEventTypes>[];
+  }
+
+  public get hospitalAreas() {
+    const ret = this._interactableControllers.filter(
+      eachInteractable => eachInteractable instanceof HospitalAreaController,
+    );
+    return ret as HospitalAreaController[];
   }
 
   /**
@@ -611,6 +664,9 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         this._players = initialData.currentPlayers.map(eachPlayerModel =>
           PlayerController.fromPlayerModel(eachPlayerModel),
         );
+        // this._petsInternal = initialData.pets.map(eachPetModel =>
+        //   PetController.fromPetModel(eachPetModel),
+        // );
 
         this._interactableControllers = [];
         initialData.interactables.forEach(eachInteractable => {
@@ -630,6 +686,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
           } else if (isConnectFourArea(eachInteractable)) {
             this._interactableControllers.push(
               new ConnectFourAreaController(eachInteractable.id, eachInteractable, this),
+            );
+          } else if (isHospitalArea(eachInteractable)) {
+            this._interactableControllers.push(
+              new HospitalAreaController(eachInteractable.id, eachInteractable, this),
             );
           }
         });
@@ -780,6 +840,29 @@ export function useInteractableAreaController<T>(interactableAreaID: string): T 
     throw new Error(`Requested interactable area ${interactableAreaID} does not exist`);
   }
   return interactableAreaController as unknown as T;
+}
+
+/**
+ * A react hook to retrieve an interactable hospital area controller
+ *
+ * This function will throw an error if the interactable hospital area controller does not exist.
+ *
+ * This hook relies on the TownControllerContext.
+ *
+ * @param interactableAreaID The ID of the interactable area to retrieve the controller for
+ * @throws Error if there is no interactable area controller matching the specified ID
+ */
+export function useInteractableHospitalAreaController(
+  interactableAreaID: string,
+): HospitalAreaController {
+  const townController = useTownController();
+  const interactableAreaController = townController.hospitalAreas.find(
+    eachArea => eachArea.id == interactableAreaID,
+  );
+  if (!interactableAreaController) {
+    throw new Error(`Requested interactable area ${interactableAreaID} does not exist`);
+  }
+  return interactableAreaController as unknown as HospitalAreaController;
 }
 
 /**

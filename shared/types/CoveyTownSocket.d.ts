@@ -17,7 +17,7 @@ export type TownJoinResponse = {
   interactables: TypedInteractable[];
 }
 
-export type InteractableType = 'ConversationArea' | 'ViewingArea' | 'TicTacToeArea' | 'ConnectFourArea';
+export type InteractableType = 'ConversationArea' | 'ViewingArea' | 'TicTacToeArea' | 'ConnectFourArea' | 'HospitalArea';
 export interface Interactable {
   type: InteractableType;
   id: InteractableID;
@@ -37,6 +37,19 @@ export interface Player {
   userName: string;
   location: PlayerLocation;
 };
+
+export interface Pet {
+  playerID: PlayerID;
+  petID: string;
+  location: PlayerLocation;
+  petType: string;
+  petName: string;
+  petHealth: number;
+  petHappiness: number;
+  petHunger: number;
+  isInHospital: boolean;
+  timePlacedInHospital: Date | undefined;
+}
 
 export type XY = { x: number, y: number };
 
@@ -67,6 +80,9 @@ export interface BoundingBox {
   width: number;
   height: number;
 };
+
+export interface HospitalArea extends Interactable {
+}
 
 export interface ViewingArea extends Interactable {
   video?: string;
