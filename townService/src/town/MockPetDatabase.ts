@@ -1,44 +1,188 @@
 import { PetType, Pet, Player, PlayerLocation } from '../types/CoveyTownSocket';
 import APetDatabase from './APetDatabase';
 
+type MockDatabasePlayer = {
+  player: Player;
+  loginTime: number;
+  logoutTimeLeft: number;
+};
+
 export default class MockPetDatabase extends APetDatabase {
-  addUser(userID: string, username: string, email: string, loginTime: number): Promise<void>;
+  private _players: MockDatabasePlayer[] = [];
 
-  addPet(petName: string, petID: string, petType: PetType, ownerID: string): Promise<boolean>;
+  private _pets: Pet[] = [];
 
-  getOrAddPlayer(
+  async addUser(userID: string, username: string, email: string, loginTime: number): Promise<void> {
+    const player: Player = {
+      id: userID,
+      userName: username,
+      location: {
+        x: 0,
+        y: 0,
+        moving: false,
+        rotation: 'front',
+      },
+      email,
+    };
+    this._players.push({ player, loginTime, logoutTimeLeft: 0 });
+  }
+
+  async addPet(
+    petName: string,
+    petID: string,
+    petType: PetType,
+    ownerID: string,
+  ): Promise<boolean> {
+    const pet = this._pets.find(p => p.ownerID === ownerID && p.id === petID);
+    if (pet === undefined) {
+      const newPet: Pet = {
+        id: petID,
+        userName: petName,
+        ownerID,
+        type: petType,
+        health: 100,
+        hunger: 100,
+        happiness: 100,
+        inHospital: false,
+        isSick: false,
+      };
+      this._pets.push(newPet);
+      return true;
+    }
+    return false;
+  }
+
+  async getOrAddPlayer(
     userID: string,
     username: string,
     email: string,
     location: PlayerLocation,
     loginTime: number,
-  ): Promise<Player | undefined>;
+  ): Promise<Player | undefined> {
+    const user = this._players.find(p => p.player.id === userID);
+    if (user !== undefined) {
+      user.loginTime = loginTime;
+      let existingPlayer: Player = {
+        userName: username,
+        id: userID,
+        email,
+        location,
+      };
+      const pet: Pet | undefined = await this.getPet(userID);
+      if (pet !== undefined) {
+        existingPlayer = {
+          userName: username,
+          id: userID,
+          email,
+          location,
+          pet,
+        };
+      }
+      return existingPlayer;
+    }
+    await this.addUser(userID, username, email, loginTime);
+    return undefined;
+  }
 
-  getUserLogOutTime(userID: string): Promise<number>;
+  async getUserLogOutTime(userID: string): Promise<number> {
+    const user = this._players.find(p => p.player.id === userID);
+    if (user !== undefined) {
+      return user.logoutTimeLeft;
+    }
+    return 0;
+  }
 
-  setUserLogOutTime(userID: string, logoutTime: number): Promise<void>;
+  async setUserLogOutTime(userID: string, logoutTime: number): Promise<void> {
+    const user = this._players.find(p => p.player.id === userID);
+    if (user !== undefined) {
+      user.logoutTimeLeft = (logoutTime - user.loginTime - user.logoutTimeLeft) % (15 * 60 * 1000);
+    }
+  }
 
-  getPet(userID: string): Promise<Pet | undefined>;
+  async getPet(userID: string): Promise<Pet | undefined> {
+    const pet = this._pets.find(p => p.ownerID === userID);
+    return pet;
+  }
 
-  getHospitalStatus(ownerID: string, petID: string): Promise<boolean | undefined>;
+  async getHospitalStatus(ownerID: string, petID: string): Promise<boolean | undefined> {
+    const pet = this._pets.find(p => p.ownerID === ownerID && p.id === petID);
+    return pet?.inHospital;
+  }
 
-  getHealth(ownerID: string, petID: string): Promise<number | undefined>;
+  async getHealth(ownerID: string, petID: string): Promise<number | undefined> {
+    const pet = this._pets.find(p => p.ownerID === ownerID && p.id === petID);
+    return pet?.health;
+  }
 
-  getHappiness(ownerID: string, petID: string): Promise<number | undefined>;
+  async getHappiness(ownerID: string, petID: string): Promise<number | undefined> {
+    const pet = this._pets.find(p => p.ownerID === ownerID && p.id === petID);
+    return pet?.happiness;
+  }
 
-  getHunger(ownerID: string, petID: string): Promise<number | undefined>;
+  async getHunger(ownerID: string, petID: string): Promise<number | undefined> {
+    const pet = this._pets.find(p => p.ownerID === ownerID && p.id === petID);
+    return pet?.hunger;
+  }
 
-  changeHappiness(ownerID: string, petID: string, delta: number): Promise<void>;
+  async changeHappiness(ownerID: string, petID: string, delta: number): Promise<void> {
+    const pet = this._pets.find(p => p.ownerID === ownerID && p.id === petID);
+    if (pet !== undefined) {
+      if (delta > 0) {
+        pet.happiness = Math.max(pet.happiness + delta, 100);
+      } else {
+        pet.happiness = Math.min(pet.happiness + delta, 0);
+      }
+    }
+  }
 
-  changeHealth(ownerID: string, petID: string, delta: number): Promise<void>;
+  async changeHunger(ownerID: string, petID: string, delta: number): Promise<void> {
+    const pet = this._pets.find(p => p.ownerID === ownerID && p.id === petID);
+    if (pet !== undefined) {
+      if (delta > 0) {
+        pet.hunger = Math.max(pet.hunger + delta, 100);
+      } else {
+        pet.hunger = Math.min(pet.hunger + delta, 0);
+      }
+    }
+  }
 
-  changeHunger(ownerID: string, petID: string, delta: number): Promise<void>;
+  async changeHealth(ownerID: string, petID: string, delta: number): Promise<void> {
+    const pet = this._pets.find(p => p.ownerID === ownerID && p.id === petID);
+    if (pet !== undefined) {
+      if (delta > 0) {
+        pet.health = Math.max(pet.health + delta, 100);
+      } else {
+        pet.health = Math.min(pet.health + delta, 0);
+      }
+    }
+  }
 
-  updateHospitalStatus(ownerID: string, petID: string, status: boolean): Promise<void>;
+  async updateHospitalStatus(ownerID: string, petID: string, status: boolean): Promise<void> {
+    const pet = this._pets.find(p => p.ownerID === ownerID && p.id === petID);
+    if (pet !== undefined) {
+      pet.inHospital = status;
+    }
+  }
 
-  updateSickStatus(ownerID: string, petID: string, status: boolean): Promise<void>;
+  async updateSickStatus(ownerID: string, petID: string, status: boolean): Promise<void> {
+    const pet = this._pets.find(p => p.ownerID === ownerID && p.id === petID);
+    if (pet !== undefined) {
+      pet.isSick = status;
+    }
+  }
 
-  deletePet(ownerID: string, petID: string): Promise<void>;
+  async deletePet(ownerID: string, petID: string): Promise<void> {
+    const pet = this._pets.find(p => p.ownerID === ownerID && p.id === petID);
+    if (pet !== undefined) {
+      this._pets.filter(p => p.id !== pet.id);
+    }
+  }
 
-  changeOwner(currentOwner: string, newOwner: string, petID: string): Promise<void>;
+  async changeOwner(currentOwner: string, newOwner: string, petID: string): Promise<void> {
+    const pet = this._pets.find(p => p.ownerID === currentOwner && p.id === petID);
+    if (pet !== undefined) {
+      this.addPet(pet.userName, petID, pet.type, newOwner);
+      this.deletePet(currentOwner, petID);
+    }
+  }
 }

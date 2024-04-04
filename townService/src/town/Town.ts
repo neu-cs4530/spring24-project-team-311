@@ -1,6 +1,7 @@
 import { ITiledMap, ITiledMapObjectLayer } from '@jonbell/tiled-map-type-guard';
 import { nanoid } from 'nanoid';
 import { BroadcastOperator } from 'socket.io';
+import { response } from 'express';
 import e from 'cors';
 import InvalidParametersError from '../lib/InvalidParametersError';
 import IVideoClient from '../lib/IVideoClient';
@@ -22,12 +23,14 @@ import {
   Player as PlayerModel,
   Pet as PetModel,
   PetType,
+  PetSettingsUpdate,
 } from '../types/CoveyTownSocket';
 import { logError } from '../Utils';
 import ConversationArea from './ConversationArea';
 import GameAreaFactory from './games/GameAreaFactory';
 import InteractableArea from './InteractableArea';
 import ViewingArea from './ViewingArea';
+
 /**
  * The Town class implements the logic for each town: managing the various events that
  * can occur (e.g. joining a town, moving, leaving a town)
@@ -52,6 +55,10 @@ export default class Town {
 
   get players(): Player[] {
     return this._players;
+  }
+
+  get pets(): Pet[] {
+    return this._pets;
   }
 
   get occupancy(): number {
@@ -187,6 +194,7 @@ export default class Town {
     userID: string,
     email: string,
     socket: CoveyTownSocket,
+    pet?: PetModel,
   ): Promise<Player> {
     const newPlayer = new Player(userName, userID, email, socket.to(this._townID));
 
@@ -227,13 +235,108 @@ export default class Town {
       }
     });
 
-    // socket.on('petAdded', (player: PlayerModel) => {
-    //   try {
-    //     this._addNewPet(newPlayer, player);
-    //   } catch (err) {
-    //     logError(err);
-    //   }
-    // });
+    socket.on(
+      'addNewPet',
+      (player: PlayerModel, petName: string, petID: string, petType: PetType) => {
+        try {
+          if (player.pet === undefined) {
+            this.addNewPet(player, petName, petID, petType);
+          }
+        } catch (err) {
+          logError(err);
+        }
+      },
+    );
+
+    socket.on('decreaseStats', (delta: number) => {
+      try {
+        this._pets.forEach(p => {
+          p.decreseStats(delta);
+        });
+      } catch (err) {
+        logError(err);
+      }
+    });
+
+    socket.on('updatePetStats', async (petID: string, updates: PetSettingsUpdate) => {
+      try {
+        const updatedPet = await this.getPet(petID);
+        let updatePetResponse = {
+          happiness: -1,
+          hunger: -1,
+          health: -1,
+          sick: false,
+          hospital: false,
+        };
+        if (updatedPet !== undefined) {
+          updatedPet.cleanPet(updates.healthDelta);
+          updatedPet.feedPet(updates.hungerDelta);
+          updatedPet.playWithPet(updates.happinessDelta);
+          updatePetResponse = {
+            happiness: updatedPet.happiness,
+            hunger: updatedPet.hunger,
+            health: updatedPet.health,
+            sick: updatedPet.sick,
+            hospital: updatedPet.hospitalStatus,
+          };
+        }
+        socket.emit('petStatsResponse', updatePetResponse);
+      } catch (err) {
+        logError(err);
+      }
+    });
+
+    socket.on('hospitalizePet', async (petID: string) => {
+      try {
+        const hospitalizedPet = await this.getPet(petID);
+        let hospitalizedPetResponse = {
+          happiness: -1,
+          hunger: -1,
+          health: -1,
+          sick: false,
+          hospital: false,
+        };
+        if (hospitalizedPet !== undefined) {
+          hospitalizedPet.hospitalizePet();
+          hospitalizedPetResponse = {
+            happiness: hospitalizedPet.happiness,
+            hunger: hospitalizedPet.hunger,
+            health: hospitalizedPet.health,
+            sick: hospitalizedPet.sick,
+            hospital: hospitalizedPet.hospitalStatus,
+          };
+        }
+        socket.emit('petStatsResponse', hospitalizedPetResponse);
+      } catch (err) {
+        logError(err);
+      }
+    });
+
+    socket.on('dischargePet', async (petID: string) => {
+      try {
+        const dischargedPet = await this.getPet(petID);
+        let dischargedPetResponse = {
+          happiness: -1,
+          hunger: -1,
+          health: -1,
+          sick: false,
+          hospital: false,
+        };
+        if (dischargedPet !== undefined) {
+          dischargedPet.dischargePet();
+          dischargedPetResponse = {
+            happiness: dischargedPet.happiness,
+            hunger: dischargedPet.hunger,
+            health: dischargedPet.health,
+            sick: dischargedPet.sick,
+            hospital: dischargedPet.hospitalStatus,
+          };
+        }
+        socket.emit('petStatsResponse', dischargedPetResponse);
+      } catch (err) {
+        logError(err);
+      }
+    });
 
     // Set up a listener to process updates to interactables.
     // Currently only knows how to process updates for ViewingArea's, and

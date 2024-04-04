@@ -17,9 +17,17 @@ export type TownJoinResponse = {
   interactables: TypedInteractable[];
   /** List of Pets currenlty in the town. Cannot be more than the list of players. */
   currentPets: Pet[];
+  /** a response from the db with the reamining session time from the previous and a pet if the user has one */
+  createdResponse: InitialUserCreationResponse;
 }
 
-export type InteractableType = 'ConversationArea' | 'ViewingArea' | 'TicTacToeArea' | 'ConnectFourArea';
+export type InitialUserCreationResponse = {
+  pet?: Pet;
+  logoutTime: number;
+}
+
+
+export type InteractableType = 'ConversationArea' | 'ViewingArea' | 'TicTacToeArea' | 'ConnectFourArea' | 'HospitalArea';
 export interface Interactable {
   type: InteractableType;
   id: InteractableID;
@@ -57,9 +65,17 @@ export interface Pet {
 };
 
 export type PetSettingsUpdate = {
+  healthDelta: number;
+  hungerDelta: number;
+  happinessDelta: number;
+}
+
+export type PetSettingsResponse = {
   health: number;
   hunger: number;
   happiness: number;
+  sick: boolean;
+  hospital: boolean;
 }
 
 export type XY = { x: number, y: number };
@@ -285,6 +301,7 @@ export interface ServerToClientEvents {
   chatMessage: (message: ChatMessage) => void;
   interactableUpdate: (interactable: Interactable) => void;
   commandResponse: (response: InteractableCommandResponse) => void;
+  petStatsResponse: (response: PetSettingsResponse) => void;
   
 }
 
@@ -293,4 +310,9 @@ export interface ClientToServerEvents {
   playerMovement: (movementData: PlayerLocation) => void;
   interactableUpdate: (update: Interactable) => void;
   interactableCommand: (command: InteractableCommand & InteractableCommandBase) => void;
+  addNewPet: (player: PlayerModel, petName: string, petID: string, petType: PetType) => void;
+  decreaseStats: (delta: number) => void;
+  updatePetStats: (petID: string, updates: PetSettingsUpdate) => void;
+  hospitalizePet: (petID: string) => void;
+  dischargePet: (petID : string) => void;
 }

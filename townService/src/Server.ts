@@ -49,7 +49,7 @@ TownsStore.initializeTownsStore((townID: string) => socketServer.to(townID));
 // (the library that we use for REST), which creates a new controller instance for each request
 socketServer.on('connection', socket => {
   // new TownsController().joinTown(socket);
-  new PetsController(new PetDatabase()).joinTown(socket);
+  new PetsController().joinTown(socket);
 });
 
 // Set the default content-type to JSON

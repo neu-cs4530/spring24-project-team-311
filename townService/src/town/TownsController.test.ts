@@ -14,6 +14,7 @@ import {
   MockedPlayer,
 } from '../TestUtils';
 import { TownsController } from './TownsController';
+import MockPetDatabase from './MockPetDatabase';
 
 type TestTownData = {
   friendlyName: string;
@@ -82,7 +83,7 @@ describe('TownsController integration tests', () => {
       return mockRoomEmitter;
     });
     TownsStore.initializeTownsStore(broadcastEmitter);
-    controller = new TownsController();
+    controller = new TownsController(new MockPetDatabase());
   });
   describe('createTown', () => {
     it('Allows for multiple towns with the same friendlyName', async () => {

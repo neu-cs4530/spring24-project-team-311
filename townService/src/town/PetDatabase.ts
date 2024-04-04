@@ -1,4 +1,4 @@
-import { getDatabase, ref, set, get, child, update, remove } from 'firebase/database';
+import { getDatabase, ref, set, get, update, remove } from 'firebase/database';
 import { PetType, Pet, Player, PlayerLocation } from '../types/CoveyTownSocket';
 import APetDatabase from './APetDatabase';
 
@@ -26,6 +26,14 @@ export default class PetDatabase extends APetDatabase {
     petType: PetType,
     ownerID: string,
   ): Promise<boolean> {
+    const userRef = ref(this._db, `users/${ownerID}`);
+    const userSnapshot = await get(userRef);
+
+    if (!userSnapshot.exists()) {
+      // User does not exist, return false
+      return false;
+    }
+
     const userPetRef = ref(this._db, `users/${ownerID}/pet`);
     const snapshot = await get(userPetRef);
     if (snapshot.exists()) {
@@ -98,7 +106,7 @@ export default class PetDatabase extends APetDatabase {
     const snapshot = await get(userRef);
     if (snapshot.exists()) {
       const user = snapshot.val();
-      return user.logoutTime;
+      return user.logoutTimeLeft;
     }
     return 0;
   }
