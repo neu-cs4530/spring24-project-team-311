@@ -12,9 +12,7 @@ import { RegisterRoutes } from '../generated/routes';
 import TownsStore from './lib/TownsStore';
 import { ClientToServerEvents, ServerToClientEvents } from './types/CoveyTownSocket';
 import { TownsController } from './town/TownsController';
-import { PetsController } from './town/PetsController';
 import { logError } from './Utils';
-import PetDatabase from './town/PetDatabase';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -31,8 +29,7 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 
 // Initialize Realtime Database and get a reference to the service
-// eslint-disable-next-line import/prefer-default-export
-export const database = getDatabase(firebaseApp);
+const database = getDatabase(firebaseApp);
 
 // Create the server instances
 const app = Express();
@@ -48,8 +45,7 @@ TownsStore.initializeTownsStore((townID: string) => socketServer.to(townID));
 // Connect the socket server to the TownsController. We use here the same pattern as tsoa
 // (the library that we use for REST), which creates a new controller instance for each request
 socketServer.on('connection', socket => {
-  // new TownsController().joinTown(socket);
-  new PetsController(new PetDatabase()).joinTown(socket);
+  new TownsController().joinTown(socket);
 });
 
 // Set the default content-type to JSON

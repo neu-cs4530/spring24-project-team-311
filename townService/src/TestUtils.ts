@@ -144,16 +144,10 @@ export class MockedPlayer {
 
   player: Player | undefined;
 
-  email: string;
-
-  userid: string;
-
   constructor(
     socket: MockProxy<CoveyTownSocket>,
     socketToRoomMock: MockProxy<TypedEventBroadcaster<ServerToClientEvents>>,
     userName: string,
-    userid: string,
-    email: string,
     townID: string,
     player: Player | undefined,
   ) {
@@ -162,8 +156,6 @@ export class MockedPlayer {
     this.userName = userName;
     this.townID = townID;
     this.player = player;
-    this.userid = userid;
-    this.email = email;
   }
 
   moveTo(x: number, y: number, rotation: Direction = 'front', moving = false): void {
@@ -182,9 +174,7 @@ export class MockedPlayer {
 export function mockPlayer(townID: string): MockedPlayer {
   const socket = mockDeep<CoveyTownSocket>();
   const userName = nanoid();
-  const userID = nanoid();
-  const email = 'test@test.com';
-  socket.handshake.auth = { userName, userID, email, townID };
+  socket.handshake.auth = { userName, townID };
   const socketToRoomMock = mock<BroadcastOperator<ServerToClientEvents, SocketData>>();
   socket.to.mockImplementation((room: string | string[]) => {
     if (townID === room) {
@@ -192,7 +182,7 @@ export function mockPlayer(townID: string): MockedPlayer {
     }
     throw new Error(`Tried to broadcast to ${room} but this player is in ${townID}`);
   });
-  return new MockedPlayer(socket, socketToRoomMock, userName, userID, email, townID, undefined);
+  return new MockedPlayer(socket, socketToRoomMock, userName, townID, undefined);
 }
 
 /**
@@ -200,12 +190,7 @@ export function mockPlayer(townID: string): MockedPlayer {
  *
  */
 export function createPlayerForTesting(): Player {
-  return new Player(
-    `username${nanoid()}`,
-    `userid${nanoid()}`,
-    `email${'test@test.com'}`,
-    mock<TownEmitter>(),
-  );
+  return new Player(`username${nanoid()}`, mock<TownEmitter>());
 }
 
 /**

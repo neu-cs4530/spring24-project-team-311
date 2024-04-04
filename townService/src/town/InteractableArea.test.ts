@@ -37,7 +37,7 @@ describe('InteractableArea', () => {
   beforeEach(() => {
     mockClear(townEmitter);
     testArea = new TestInteractableArea(id, testAreaBox, townEmitter);
-    newPlayer = new Player(nanoid(), nanoid(), 'test@test.com', mock<TownEmitter>());
+    newPlayer = new Player(nanoid(), mock<TownEmitter>());
     testArea.add(newPlayer);
   });
   describe('add', () => {
@@ -81,13 +81,13 @@ describe('InteractableArea', () => {
       playersNotInArea = [];
       const box = testArea.boundingBox;
       for (let i = 0; i < 10; i++) {
-        const player = new Player(nanoid(), nanoid(), 'test@test.com', mock<TownEmitter>());
+        const player = new Player(nanoid(), mock<TownEmitter>());
         player.location.x = box.x + box.width / 2;
         player.location.y = box.y + box.height / 2;
         playersInArea.push(player);
       }
       for (let i = 0; i < 10; i++) {
-        const player = new Player(nanoid(), nanoid(), 'test@test.com', mock<TownEmitter>());
+        const player = new Player(nanoid(), mock<TownEmitter>());
         player.location.x = -100;
         player.location.y = -100;
         playersNotInArea.push(player);
