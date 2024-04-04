@@ -17,6 +17,9 @@ import { useInteractable } from '../../classes/TownController';
 import useTownController from '../../hooks/useTownController';
 import { Image } from '@chakra-ui/react';
 import vet from './images/vet.png';
+import feed from './images/feed.png';
+import clean from './images/clean.png';
+import play from './images/play.png';
 
 export default function HospitalAreaPopup(): JSX.Element {
   const [selectedTreatment, setSelectedTreatment] = useState<string>('');
@@ -140,7 +143,7 @@ export default function HospitalAreaPopup(): JSX.Element {
             <ModalCloseButton />
             <ModalBody>
               <Text mt={4} textAlign='left' fontSize='lg'>
-                Choose a treatment for [pets name]
+                Choose a treatment for {townController.ourPet?.petName}
               </Text>
               <Box padding='5px' mt={2}>
                 <Flex alignItems='center' mb='2'>
@@ -156,6 +159,7 @@ export default function HospitalAreaPopup(): JSX.Element {
                       Health Check-up
                     </Button>
                   </Flex>
+                  <Image boxSize='20px' src={clean.src} alt={'Health'} />
                   <Box ml='2'>
                     <Progress
                       value={progressValues[0]}
@@ -185,6 +189,7 @@ export default function HospitalAreaPopup(): JSX.Element {
                       Happiness Check-up
                     </Button>
                   </Flex>
+                  <Image boxSize='20px' src={play.src} alt={'Happiness'} />
                   <Box ml='2'>
                     <Progress
                       value={progressValues[1]}
@@ -214,6 +219,7 @@ export default function HospitalAreaPopup(): JSX.Element {
                       Hunger Check-up
                     </Button>
                   </Flex>
+                  <Image boxSize='20px' src={feed.src} alt={'Hunger'} />
                   <Box ml='2'>
                     <Progress
                       value={progressValues[2]}
