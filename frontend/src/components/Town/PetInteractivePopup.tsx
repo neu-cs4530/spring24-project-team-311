@@ -54,12 +54,6 @@ const PetInteractivePopup = (props: PetInteractivePopupProps) => {
     ]);
   };
 
-  const handleZeroProgressAction = (action: string) => {
-    setErrorMessage(
-      `You can't ${action} your pet right now :( It's been too long! \n Please take your pet to the hospital.`,
-    );
-  };
-
   const interactionImages = [feed.src, clean.src, play.src];
 
   const handleSubmit = () => {
@@ -112,14 +106,10 @@ const PetInteractivePopup = (props: PetInteractivePopupProps) => {
                     <Button
                       colorScheme='blue'
                       onClick={() => {
-                        return value === 0
-                          ? handleZeroProgressAction(
-                              index === 0 ? 'feed' : index === 1 ? 'clean' : 'play',
-                            )
-                          : handleProgressIncrement(
-                              index,
-                              index === 0 ? 'Feed' : index === 1 ? 'Clean' : 'Play',
-                            );
+                        return handleProgressIncrement(
+                          index,
+                          index === 0 ? 'Feed' : index === 1 ? 'Clean' : 'Play',
+                        );
                       }}
                       disabled={value === 0}>
                       {index === 0 ? 'Feed' : index === 1 ? 'Clean' : 'Play'}
