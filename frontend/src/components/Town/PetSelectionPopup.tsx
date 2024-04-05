@@ -31,6 +31,7 @@ const PetSelectionPopup = (props: PetSelectionPopupProps) => {
   const [errorMessage, setErrorMessage] = useState<string>('');
 
   const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    props.townController.pause();
     setPetName(event.target.value);
   };
 
@@ -67,7 +68,7 @@ const PetSelectionPopup = (props: PetSelectionPopupProps) => {
       console.log('new pet added');
       // props.townController._petsInternal = [newPet];
 
-      // console.log()
+      props.townController.unPause();
 
       // On success
       props.onClose();

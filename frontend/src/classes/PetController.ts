@@ -10,6 +10,7 @@ export type PetEvents = {
 
 export type PetGameObjects = {
   sprite: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+  label: Phaser.GameObjects.Text;
   locationManagedByGameScene: boolean;
 };
 
