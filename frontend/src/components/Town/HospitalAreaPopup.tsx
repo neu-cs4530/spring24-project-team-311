@@ -29,7 +29,11 @@ export default function HospitalAreaPopup(): JSX.Element {
   const townController = useTownController();
   const hospital = useInteractable('hospitalArea');
   const isOpen = hospital !== undefined;
-  const [progressValues, setProgressValues] = useState<number[]>([20, 0, 70]); // Initial progress values
+  const [progressValues, setProgressValues] = useState<number[]>([
+    townController.ourPet ? townController.ourPet.petHunger : 20,
+    townController.ourPet ? townController.ourPet.petHealth : 0,
+    townController.ourPet ? townController.ourPet.petHappiness : 70,
+  ]); // Initial progress values
   const [errorMessage, setErrorMessage] = useState<string>('');
 
   const handleSelectTreatment = (treatment: string) => {
@@ -44,6 +48,12 @@ export default function HospitalAreaPopup(): JSX.Element {
     }
   }, [townController, hospital]);
 
+  useEffect(() => {
+    townController.ourPet?.addListener('petStatsUpdated', newStats => {
+      setProgressValues([newStats.petHunger, newStats.petHealth, newStats.petHappiness]);
+    });
+  }, [townController.ourPet]);
+
   const simulateLoading = () => {
     setLoadingProgress(0); // Reset progress to 0 when starting loading
     const interval = setInterval(() => {
@@ -51,25 +61,30 @@ export default function HospitalAreaPopup(): JSX.Element {
         const newProgress = prevProgress + 15;
         return newProgress >= 100 ? 100 : newProgress;
       });
-    }, 1000);
+    }, 100);
 
     setTimeout(() => {
       clearInterval(interval);
       setShowProgressScreen(false);
       setShowAllDone(true);
       townController.unPause();
-    }, 10000);
+    }, 1000);
   };
 
   const handleSubmit = () => {
     if (selectedTreatment) {
-      const selectedIndex = ['health', 'happiness', 'hunger'].indexOf(selectedTreatment);
+      const selectedIndex = ['hunger', 'health', 'happiness'].indexOf(selectedTreatment);
       if (progressValues[selectedIndex] !== 0) {
         setErrorMessage("You can't give your pet that treatment!");
       } else {
         setErrorMessage('');
         setShowProgressScreen(true);
         simulateLoading();
+        townController.setPetStats(townController.ourPet!.petID, {
+          hunger: selectedIndex === 0 ? 100 : townController.ourPet!.petHunger,
+          health: selectedIndex === 1 ? 100 : townController.ourPet!.petHealth,
+          happiness: selectedIndex === 2 ? 100 : townController.ourPet!.petHappiness,
+        });
       }
     }
   };
@@ -143,20 +158,20 @@ export default function HospitalAreaPopup(): JSX.Element {
             <ModalCloseButton />
             <ModalBody>
               <Text mt={4} textAlign='left' fontSize='lg'>
-                Choose a treatment for {townController.ourPet?.petName}
+                Choose a treatment for {townController.ourPet?.petName}:
               </Text>
               <Box padding='5px' mt={2}>
                 <Flex alignItems='center' mb='2'>
                   <Flex flex='1'>
                     <Button
-                      onClick={() => handleSelectTreatment('health')}
-                      variant={selectedTreatment === 'health' ? 'solid' : 'outline'}
-                      colorScheme={selectedTreatment === 'health' ? 'blue' : 'gray'}
+                      onClick={() => handleSelectTreatment('hunger')}
+                      variant={selectedTreatment === 'hunger' ? 'solid' : 'outline'}
+                      colorScheme={selectedTreatment === 'hunger' ? 'blue' : 'gray'}
                       size='sm'
                       mb='2'
                       height='32px'
                       width='200px'>
-                      Health Check-up
+                      Hunger Check-up
                     </Button>
                   </Flex>
                   <Image boxSize='20px' src={clean.src} alt={'Health'} />
@@ -179,14 +194,14 @@ export default function HospitalAreaPopup(): JSX.Element {
                 <Flex alignItems='center' mb='2'>
                   <Flex flex='1'>
                     <Button
-                      onClick={() => handleSelectTreatment('happiness')}
-                      variant={selectedTreatment === 'happiness' ? 'solid' : 'outline'}
-                      colorScheme={selectedTreatment === 'happiness' ? 'blue' : 'gray'}
+                      onClick={() => handleSelectTreatment('health')}
+                      variant={selectedTreatment === 'health' ? 'solid' : 'outline'}
+                      colorScheme={selectedTreatment === 'health' ? 'blue' : 'gray'}
                       size='sm'
                       mb='2'
                       height='32px'
                       width='200px'>
-                      Happiness Check-up
+                      Health Check-up
                     </Button>
                   </Flex>
                   <Image boxSize='20px' src={play.src} alt={'Happiness'} />
@@ -209,14 +224,14 @@ export default function HospitalAreaPopup(): JSX.Element {
                 <Flex alignItems='center' mb='2'>
                   <Flex flex='1'>
                     <Button
-                      onClick={() => handleSelectTreatment('hunger')}
-                      variant={selectedTreatment === 'hunger' ? 'solid' : 'outline'}
-                      colorScheme={selectedTreatment === 'hunger' ? 'blue' : 'gray'}
+                      onClick={() => handleSelectTreatment('happiness')}
+                      variant={selectedTreatment === 'happiness' ? 'solid' : 'outline'}
+                      colorScheme={selectedTreatment === 'happiness' ? 'blue' : 'gray'}
                       size='sm'
                       mb='2'
                       height='32px'
                       width='200px'>
-                      Hunger Check-up
+                      Happiness Check-up
                     </Button>
                   </Flex>
                   <Image boxSize='20px' src={feed.src} alt={'Hunger'} />
