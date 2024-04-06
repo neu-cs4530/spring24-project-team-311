@@ -253,7 +253,7 @@ export default function HospitalAreaPopup(): JSX.Element {
               )}
               <ModalFooter>
                 <Button colorScheme='blue' onClick={handleSubmit}>
-                  Done
+                  Get Selected Treatment
                 </Button>
               </ModalFooter>
             </ModalBody>
