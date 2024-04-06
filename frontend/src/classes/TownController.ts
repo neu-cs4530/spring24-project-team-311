@@ -23,6 +23,7 @@ import {
   InteractableID,
   PlayerID,
   PlayerLocation,
+  Player as PlayerModel,
   TownSettingsUpdate,
   ViewingArea as ViewingAreaModel,
 } from '../types/CoveyTownSocket';
@@ -51,6 +52,7 @@ const SOCKET_COMMAND_TIMEOUT_MS = 5000;
 
 export type ConnectionProperties = {
   userName: string;
+  userID: string;
   townID: string;
   loginController: LoginController;
 };
@@ -188,7 +190,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
    * The user ID of the player whose browser created this TownController. The user ID is set by the backend townsService, and
    * is only available after the service is connected.
    */
-  private _userID?: string;
+  private _userID: string;
 
   /**
    * A reference to the Player object that represents the player whose browser created this TownController.
@@ -218,11 +220,12 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
    */
   private _interactableEmitter = new EventEmitter();
 
-  public constructor({ userName, townID, loginController }: ConnectionProperties) {
+  public constructor({ userName, userID, townID, loginController }: ConnectionProperties) {
     super();
     this._townID = townID;
     this._userName = userName;
     this._loginController = loginController;
+    this._userID = userID;
 
     /*
         The event emitter will show a warning if more than this number of listeners are registered, as it
@@ -233,7 +236,14 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
 
     const url = process.env.NEXT_PUBLIC_TOWNS_SERVICE_URL;
     assert(url);
-    this._socket = io(url, { auth: { userName, townID } });
+    const currentTime = new Date().getTime();
+
+    console.log('USERNAME: ' + userName);
+    console.log('USERID: ' + userID);
+    console.log('CURRENTTIME: ' + currentTime);
+    console.log('TOWNID: ' + townID);
+
+    this._socket = io(url, { auth: { userName, userID, townID, currentTime } });
     this._townsService = new TownsServiceClient({ BASE: url }).towns;
     this.registerSocketListeners();
     // TEMP CODE TO ADD PET FOR USER
@@ -325,9 +335,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     this._petsInternal = newPets;
   }
 
-  public addPet(newPet: PetController) {
+  public addPet(player: PlayerModel, newPet: PetController) {
     // TODO: update backend
     this._petsInternal = [newPet];
+    this._socket.emit('addNewPet', player, newPet.petName, newPet.petID, newPet.petType);
   }
 
   public setPetStats(
@@ -664,10 +675,16 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         this._players = initialData.currentPlayers.map(eachPlayerModel =>
           PlayerController.fromPlayerModel(eachPlayerModel),
         );
-        // this._petsInternal = initialData.pets.map(eachPetModel =>
-        //   PetController.fromPetModel(eachPetModel),
-        // );
 
+        this._petsInternal = initialData.currentPets.map(eachPetModel =>
+          new PetController(
+            eachPetModel.ownerID,
+            eachPetModel.id,
+            eachPetModel.type,
+            eachPetModel.userName,
+            eachPetModel.location,
+          ).fromPetModel(eachPetModel),
+        );
         this._interactableControllers = [];
         initialData.interactables.forEach(eachInteractable => {
           if (isConversationArea(eachInteractable)) {

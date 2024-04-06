@@ -87,7 +87,7 @@ const listTowns = (suffix: string) =>
 export function wrappedTownSelection() {
   return (
     <ChakraProvider>
-      <TownSelection />
+      <TownSelection username={''} />
     </ChakraProvider>
   );
 }

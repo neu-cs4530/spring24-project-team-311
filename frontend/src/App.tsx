@@ -20,7 +20,7 @@ import { TownsServiceClient } from './generated/client';
 import { nanoid } from 'nanoid';
 import ToggleChatButton from './components/VideoCall/VideoFrontend/components/Buttons/ToggleChatButton/ToggleChatButton';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { signOut } from 'firebase/auth';
+import { signOut, onAuthStateChanged, getAuth } from 'firebase/auth';
 import { auth } from './firebase';
 
 function App() {
@@ -100,14 +100,36 @@ function DebugApp(): JSX.Element {
       }
     }
     getOrCreateDebugTownID().then(townID => {
+      console.log(auth.currentUser);
+      let username = 'test';
+      let uid = 'testID';
+      const aAuth = getAuth();
+      onAuthStateChanged(aAuth, user => {
+        if (user) {
+          // User is signed in, see docs for a list of available properties
+          // https://firebase.google.com/docs/reference/js/firebase.User
+          uid = user.uid;
+          username = user.displayName !== null ? user.displayName : username;
+          console.log(user.email);
+          // ...
+        }
+      });
       assert(townID);
       const newTownController = new TownController({
+        userName: username,
+        // auth.currentUser?.displayName === null || auth.currentUser?.displayName === undefined
+        //   ? 'test'
+        //   : auth.currentUser.displayName,
+        userID: uid,
+        // auth.currentUser?.providerData[0].email === null ||
+        // auth.currentUser?.providerData[0].email === undefined
+        //   ? 'testID'
+        //   : auth.currentUser?.providerData[0].email,
         townID,
         loginController: {
           setTownController: () => {},
           townsService,
         },
-        userName: nanoid(),
       });
       newTownController.connect().then(() => {
         setTownController(newTownController);

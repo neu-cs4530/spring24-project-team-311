@@ -1,7 +1,7 @@
 import EventEmitter from 'events';
 import TypedEmitter from 'typed-emitter';
 import { MOVEMENT_SPEED } from './PlayerController';
-import { Pet, Pet as PetModel, PlayerLocation } from '../types/CoveyTownSocket';
+import { Pet, Pet as PetModel, PlayerLocation, PetType } from '../types/CoveyTownSocket';
 
 export type PetEvents = {
   movement: (newLocation: PlayerLocation) => void;
@@ -12,8 +12,6 @@ export type PetGameObjects = {
   sprite: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
   locationManagedByGameScene: boolean;
 };
-
-export type PetType = 'dog' | 'cat' | 'duck';
 
 export default class PetController extends (EventEmitter as new () => TypedEmitter<PetEvents>) {
   private _location: PlayerLocation;
@@ -34,9 +32,9 @@ export default class PetController extends (EventEmitter as new () => TypedEmitt
 
   private _isInHospital: boolean;
 
-  private _timePlacedInHospital: Date | undefined;
-
   public gameObjects?: PetGameObjects;
+
+  private _isSick: boolean;
 
   constructor(
     playerID: string,
@@ -55,13 +53,12 @@ export default class PetController extends (EventEmitter as new () => TypedEmitt
     this._petHappiness = 50;
     this._petHunger = 50;
     this._isInHospital = false;
-    this._timePlacedInHospital = undefined;
+    this._isSick = false;
   }
 
   set location(newLocation: PlayerLocation) {
     this._location = newLocation;
     this._updateGameComponentLocation();
-    this.emit('movement', newLocation);
   }
 
   get location(): PlayerLocation {
@@ -119,36 +116,37 @@ export default class PetController extends (EventEmitter as new () => TypedEmitt
     this._isInHospital = newIsInHospital;
   }
 
-  get timePlacedInHospital(): Date | undefined {
-    return this._timePlacedInHospital;
+  get isSick(): boolean {
+    return this._isSick;
   }
 
-  set timePlacedInHospital(newTimePlacedInHospital: Date | undefined) {
-    this._timePlacedInHospital = newTimePlacedInHospital;
+  set timePlacedInHospital(sickStatus: boolean) {
+    this._isSick = sickStatus;
   }
 
   toPetModel(): PetModel {
     return {
-      playerID: this.playerID,
-      petID: this.petID,
-      location: this.location,
-      petType: this.petType,
-      petName: this.petName,
-      petHealth: this.petHealth,
-      petHappiness: this.petHappiness,
-      petHunger: this.petHunger,
-      isInHospital: this.isInHospital,
-      timePlacedInHospital: this.timePlacedInHospital,
+      ownerID: this.playerID,
+      id: this.petID,
+      type: this.petType,
+      userName: this.petName,
+      health: this.petHealth,
+      happiness: this.petHappiness,
+      hunger: this.petHunger,
+      inHospital: this.isInHospital,
+      isSick: this._isSick,
+      location: this._location,
     };
   }
 
-  fromPetModel(pet: PetModel): void {
-    this.location = pet.location;
-    this.petHealth = pet.petHealth;
-    this.petHappiness = pet.petHappiness;
-    this.petHunger = pet.petHunger;
-    this.isInHospital = pet.isInHospital;
-    this.timePlacedInHospital = pet.timePlacedInHospital;
+  fromPetModel(pet: PetModel): PetController {
+    this.petHealth = pet.health;
+    this.petHappiness = pet.happiness;
+    this.petHunger = pet.hunger;
+    this.isInHospital = pet.inHospital;
+    this._isSick = pet.isSick;
+    this._location = pet.location;
+    return this;
   }
 
   private _updateGameComponentLocation() {
