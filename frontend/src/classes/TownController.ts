@@ -325,6 +325,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     this._petsInternal = newPets;
   }
 
+  public get pets(): PetController[] {
+    return this._petsInternal;
+  }
+
   public addPet(newPet: PetController) {
     // TODO: update backend
     this._petsInternal = [newPet];

@@ -21,6 +21,7 @@ export class NoPetError extends Error {
 }
 
 const LABEL_OFFSET_Y = -20;
+const PET_LABEL_OFFSET_Y = -40;
 
 const STAT_DECAY_SECONDS = 1;
 
@@ -386,8 +387,10 @@ export default class TownGameScene extends Phaser.Scene {
         this.coveyTownController.ourPet.petType,
         spawnPoint,
       );
+      const petLabel = this._addInitialPetLabel(spawnPoint);
       this.coveyTownController.ourPet.gameObjects = {
         sprite: petSprite,
+        label: petLabel,
         locationManagedByGameScene: true,
       };
       this.coveyTownController.ourPet.gameObjects.sprite.setInteractive().on('pointerdown', () => {
@@ -421,9 +424,11 @@ export default class TownGameScene extends Phaser.Scene {
       switch (this.coveyTownController.ourPlayer.location.rotation) {
         case 'left':
           offsetX = 32;
+          offsetY = 16;
           break;
         case 'right':
           offsetX = -32;
+          offsetY = 16;
           break;
         case 'front':
           offsetY = -32;
@@ -475,6 +480,8 @@ export default class TownGameScene extends Phaser.Scene {
       }
       // Normalize and scale the velocity so that pet can't move faster along a diagonal
       petObjects.sprite.body.velocity.normalize().scale(MOVEMENT_SPEED);
+      petObjects.label.setX(body.x);
+      petObjects.label.setY(body.y + PET_LABEL_OFFSET_Y);
 
       // replace with emit later
       this.coveyTownController.ourPet!.location = {
@@ -484,8 +491,17 @@ export default class TownGameScene extends Phaser.Scene {
         moving: primaryDirection !== undefined,
       };
 
+      // update other pet labels
+      for (const pet of this.coveyTownController.pets) {
+        if (pet.gameObjects?.label && pet.gameObjects?.sprite.body) {
+          pet.gameObjects.label.setX(pet.gameObjects.sprite.body.x);
+          pet.gameObjects.label.setY(pet.gameObjects.sprite.body.y + PET_LABEL_OFFSET_Y);
+        }
+      }
+
       // If pet is in hospital, set invisible
       petObjects.sprite.visible = !this.coveyTownController.ourPet!.isInHospital;
+      petObjects.label.visible = !this.coveyTownController.ourPet!.isInHospital;
     }
   }
 
@@ -983,19 +999,19 @@ export default class TownGameScene extends Phaser.Scene {
     switch (petType) {
       case 'dog':
         return this.physics.add
-          .sprite(spawnPoint.x + 32, spawnPoint.y, 'dog-sprites', 'dog-front')
+          .sprite(spawnPoint.x + 32, spawnPoint.y + 16, 'dog-sprites', 'dog-front')
           .setSize(30, 40)
           .setOffset(0, 24)
           .setDepth(5);
       case 'cat':
         return this.physics.add
-          .sprite(spawnPoint.x + 32, spawnPoint.y, 'cat-sprites', 'cat-front')
+          .sprite(spawnPoint.x + 32, spawnPoint.y + 16, 'cat-sprites', 'cat-front')
           .setSize(30, 40)
           .setOffset(0, 24)
           .setDepth(5);
       case 'duck':
         return this.physics.add
-          .sprite(spawnPoint.x + 32, spawnPoint.y, 'duck-sprites', 'duck-front')
+          .sprite(spawnPoint.x + 32, spawnPoint.y + 16, 'duck-sprites', 'duck-front')
           .setSize(30, 40)
           .setOffset(0, 24)
           .setDepth(5);
@@ -1007,6 +1023,23 @@ export default class TownGameScene extends Phaser.Scene {
           .setOffset(0, 24)
           .setDepth(5);
     }
+  }
+
+  private _addInitialPetLabel(spawnPoint: Phaser.GameObjects.Components.Transform) {
+    // add label
+    return this.add
+      .text(
+        spawnPoint.x + 32,
+        spawnPoint.y + PET_LABEL_OFFSET_Y,
+        this.coveyTownController.ourPet?.petName || 'Pet',
+        {
+          font: '12px monospace',
+          color: '#000000',
+          // padding: {x: 20, y: 10},
+          backgroundColor: '#ffffff',
+        },
+      )
+      .setDepth(6);
   }
 
   createPlayerSprites(player: PlayerController) {
