@@ -1,4 +1,4 @@
-import { PetType, Player, Pet as PetModel, PlayerLocation } from '../types/CoveyTownSocket';
+import { Player, Pet as PetModel, PlayerLocation } from '../types/CoveyTownSocket';
 
 /**
  * The public-facing model that represents a town. More information about the town
@@ -76,7 +76,7 @@ export interface UserCreateParams {
   username: string;
   userID: string;
   loginTime: number;
-  location: PlayerLocation,
+  location: PlayerLocation;
 }
 
 export interface Pet {
@@ -84,8 +84,12 @@ export interface Pet {
   petName: string;
   ownerID: string;
   petType: PetType;
-  location: PlayerLocation,
+  location: PlayerLocation;
 }
+
+type Direction = 'front' | 'back' | 'left' | 'right';
+
+type PetType = 'Cat' | 'Dog' | 'Duck';
 
 export interface PetCreateResponse {
   /**
@@ -102,6 +106,7 @@ export interface PetCreateParams {
   /**
    * Players can choose to see this pet following them around or not.
    */
+  petID: string;
   ownerID: Player;
 
   type: PetType;

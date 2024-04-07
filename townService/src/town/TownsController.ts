@@ -15,7 +15,7 @@ import {
   Tags,
 } from 'tsoa';
 
-import { Town, TownCreateParams, TownCreateResponse } from '../api/Model';
+import { PetCreateParams, Town, TownCreateParams, TownCreateResponse } from '../api/Model';
 import InvalidParametersError from '../lib/InvalidParametersError';
 import CoveyTownsStore from '../lib/TownsStore';
 import {
@@ -215,8 +215,10 @@ export class TownsController extends Controller {
       userName: string;
       userID: string;
       townID: string;
-      loginTime: number;
+      loginTime: string;
     };
+
+    console.log(`LOGINTIME: ${loginTime}`);
 
     const town = this._townsStore.getTownByID(townID);
     if (!town) {
@@ -225,7 +227,7 @@ export class TownsController extends Controller {
     }
     // Connect the client to the socket.io broadcast room for this town
     socket.join(town.townID);
-    const player = await this._createUser(userID, userName, loginTime);
+    const player = await this._createUser(userID, userName, Number(loginTime));
 
     // console.log(`Player${player?.userName} ${player?.id} ${player?.location}`);
 
@@ -263,7 +265,7 @@ export class TownsController extends Controller {
     console.log(`USERNAME: ${username}`);
     console.log(`LOGINTIME: ${loginTime}`);
     const playerInDB = await this._firebaseSchema.getOrAddPlayer(
-      'test',
+      userID,
       username,
       {
         x: 0,
@@ -275,4 +277,14 @@ export class TownsController extends Controller {
     );
     return playerInDB;
   }
+
+  // public async createNewPet(request: PetCreateParams): Promise<void> {
+  //   await this._firebaseSchema.addPet(
+  //     request.petName,
+  //     request.petID,
+  //     request.type,
+  //     request.ownerID.id,
+  //     request.location,
+  //   );
+  // }
 }

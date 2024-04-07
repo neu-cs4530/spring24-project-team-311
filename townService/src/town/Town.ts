@@ -267,6 +267,7 @@ export default class Town {
       try {
         const updatedPet = await this.getPet(petID);
         let updatePetResponse = {
+          petid: petID,
           happiness: -1,
           hunger: -1,
           health: -1,
@@ -278,6 +279,7 @@ export default class Town {
           updatedPet.feedPet(updates.hungerDelta);
           updatedPet.playWithPet(updates.happinessDelta);
           updatePetResponse = {
+            petid: petID,
             happiness: updatedPet.happiness,
             hunger: updatedPet.hunger,
             health: updatedPet.health,
@@ -295,6 +297,7 @@ export default class Town {
       try {
         const hospitalizedPet = await this.getPet(petID);
         let hospitalizedPetResponse = {
+          petid: petID,
           happiness: -1,
           hunger: -1,
           health: -1,
@@ -304,6 +307,7 @@ export default class Town {
         if (hospitalizedPet !== undefined) {
           hospitalizedPet.hospitalizePet();
           hospitalizedPetResponse = {
+            petid: petID,
             happiness: hospitalizedPet.happiness,
             hunger: hospitalizedPet.hunger,
             health: hospitalizedPet.health,
@@ -321,6 +325,7 @@ export default class Town {
       try {
         const dischargedPet = await this.getPet(petID);
         let dischargedPetResponse = {
+          petid: petID,
           happiness: -1,
           hunger: -1,
           health: -1,
@@ -330,6 +335,7 @@ export default class Town {
         if (dischargedPet !== undefined) {
           dischargedPet.dischargePet();
           dischargedPetResponse = {
+            petid: petID,
             happiness: dischargedPet.happiness,
             hunger: dischargedPet.hunger,
             health: dischargedPet.health,

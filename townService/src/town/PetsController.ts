@@ -92,6 +92,7 @@ export class PetsController extends TownsController {
     let update: PetSettingsResponse;
     if (pet !== undefined) {
       update = {
+        petid: petID,
         happiness: pet.happiness,
         hunger: pet.hunger,
         health: pet.health,

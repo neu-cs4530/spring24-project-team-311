@@ -71,6 +71,7 @@ export type PetSettingsUpdate = {
 }
 
 export type PetSettingsResponse = {
+  petid: string;
   health: number;
   hunger: number;
   happiness: number;
