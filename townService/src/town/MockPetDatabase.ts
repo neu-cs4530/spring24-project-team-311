@@ -12,7 +12,7 @@ export default class MockPetDatabase extends APetDatabase {
 
   private _pets: Pet[] = [];
 
-  async addUser(userID: string, username: string, email: string, loginTime: number): Promise<void> {
+  async addUser(userID: string, username: string, loginTime: number): Promise<void> {
     const player: Player = {
       id: userID,
       userName: username,
@@ -22,7 +22,6 @@ export default class MockPetDatabase extends APetDatabase {
         moving: false,
         rotation: 'front',
       },
-      email,
     };
     this._players.push({ player, loginTime, logoutTimeLeft: 0 });
   }
@@ -32,6 +31,7 @@ export default class MockPetDatabase extends APetDatabase {
     petID: string,
     petType: PetType,
     ownerID: string,
+    location: PlayerLocation,
   ): Promise<boolean> {
     const pet = this._pets.find(p => p.ownerID === ownerID && p.id === petID);
     if (pet === undefined) {
@@ -45,6 +45,7 @@ export default class MockPetDatabase extends APetDatabase {
         happiness: 100,
         inHospital: false,
         isSick: false,
+        location,
       };
       this._pets.push(newPet);
       return true;
@@ -55,7 +56,6 @@ export default class MockPetDatabase extends APetDatabase {
   async getOrAddPlayer(
     userID: string,
     username: string,
-    email: string,
     location: PlayerLocation,
     loginTime: number,
   ): Promise<Player | undefined> {
@@ -65,7 +65,6 @@ export default class MockPetDatabase extends APetDatabase {
       let existingPlayer: Player = {
         userName: username,
         id: userID,
-        email,
         location,
       };
       const pet: Pet | undefined = await this.getPet(userID);
@@ -73,14 +72,13 @@ export default class MockPetDatabase extends APetDatabase {
         existingPlayer = {
           userName: username,
           id: userID,
-          email,
           location,
           pet,
         };
       }
       return existingPlayer;
     }
-    await this.addUser(userID, username, email, loginTime);
+    await this.addUser(userID, username, loginTime);
     return undefined;
   }
 
@@ -181,7 +179,7 @@ export default class MockPetDatabase extends APetDatabase {
   async changeOwner(currentOwner: string, newOwner: string, petID: string): Promise<void> {
     const pet = this._pets.find(p => p.ownerID === currentOwner && p.id === petID);
     if (pet !== undefined) {
-      this.addPet(pet.userName, petID, pet.type, newOwner);
+      this.addPet(pet.userName, petID, pet.type, newOwner, pet.location);
       this.deletePet(currentOwner, petID);
     }
   }

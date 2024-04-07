@@ -46,7 +46,6 @@ export interface Player {
   id: PlayerID;
   userName: string;
   location: PlayerLocation;
-  email: string;
   pet?: Pet
 };
 
@@ -62,6 +61,7 @@ export interface Pet {
   happiness: number;
   inHospital: boolean;
   isSick: boolean;
+  location: PlayerLocation;
 };
 
 export type PetSettingsUpdate = {

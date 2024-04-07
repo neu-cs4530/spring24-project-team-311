@@ -37,7 +37,13 @@ export class PetsController extends TownsController {
     @Path() userID: string,
     @Path() petID: string,
   ): Promise<void> {
-    await this._firebaseSchema.addPet(request.petName, petID, request.type, request.ownerID.id);
+    await this._firebaseSchema.addPet(
+      request.petName,
+      petID,
+      request.type,
+      request.ownerID.id,
+      request.location,
+    );
   }
 
   @Post('{townID}/{userID}/{petID}/stats')

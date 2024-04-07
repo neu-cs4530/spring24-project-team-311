@@ -1,4 +1,4 @@
-import { PetType, Player, Pet as PetModel } from '../types/CoveyTownSocket';
+import { PetType, Player, Pet as PetModel, PlayerLocation } from '../types/CoveyTownSocket';
 
 /**
  * The public-facing model that represents a town. More information about the town
@@ -63,7 +63,6 @@ export interface TownCreateParams {
 
 export interface User {
   username: string;
-  email: string;
   userID: string;
   pet?: PetModel | undefined;
 }
@@ -76,16 +75,16 @@ export interface UserCreateResponse {
 export interface UserCreateParams {
   username: string;
   userID: string;
-  email: string;
   loginTime: number;
+  location: PlayerLocation,
 }
 
 export interface Pet {
   petID: string;
   petName: string;
-  isVisible: boolean;
   ownerID: string;
   petType: PetType;
+  location: PlayerLocation,
 }
 
 export interface PetCreateResponse {
@@ -106,4 +105,6 @@ export interface PetCreateParams {
   ownerID: Player;
 
   type: PetType;
+
+  location: PlayerLocation;
 }

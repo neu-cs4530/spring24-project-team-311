@@ -26,11 +26,9 @@ export default class Player {
   /** A special town emitter that will emit events to the entire town BUT NOT to this player */
   public readonly townEmitter: TownEmitter;
 
-  public readonly _email: string;
-
   private _pet?: Pet;
 
-  constructor(userName: string, userID: string, userEmail: string, townEmitter: TownEmitter) {
+  constructor(userName: string, userID: string, townEmitter: TownEmitter) {
     this.location = {
       x: 0,
       y: 0,
@@ -41,7 +39,6 @@ export default class Player {
     this._id = userID;
     this._sessionToken = nanoid();
     this.townEmitter = townEmitter;
-    this._email = userEmail;
     this._pet = undefined;
   }
 
@@ -78,7 +75,6 @@ export default class Player {
       id: this._id,
       location: this.location,
       userName: this._userName,
-      email: this._email,
       pet: this._pet?.toPetModel(),
     };
   }

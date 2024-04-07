@@ -358,7 +358,6 @@ describe('Town', () => {
     player = await town.addPlayer(
       playerTestData.userName,
       playerTestData.userid,
-      playerTestData.email,
       playerTestData.socket,
     );
     playerTestData.player = player;
@@ -384,7 +383,6 @@ describe('Town', () => {
       const newPlayerObj = await town.addPlayer(
         newPlayer.userName,
         newPlayer.userid,
-        newPlayer.email,
         newPlayer.socket,
       );
 
@@ -441,12 +439,7 @@ describe('Town', () => {
           expect(town.addViewingArea(newArea)).toBe(true);
           secondPlayer = mockPlayer(town.townID);
           mockTwilioVideo.getTokenForTown.mockClear();
-          await town.addPlayer(
-            secondPlayer.userName,
-            secondPlayer.userid,
-            secondPlayer.email,
-            secondPlayer.socket,
-          );
+          await town.addPlayer(secondPlayer.userName, secondPlayer.userid, secondPlayer.socket);
 
           newArea.elapsedTimeSec = 100;
           newArea.isPlaying = false;
@@ -854,7 +847,6 @@ describe('Town', () => {
         const newPlayerObj = await town.addPlayer(
           newPlayer.userName,
           newPlayer.userid,
-          newPlayer.email,
           newPlayer.socket,
         );
         newPlayer.moveTo(51, 121);

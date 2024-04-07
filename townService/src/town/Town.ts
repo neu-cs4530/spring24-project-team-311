@@ -135,13 +135,21 @@ export default class Town {
   ): Promise<Pet | undefined> {
     if (user !== undefined) {
       const playerObject = this._players.find(
-        player =>
-          player.userName === user.userName &&
-          player.id === user.id &&
-          player._email === user.email,
+        player => player.userName === user.userName && player.id === user.id,
       );
       if (user.pet === undefined && playerObject !== undefined && playerObject.pet === undefined) {
-        const pet = new Pet(petName, petType, user.id, 100, 100, 100, false, false, petID);
+        const pet = new Pet(
+          petName,
+          petType,
+          user.id,
+          user.location,
+          100,
+          100,
+          100,
+          false,
+          false,
+          petID,
+        );
         user.pet = pet.toPetModel();
         playerObject.addNewPet(pet);
         this._pets.push(pet);
@@ -158,16 +166,14 @@ export default class Town {
     let returnedPet;
     if (user !== undefined) {
       const playerObject = this._players.find(
-        player =>
-          player.userName === user.userName &&
-          player.id === user.id &&
-          player._email === user.email,
+        player => player.userName === user.userName && player.id === user.id,
       );
       if (user.pet !== undefined && playerObject !== undefined && playerObject.pet === undefined) {
         const pet = new Pet(
           user.pet.userName,
           user.pet.type,
           user.pet.ownerID,
+          user.location,
           user.pet.health,
           user.pet.hunger,
           user.pet.happiness,
@@ -192,11 +198,10 @@ export default class Town {
   async addPlayer(
     userName: string,
     userID: string,
-    email: string,
     socket: CoveyTownSocket,
     pet?: PetModel,
   ): Promise<Player> {
-    const newPlayer = new Player(userName, userID, email, socket.to(this._townID));
+    const newPlayer = new Player(userName, userID, socket.to(this._townID));
 
     this._players.push(newPlayer);
 
@@ -446,7 +451,9 @@ export default class Town {
     }
 
     player.location = location;
-
+    if (player.pet !== undefined) {
+      player.pet.location = location;
+    }
     this._broadcastEmitter.emit('playerMoved', player.toPlayerModel());
   }
 

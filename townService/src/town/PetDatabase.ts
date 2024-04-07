@@ -10,14 +10,30 @@ export default class PetDatabase extends APetDatabase {
     this._db = getDatabase();
   }
 
-  async addUser(userID: string, username: string, email: string, loginTime: number) {
+  async addUser(
+    userID: string,
+    username: string,
+    loginTime: number,
+    location: PlayerLocation,
+  ): Promise<void> {
+    // if (
+    //   userID !== undefined &&
+    //   username !== undefined &&
+    //   loginTime !== undefined &&
+    //   location !== undefined
+    // ) {
     await set(ref(this._db, `users/${userID}`), {
       userID,
       username,
-      email,
       logoutTimeLeft: 0,
       loginTime,
+      location,
     });
+    // return {
+    //   userName: username,
+    //   id: userID,
+    //   location,
+    // };
   }
 
   async addPet(
@@ -25,6 +41,7 @@ export default class PetDatabase extends APetDatabase {
     petID: string,
     petType: PetType,
     ownerID: string,
+    location: PlayerLocation,
   ): Promise<boolean> {
     const userRef = ref(this._db, `users/${ownerID}`);
     const userSnapshot = await get(userRef);
@@ -51,6 +68,7 @@ export default class PetDatabase extends APetDatabase {
       inHospital: false,
       currentPet: true,
       isSick: false,
+      location,
     });
 
     return true;
@@ -59,7 +77,6 @@ export default class PetDatabase extends APetDatabase {
   async getOrAddPlayer(
     userID: string,
     username: string,
-    email: string,
     location: PlayerLocation,
     loginTime: number,
   ): Promise<Player | undefined> {
@@ -71,7 +88,6 @@ export default class PetDatabase extends APetDatabase {
       let existingPlayer: Player = {
         userName: user.userName,
         id: user.userID,
-        email: user.email,
         location,
       };
       const pet: Pet | undefined = await this.getPet(userID);
@@ -79,14 +95,13 @@ export default class PetDatabase extends APetDatabase {
         existingPlayer = {
           userName: user.userName,
           id: user.userID,
-          email: user.email,
           location,
           pet,
         };
       }
       return existingPlayer;
     }
-    await this.addUser(userID, username, email, loginTime);
+    await this.addUser(userID, username, loginTime, location);
     return undefined;
   }
 
@@ -96,7 +111,7 @@ export default class PetDatabase extends APetDatabase {
     if (snapshot.exists()) {
       const petData = snapshot.val();
       const updates: Record<string, number> = {};
-      updates[`$/loginTime`] = loginTime;
+      updates.loginTime = loginTime;
       update(userRef, updates);
     }
   }
@@ -117,7 +132,7 @@ export default class PetDatabase extends APetDatabase {
     if (snapshot.exists()) {
       const petData = snapshot.val();
       const updates: Record<string, number> = {};
-      updates[`$/logoutTimeLeft`] =
+      updates.logoutTimeLeft =
         (logoutTime - petData.loginTime - petData.logoutTimeLeft) % (15 * 60 * 1000);
       update(userRef, updates);
     }
@@ -139,6 +154,7 @@ export default class PetDatabase extends APetDatabase {
         inHospital: pet.inHospital,
         isSick: pet.isSick,
         id: pet.id,
+        location: pet.location,
       };
     }
     return undefined;
@@ -203,9 +219,9 @@ export default class PetDatabase extends APetDatabase {
       const happinessVal = petData.happiness;
       const updates: Record<string, number> = {};
       if (delta > 0) {
-        updates[`$/happiness`] = Math.max(happinessVal + delta, 100);
+        updates.happiness = Math.max(happinessVal + delta, 100);
       } else {
-        updates[`$/happiness`] = Math.min(happinessVal + delta, 0);
+        updates.happiness = Math.min(happinessVal + delta, 0);
       }
       update(userPetsRef, updates);
     }
@@ -220,9 +236,9 @@ export default class PetDatabase extends APetDatabase {
         const healthVal = petData.health;
         const updates: Record<string, number> = {};
         if (delta > 0) {
-          updates[`$/health`] = Math.max(healthVal + delta, 100);
+          updates.health = Math.max(healthVal + delta, 100);
         } else {
-          updates[`$/health`] = Math.min(healthVal + delta, 0);
+          updates.health = Math.min(healthVal + delta, 0);
         }
         update(userPetsRef, updates);
       }
@@ -237,9 +253,9 @@ export default class PetDatabase extends APetDatabase {
       const hungerVal = petData.hunger;
       const updates: Record<string, number> = {};
       if (delta > 0) {
-        updates[`$/hunger`] = Math.max(hungerVal + delta, 100);
+        updates.hunger = Math.max(hungerVal + delta, 100);
       } else {
-        updates[`$/hunger`] = Math.min(hungerVal + delta, 0);
+        updates.hunger = Math.min(hungerVal + delta, 0);
       }
       update(userPetsRef, updates);
     }
@@ -251,7 +267,7 @@ export default class PetDatabase extends APetDatabase {
     if (snapshot.exists()) {
       const petData = snapshot.val();
       const updates: Record<string, boolean> = {};
-      updates[`$/inHospital`] = status;
+      updates.inHospital = status;
       update(userPetsRef, updates);
     }
   }
@@ -262,7 +278,7 @@ export default class PetDatabase extends APetDatabase {
     if (snapshot.exists()) {
       const petData = snapshot.val();
       const updates: Record<string, boolean> = {};
-      updates[`$/isSick`] = status;
+      updates.isSick = status;
       update(userPetsRef, updates);
     }
   }
@@ -277,7 +293,7 @@ export default class PetDatabase extends APetDatabase {
     const snapshot = await get(userPetsRef);
     if (snapshot.exists()) {
       const petData = snapshot.val();
-      this.addPet(petData.name, petID, petData.type, newOwner);
+      this.addPet(petData.name, petID, petData.type, newOwner, petData.location);
       this.deletePet(currentOwner, petID);
     }
   }

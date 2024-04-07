@@ -4,8 +4,8 @@ export default abstract class APetDatabase {
   abstract addUser(
     userID: string,
     username: string,
-    email: string,
     loginTime: number,
+    location: PlayerLocation,
   ): Promise<void>;
 
   abstract addPet(
@@ -13,12 +13,12 @@ export default abstract class APetDatabase {
     petID: string,
     petType: PetType,
     ownerID: string,
+    location: PlayerLocation,
   ): Promise<boolean>;
 
   abstract getOrAddPlayer(
     userID: string,
     username: string,
-    email: string,
     location: PlayerLocation,
     loginTime: number,
   ): Promise<Player | undefined>;

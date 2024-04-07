@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid';
-import { Pet as PetModel, PetType } from '../types/CoveyTownSocket';
+import { Pet as PetModel, PetType, PlayerLocation } from '../types/CoveyTownSocket';
 // get all of the players in the town and assign
 /**
  * Each pet following a user is connected to a userID
@@ -34,6 +34,8 @@ export default class Pet {
 
   private _isSick: boolean;
 
+  private _location: PlayerLocation;
+
   /**
    * This is a representation of a new pet that always stands some set distance behind its user
    * @param petName the name that the user wants to give the pet
@@ -45,6 +47,7 @@ export default class Pet {
     petName: string,
     type: PetType,
     user: string,
+    location: PlayerLocation,
     health = 100,
     hunger = 100,
     happiness = 100,
@@ -62,6 +65,15 @@ export default class Pet {
     this._happiness = happiness;
     this._inHospital = inHospital;
     this._isSick = isSick;
+    this._location = location;
+  }
+
+  get location(): PlayerLocation {
+    return this._location;
+  }
+
+  set location(location: PlayerLocation) {
+    this._location = location;
   }
 
   get petName(): string {
@@ -213,6 +225,7 @@ export default class Pet {
       happiness: this._happiness,
       inHospital: this._inHospital,
       isSick: this._isSick,
+      location: this._location,
     };
   }
 }

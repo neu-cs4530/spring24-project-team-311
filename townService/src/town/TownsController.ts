@@ -27,6 +27,7 @@ import {
   Pet as PetModel,
   TownSettingsUpdate,
   ViewingArea,
+  PlayerLocation,
 } from '../types/CoveyTownSocket';
 import APetDatabase from './APetDatabase';
 import PetDatabase from './PetDatabase';
@@ -39,15 +40,14 @@ import PetDatabase from './PetDatabase';
 // TSOA (which we use to generate the REST API from this file) does not support default exports, so the controller can't be a default export.
 // eslint-disable-next-line import/prefer-default-export
 export class TownsController extends Controller {
-
   protected _firebaseSchema;
+
   protected _townsStore: CoveyTownsStore = CoveyTownsStore.getInstance();
 
   constructor(db: APetDatabase = new PetDatabase()) {
     super();
     this._firebaseSchema = db;
   }
-  
 
   /**
    * List all towns that are set to be publicly available
@@ -211,10 +211,9 @@ export class TownsController extends Controller {
    */
   public async joinTown(socket: CoveyTownSocket) {
     // Parse the client's requested username from the connection
-    const { userName, userID, email, townID, loginTime } = socket.handshake.auth as {
+    const { userName, userID, townID, loginTime } = socket.handshake.auth as {
       userName: string;
       userID: string;
-      email: string;
       townID: string;
       loginTime: number;
     };
@@ -224,16 +223,18 @@ export class TownsController extends Controller {
       socket.disconnect(true);
       return;
     }
-     // Connect the client to the socket.io broadcast room for this town
+    // Connect the client to the socket.io broadcast room for this town
     socket.join(town.townID);
-    const player = await this.createUser(userID, userName, email, loginTime)
+    const player = await this._createUser(userID, userName, loginTime);
+
+    // console.log(`Player${player?.userName} ${player?.id} ${player?.location}`);
 
     const response: InitialUserCreationResponse = {
       pet: player?.pet,
       logoutTime: await this._firebaseSchema.getUserLogOutTime(userID),
     };
 
-    const newPlayer = await town.addPlayer(userName, userID, email, socket);
+    const newPlayer = await town.addPlayer(userName, userID, socket);
 
     if (player !== undefined) {
       await town.addExistingPet(player);
@@ -252,25 +253,26 @@ export class TownsController extends Controller {
       createdResponse: response,
     });
   }
-  
-  private async createUser(
+
+  private async _createUser(
     userID: string,
     username: string,
-    email: string,
     loginTime: number,
-    ): Promise<Player | undefined> {
-      const playerInDB = await this._firebaseSchema.getOrAddPlayer(
-        userID,
-        username,
-        email,
-        {
-          x: 0,
-          y: 0,
-          moving: false,
-          rotation: 'front',
-        },
-        loginTime,
-      );
-      return playerInDB;
-    }
+  ): Promise<Player | undefined> {
+    console.log(`USERID: ${userID}`);
+    console.log(`USERNAME: ${username}`);
+    console.log(`LOGINTIME: ${loginTime}`);
+    const playerInDB = await this._firebaseSchema.getOrAddPlayer(
+      'test',
+      username,
+      {
+        x: 0,
+        y: 0,
+        moving: false,
+        rotation: 'front',
+      },
+      0,
+    );
+    return playerInDB;
+  }
 }

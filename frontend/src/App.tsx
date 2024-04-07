@@ -108,7 +108,7 @@ function DebugApp(): JSX.Element {
         if (user) {
           // User is signed in, see docs for a list of available properties
           // https://firebase.google.com/docs/reference/js/firebase.User
-          uid = user.uid;
+          uid = user.displayName !== null ? user.displayName : username;
           username = user.displayName !== null ? user.displayName : username;
           console.log(user.email);
           // ...
