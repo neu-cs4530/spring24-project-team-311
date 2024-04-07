@@ -356,6 +356,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     this._petsInternal = newPets;
   }
 
+  public get pets(): PetController[] {
+    return this._petsInternal;
+  }
+
   private _updatePlayerLocationToGeneratedModel(location: PlayerLocation): TypePlayerLocation {
     let dir: EnumDirection = EnumDirection.LEFT;
 
