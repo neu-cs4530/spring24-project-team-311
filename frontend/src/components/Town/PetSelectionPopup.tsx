@@ -12,28 +12,35 @@ import {
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import React from 'react';
-import dog from './images/dog.png';
+import dog from './images/dog-front.png';
+import cat from './images/cat-front.png';
+import duck from './images/duck-front.png';
+import PetController, { PetType } from '../../classes/PetController';
+import { nanoid } from 'nanoid';
+import TownController from '../../classes/TownController';
 
 interface PetSelectionPopupProps {
   isOpen: boolean;
   onClose: () => void;
+  townController: TownController;
 }
 
 const PetSelectionPopup = (props: PetSelectionPopupProps) => {
-  const [selectedPet, setSelectedPet] = useState<string>('');
-  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [selectedPetType, setSelectedPetType] = useState<PetType>('' as PetType);
   const [petName, setPetName] = useState<string>('');
-
-  const handlePetSelection = (pet: string) => {
-    setSelectedPet(pet);
-  };
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    props.townController.pause();
     setPetName(event.target.value);
   };
 
+  const handlePetSelection = (pet: PetType) => {
+    setSelectedPetType(pet);
+  };
+
   const handleSubmit = () => {
-    if (!selectedPet) {
+    if (!selectedPetType) {
       setErrorMessage('Please select a pet');
     } else if (!petName) {
       // Show error message when user clicks "Done" without entering a name
@@ -43,6 +50,23 @@ const PetSelectionPopup = (props: PetSelectionPopupProps) => {
       setErrorMessage('');
 
       // Call API or emit socket event...
+
+      const petID = nanoid();
+
+      const newPet = new PetController(
+        props.townController.ourPlayer.id,
+        petID,
+        selectedPetType,
+        petName,
+        {
+          ...props.townController.ourPlayer.location,
+        },
+      );
+      props.townController.addPet(newPet);
+      console.log('new pet added');
+      // props.townController._petsInternal = [newPet];
+
+      props.townController.unPause();
 
       // On success
       props.onClose();
@@ -56,27 +80,27 @@ const PetSelectionPopup = (props: PetSelectionPopupProps) => {
           <ModalHeader>Select your pet and name them:</ModalHeader>
           <ModalBody display={'flex'} flexDirection={'column'} gap={6}>
             <Flex justifyContent={'space-evenly'}>
-              <Image boxSize='100px' src={dog.src} alt={'Image1'} />
-              <Image boxSize='100px' src={dog.src} alt={'Image2'} />
-              <Image boxSize='100px' src={dog.src} alt={'Image3'} />
+              <Image boxSize='100px' src={cat.src} alt={'Cat'} />
+              <Image boxSize='100px' src={dog.src} alt={'Dog'} />
+              <Image boxSize='100px' src={duck.src} alt={'Duck'} />
             </Flex>
             <Flex justifyContent={'space-evenly'}>
               <Button
                 onClick={() => handlePetSelection('cat')}
-                variant={selectedPet === 'cat' ? 'solid' : 'outline'}
-                colorScheme={selectedPet === 'cat' ? 'blue' : 'gray'}>
+                variant={selectedPetType === 'cat' ? 'solid' : 'outline'}
+                colorScheme={selectedPetType === 'cat' ? 'blue' : 'gray'}>
                 Cat
               </Button>
               <Button
                 onClick={() => handlePetSelection('dog')}
-                variant={selectedPet === 'dog' ? 'solid' : 'outline'}
-                colorScheme={selectedPet === 'dog' ? 'blue' : 'gray'}>
+                variant={selectedPetType === 'dog' ? 'solid' : 'outline'}
+                colorScheme={selectedPetType === 'dog' ? 'blue' : 'gray'}>
                 Dog
               </Button>
               <Button
                 onClick={() => handlePetSelection('duck')}
-                variant={selectedPet === 'duck' ? 'solid' : 'outline'}
-                colorScheme={selectedPet === 'duck' ? 'blue' : 'gray'}>
+                variant={selectedPetType === 'duck' ? 'solid' : 'outline'}
+                colorScheme={selectedPetType === 'duck' ? 'blue' : 'gray'}>
                 Duck
               </Button>
             </Flex>

@@ -44,6 +44,7 @@ import InteractableAreaController, {
 import TicTacToeAreaController from './interactable/TicTacToeAreaController';
 import ViewingAreaController from './interactable/ViewingAreaController';
 import PlayerController from './PlayerController';
+import PetController from './PetController';
 
 const CALCULATE_NEARBY_PLAYERS_DELAY_MS = 300;
 const SOCKET_COMMAND_TIMEOUT_MS = 5000;
@@ -149,6 +150,11 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   private _playersInternal: PlayerController[] = [];
 
   /**
+   * The current list of pets in the town. Adding or removing pets might replace the array
+   */
+  private _petsInternal: PetController[] = [];
+
+  /**
    * The current list of interactable areas in the town. Adding or removing interactable areas might replace the array.
    */
   private _interactableControllers: InteractableAreaController<
@@ -230,6 +236,8 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     this._socket = io(url, { auth: { userName, townID } });
     this._townsService = new TownsServiceClient({ BASE: url }).towns;
     this.registerSocketListeners();
+    // TEMP CODE TO ADD PET FOR USER
+    console.log('Creating pet');
   }
 
   public get sessionToken() {
@@ -282,6 +290,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     return ret;
   }
 
+  public get ourPet() {
+    return this._petsInternal.find(eachPet => eachPet.playerID === this.userID);
+  }
+
   public get townID() {
     return this._townID;
   }
@@ -307,6 +319,43 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   private set _players(newPlayers: PlayerController[]) {
     this.emit('playersChanged', newPlayers);
     this._playersInternal = newPlayers;
+  }
+
+  private set _pets(newPets: PetController[]) {
+    this._petsInternal = newPets;
+  }
+
+  public get pets(): PetController[] {
+    return this._petsInternal;
+  }
+
+  public addPet(newPet: PetController) {
+    // TODO: update backend
+    this._petsInternal = [newPet];
+  }
+
+  public setPetStats(
+    petID: string,
+    newStats: { health: number; happiness: number; hunger: number },
+  ) {
+    const petToUpdate = this._petsInternal.find(eachPet => eachPet.petID === petID);
+    if (petToUpdate) {
+      petToUpdate.petHealth = Math.max(newStats.health, 0);
+      petToUpdate.petHappiness = Math.max(newStats.happiness, 0);
+      petToUpdate.petHunger = Math.max(newStats.hunger, 0);
+      // TODO: update backend
+    }
+  }
+
+  public updatePetStats(petID: string, delta: number) {
+    const petToUpdate = this._petsInternal.find(eachPet => eachPet.petID === petID);
+    if (petToUpdate) {
+      this.setPetStats(petID, {
+        health: petToUpdate.petHealth + delta,
+        happiness: petToUpdate.petHappiness + delta,
+        hunger: petToUpdate.petHunger + delta,
+      });
+    }
   }
 
   public getPlayer(id: PlayerID) {
@@ -619,6 +668,9 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         this._players = initialData.currentPlayers.map(eachPlayerModel =>
           PlayerController.fromPlayerModel(eachPlayerModel),
         );
+        // this._petsInternal = initialData.pets.map(eachPetModel =>
+        //   PetController.fromPetModel(eachPetModel),
+        // );
 
         this._interactableControllers = [];
         initialData.interactables.forEach(eachInteractable => {

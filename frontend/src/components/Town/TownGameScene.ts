@@ -2,7 +2,7 @@ import assert from 'assert';
 import Phaser from 'phaser';
 import PlayerController, { MOVEMENT_SPEED } from '../../classes/PlayerController';
 import TownController from '../../classes/TownController';
-import { PlayerLocation } from '../../types/CoveyTownSocket';
+import { Direction, PlayerLocation } from '../../types/CoveyTownSocket';
 import { Callback } from '../VideoCall/VideoFrontend/types';
 import Interactable from './Interactable';
 import ConversationArea from './interactables/ConversationArea';
@@ -10,6 +10,21 @@ import GameArea from './interactables/GameArea';
 import Transporter from './interactables/Transporter';
 import ViewingArea from './interactables/ViewingArea';
 import HospitalArea from './interactables/HospitalArea';
+import PetInteractivePopup from './PetInteractivePopup';
+import PetController, { PetGameObjects, PetType } from '../../classes/PetController';
+
+export class NoPetError extends Error {
+  constructor(msg = 'No pet found') {
+    super(msg);
+    this.name = 'NoPetError';
+  }
+}
+
+const LABEL_OFFSET_Y = -20;
+const PET_LABEL_OFFSET_Y = 10;
+const PET_EMOTICON_OFFSET_Y = -20;
+
+const STAT_DECAY_SECONDS = 1;
 
 // Still not sure what the right type is here... "Interactable" doesn't do it
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,6 +54,8 @@ export default class TownGameScene extends Phaser.Scene {
   }
 
   private _players: PlayerController[] = [];
+
+  private _pet: PetController | undefined = undefined;
 
   private _interactables: Interactable[] = [];
 
@@ -70,6 +87,8 @@ export default class TownGameScene extends Phaser.Scene {
 
   private _petSprite?: Phaser.GameObjects.Sprite;
 
+  private _handlePetSpriteClicked: () => void;
+
   private _gameIsReady = new Promise<void>(resolve => {
     if (this._ready) {
       resolve();
@@ -92,11 +111,21 @@ export default class TownGameScene extends Phaser.Scene {
 
   private _resourcePathPrefix: string;
 
-  constructor(coveyTownController: TownController, resourcePathPrefix = '') {
+  private _petEmoticonTimer: number;
+
+  private _petEmoticon?: Phaser.GameObjects.Sprite;
+
+  constructor(
+    coveyTownController: TownController,
+    _handlePetSpriteClicked: () => void,
+    resourcePathPrefix = '',
+  ) {
     super('TownGameScene');
     this._resourcePathPrefix = resourcePathPrefix;
     this.coveyTownController = coveyTownController;
     this._players = this.coveyTownController.players;
+    this._handlePetSpriteClicked = _handlePetSpriteClicked;
+    this._petEmoticonTimer = 0;
   }
 
   preload() {
@@ -139,11 +168,33 @@ export default class TownGameScene extends Phaser.Scene {
       this._resourcePathPrefix + '/assets/atlas/atlas.json',
     );
 
-    // Load the image for the cat sprite
-    this.load.image('cat-front', this._resourcePathPrefix + '/assets/atlas/cat-front.png');
-    this.load.image('cat-back', this._resourcePathPrefix + '/assets/atlas/cat-back.png');
-    this.load.image('cat-left', this._resourcePathPrefix + '/assets/atlas/cat-left.png');
-    this.load.image('cat-right', this._resourcePathPrefix + '/assets/atlas/cat-right.png');
+    // Load atlas for dog sprite
+    this.load.atlas(
+      'dog-sprites',
+      this._resourcePathPrefix + '/assets/atlas/dog-sprites.png',
+      this._resourcePathPrefix + '/assets/atlas/dog-sprites.json',
+    );
+
+    // Load atlas for cat sprite
+    this.load.atlas(
+      'cat-sprites',
+      this._resourcePathPrefix + '/assets/atlas/cat-sprites.png',
+      this._resourcePathPrefix + '/assets/atlas/cat-sprites.json',
+    );
+
+    // Load atlas for duck sprite
+    this.load.atlas(
+      'duck-sprites',
+      this._resourcePathPrefix + '/assets/atlas/duck-sprites.png',
+      this._resourcePathPrefix + '/assets/atlas/duck-sprites.json',
+    );
+
+    // Load atlas for pet emoticons
+    this.load.atlas(
+      'emoticons',
+      this._resourcePathPrefix + '/assets/atlas/emoticons.png',
+      this._resourcePathPrefix + '/assets/atlas/emoticons.json',
+    );
   }
 
   updatePlayers(players: PlayerController[]) {
@@ -207,12 +258,53 @@ export default class TownGameScene extends Phaser.Scene {
       this._lastLocation.rotation = destination.rotation;
     }
     this.coveyTownController.emitMovement(this._lastLocation);
+
+    try {
+      this.moveOurPetTo(destination);
+    } catch (e) {
+      if (e instanceof NoPetError) {
+        console.log('No pet found');
+      } else {
+        throw e;
+      }
+    }
   }
 
-  update() {
+  public moveOurPetTo(destination: Partial<PlayerLocation>) {
+    const petObjects = this.coveyTownController.ourPet?.gameObjects;
+    if (!petObjects || !this.coveyTownController.ourPet) {
+      throw new NoPetError('Unable to move pet without game objects created first');
+    }
+    if (destination.x !== undefined) {
+      petObjects.sprite.x = destination.x;
+    }
+    if (destination.y !== undefined) {
+      petObjects.sprite.y = destination.y;
+    }
+    if (destination.moving !== undefined) {
+      this.coveyTownController.ourPet!.location.moving = destination.moving;
+    }
+    if (destination.rotation !== undefined) {
+      this.coveyTownController.ourPet!.location.rotation = destination.rotation;
+    }
+
+    // TODO: emit movement for pet
+  }
+
+  update(time: number, delta: number) {
+    const spawnPoint = this.map.findObject(
+      'Objects',
+      obj => obj.name === 'Spawn Point',
+    ) as unknown as Phaser.GameObjects.Components.Transform;
     if (this._paused) {
       return;
     }
+    const prevLocation: PlayerLocation = {
+      x: this._lastLocation?.x || 0,
+      y: this._lastLocation?.y || 0,
+      rotation: 'front',
+      moving: false,
+    };
     const gameObjects = this.coveyTownController.ourPlayer.gameObjects;
     if (gameObjects && this._cursors) {
       const prevVelocity = gameObjects.sprite.body.velocity.clone();
@@ -258,7 +350,7 @@ export default class TownGameScene extends Phaser.Scene {
 
       const isMoving = primaryDirection !== undefined;
       gameObjects.label.setX(body.x);
-      gameObjects.label.setY(body.y - 20);
+      gameObjects.label.setY(body.y + LABEL_OFFSET_Y);
       const x = gameObjects.sprite.getBounds().centerX;
       const y = gameObjects.sprite.getBounds().centerY;
       //Move the sprite
@@ -297,36 +389,304 @@ export default class TownGameScene extends Phaser.Scene {
       for (const player of this._players) {
         if (player.gameObjects?.label && player.gameObjects?.sprite.body) {
           player.gameObjects.label.setX(player.gameObjects.sprite.body.x);
-          player.gameObjects.label.setY(player.gameObjects.sprite.body.y - 20);
+          player.gameObjects.label.setY(player.gameObjects.sprite.body.y + LABEL_OFFSET_Y);
         }
       }
     }
 
-    // Update the position of the follower sprite to follow the player sprite
-    const playerSprite = this.coveyTownController.ourPlayer.gameObjects?.sprite;
-    if (playerSprite && this._petSprite) {
-      // Setting the x and y position of the pet sprite relative to the player sprite to place pet next to avatar
-      this._petSprite.x = playerSprite.x + 40;
-      this._petSprite.y = playerSprite.y + 15;
+    if (this.coveyTownController.ourPet && this._pet != this.coveyTownController.ourPet) {
+      this._pet = this.coveyTownController.ourPet;
+      const petSprite = this._addInitialPetSprite(
+        this.coveyTownController.ourPet.petType,
+        spawnPoint,
+      );
+      const petLabel = this._addInitialPetLabel(spawnPoint);
+      this._petEmoticon = this._addInitialPetEmoticon(spawnPoint);
+      this.coveyTownController.ourPet.gameObjects = {
+        sprite: petSprite,
+        label: petLabel,
+        locationManagedByGameScene: true,
+      };
+      this.coveyTownController.ourPet.gameObjects.sprite.setInteractive().on('pointerdown', () => {
+        this.game.events.emit('petSpriteClicked');
+      });
+      const canvas = this.sys.game.canvas;
+      this.coveyTownController.ourPet.gameObjects.sprite.on('pointerover', () => {
+        canvas.style.cursor = 'pointer';
+      });
+      this.coveyTownController.ourPet.gameObjects.sprite.on('pointerout', () => {
+        canvas.style.cursor = 'default';
+      });
+    }
 
-      const playerDirection = this.getNewMovementDirection();
-      switch (playerDirection) {
-        case 'back':
-          this._petSprite.setTexture('cat-back', 'cat-back.png');
-          break;
-        case 'front':
-          this._petSprite.setTexture('cat-front', 'cat-front.png');
-          break;
+    // Update the position of the follower sprite to follow the player sprite
+    const petObjects = this.coveyTownController.ourPet?.gameObjects;
+    if (gameObjects && petObjects) {
+      const prevVelocity = petObjects.sprite.body.velocity.clone();
+      const body = petObjects.sprite.body as Phaser.Physics.Arcade.Body;
+
+      // Stop any previous movement from the last frame
+      body.setVelocity(0);
+
+      // get direction to move pet
+      const petLocation = this.coveyTownController.ourPet!.location;
+
+      // get location behind the player
+      const playerBounds = this.coveyTownController.ourPlayer.gameObjects!.sprite.getBounds();
+      let offsetX = 0;
+      let offsetY = 0;
+      switch (this.coveyTownController.ourPlayer.location.rotation) {
         case 'left':
-          this._petSprite.setTexture('cat-left', 'cat-left.png');
+          offsetX = 32;
+          offsetY = 16;
           break;
         case 'right':
-          this._petSprite.setTexture('cat-right', 'cat-right.png');
+          offsetX = -32;
+          offsetY = 16;
           break;
-        default:
-          this._petSprite.setTexture('cat-front', 'cat-front.png');
+        case 'front':
+          offsetY = -32;
+          break;
+        case 'back':
+          offsetY = 32;
           break;
       }
+      const targetLocation = {
+        x: playerBounds.centerX + offsetX,
+        y: playerBounds.centerY + offsetY,
+      };
+
+      const deltaX = targetLocation.x - petLocation.x;
+      const deltaY = targetLocation.y - petLocation.y;
+
+      let primaryDirection: Direction | undefined;
+
+      if (this._lastLocation?.moving) {
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+          primaryDirection = deltaX > 0 ? 'right' : 'left';
+        } else if (Math.abs(deltaY) > Math.abs(deltaX)) {
+          primaryDirection = deltaY > 0 ? 'front' : 'back';
+        } else {
+          primaryDirection = undefined;
+        }
+        console.log('------');
+        console.log(`deltaX: ${deltaX}, deltaY: ${deltaY}`);
+        console.log(`prevLocation: ${JSON.stringify(targetLocation)}`);
+        console.log(`petLocation: ${JSON.stringify(petLocation)}`);
+        console.log(`primaryDirection: ${primaryDirection}`);
+      }
+
+      const ourPetType = this.coveyTownController.ourPet!.petType;
+      switch (ourPetType) {
+        case 'dog':
+          this._setDogSprite(petObjects, primaryDirection, prevVelocity, body);
+          break;
+        case 'cat':
+          this._setCatSprite(petObjects, primaryDirection, prevVelocity, body);
+          break;
+        case 'duck':
+          this._setDuckSprite(petObjects, primaryDirection, prevVelocity, body);
+          break;
+        default:
+          console.error(`Invalid pet type ${ourPetType}`);
+          this._setDogSprite(petObjects, primaryDirection, prevVelocity, body);
+          break;
+      }
+      // Normalize and scale the velocity so that pet can't move faster along a diagonal
+      petObjects.sprite.body.velocity.normalize().scale(MOVEMENT_SPEED);
+      petObjects.label.setX(body.x);
+      petObjects.label.setY(body.y + PET_LABEL_OFFSET_Y);
+
+      // replace with emit later
+      this.coveyTownController.ourPet!.location = {
+        x: petObjects.sprite.getBounds().centerX,
+        y: petObjects.sprite.getBounds().centerY,
+        rotation: primaryDirection || 'front',
+        moving: primaryDirection !== undefined,
+      };
+
+      // update other pet labels
+      for (const pet of this.coveyTownController.pets) {
+        if (pet.gameObjects?.label && pet.gameObjects?.sprite.body) {
+          pet.gameObjects.label.setX(pet.gameObjects.sprite.body.x);
+          pet.gameObjects.label.setY(pet.gameObjects.sprite.body.y + PET_LABEL_OFFSET_Y);
+        }
+      }
+
+      this._petEmoticonTimer += delta;
+      if (this._petEmoticonTimer > 10000 && this._petEmoticon) {
+        this._petEmoticon.visible = true;
+        this._petEmoticon.setX(petObjects.sprite.x);
+        this._petEmoticon.setY(petObjects.sprite.y + PET_EMOTICON_OFFSET_Y);
+        let numHighStats = 0;
+        let numMediumStats = 0;
+        let numLowStats = 0;
+        if (this.coveyTownController.ourPet!.petHappiness > 70) {
+          numHighStats++;
+        }
+        if (this.coveyTownController.ourPet!.petHealth > 70) {
+          numHighStats++;
+        }
+        if (this.coveyTownController.ourPet!.petHunger > 70) {
+          numHighStats++;
+        }
+        if (this.coveyTownController.ourPet!.petHappiness > 30) {
+          numMediumStats++;
+        }
+        if (this.coveyTownController.ourPet!.petHealth > 30) {
+          numMediumStats++;
+        }
+        if (this.coveyTownController.ourPet!.petHunger > 30) {
+          numMediumStats++;
+        }
+        if (this.coveyTownController.ourPet!.petHappiness <= 30) {
+          numLowStats++;
+        }
+        if (this.coveyTownController.ourPet!.petHealth <= 30) {
+          numLowStats++;
+        }
+        if (this.coveyTownController.ourPet!.petHunger <= 30) {
+          numLowStats++;
+        }
+
+        if (numLowStats === 3) {
+          this._petEmoticon.anims.play('emoticon-angry', true);
+        } else if (numLowStats === 2) {
+          this._petEmoticon.anims.play('emoticon-grumpy', true);
+        } else if (numLowStats === 1) {
+          this._petEmoticon.anims.play('emoticon-alert', true);
+        } else if (numHighStats === 3) {
+          this._petEmoticon.anims.play('emoticon-love', true);
+        } else if (numHighStats === 2) {
+          this._petEmoticon.anims.play('emoticon-joyous', true);
+        } else if (numHighStats === 1) {
+          this._petEmoticon.anims.play('emoticon-happy', true);
+        } else {
+          this._petEmoticon.anims.play('emoticon-neutral', true);
+        }
+      }
+      if (this._petEmoticonTimer > 12000 && this._petEmoticon) {
+        this._petEmoticon.visible = false;
+        this._petEmoticonTimer = 0;
+      }
+
+      // If pet is in hospital, set invisible
+      petObjects.sprite.visible = !this.coveyTownController.ourPet!.isInHospital;
+      petObjects.label.visible = !this.coveyTownController.ourPet!.isInHospital;
+    }
+  }
+
+  private _setDogSprite(
+    petObjects: PetGameObjects,
+    primaryDirection: Direction | undefined,
+    prevVelocity: Phaser.Math.Vector2,
+    body: Phaser.Physics.Arcade.Body,
+  ) {
+    switch (primaryDirection) {
+      case 'left':
+        body.setVelocityX(-MOVEMENT_SPEED);
+        petObjects.sprite.anims.play('dog-left-walk', true);
+        break;
+      case 'right':
+        body.setVelocityX(MOVEMENT_SPEED);
+        petObjects.sprite.anims.play('dog-right-walk', true);
+        break;
+      case 'front':
+        body.setVelocityY(MOVEMENT_SPEED);
+        petObjects.sprite.anims.play('dog-front-walk', true);
+        break;
+      case 'back':
+        body.setVelocityY(-MOVEMENT_SPEED);
+        petObjects.sprite.anims.play('dog-back-walk', true);
+        break;
+      default:
+        // Not moving
+        petObjects.sprite.anims.stop();
+        // If we were moving, pick and idle frame to use
+        if (prevVelocity.x < 0) {
+          petObjects.sprite.setTexture('dog-sprites', 'dog-left');
+        } else if (prevVelocity.x > 0) {
+          petObjects.sprite.setTexture('dog-sprites', 'dog-right');
+        } else if (prevVelocity.y < 0) {
+          petObjects.sprite.setTexture('dog-sprites', 'dog-back');
+        } else if (prevVelocity.y > 0) petObjects.sprite.setTexture('dog-sprites', 'dog-front');
+        break;
+    }
+  }
+
+  private _setCatSprite(
+    petObjects: PetGameObjects,
+    primaryDirection: Direction | undefined,
+    prevVelocity: Phaser.Math.Vector2,
+    body: Phaser.Physics.Arcade.Body,
+  ) {
+    switch (primaryDirection) {
+      case 'left':
+        body.setVelocityX(-MOVEMENT_SPEED);
+        petObjects.sprite.anims.play('cat-left-walk', true);
+        break;
+      case 'right':
+        body.setVelocityX(MOVEMENT_SPEED);
+        petObjects.sprite.anims.play('cat-right-walk', true);
+        break;
+      case 'front':
+        body.setVelocityY(MOVEMENT_SPEED);
+        petObjects.sprite.anims.play('cat-front-walk', true);
+        break;
+      case 'back':
+        body.setVelocityY(-MOVEMENT_SPEED);
+        petObjects.sprite.anims.play('cat-back-walk', true);
+        break;
+      default:
+        // Not moving
+        petObjects.sprite.anims.stop();
+        // If we were moving, pick and idle frame to use
+        if (prevVelocity.x < 0) {
+          petObjects.sprite.setTexture('cat-sprites', 'cat-left');
+        } else if (prevVelocity.x > 0) {
+          petObjects.sprite.setTexture('cat-sprites', 'cat-right');
+        } else if (prevVelocity.y < 0) {
+          petObjects.sprite.setTexture('cat-sprites', 'cat-back');
+        } else if (prevVelocity.y > 0) petObjects.sprite.setTexture('cat-sprites', 'cat-front');
+        break;
+    }
+  }
+
+  private _setDuckSprite(
+    petObjects: PetGameObjects,
+    primaryDirection: Direction | undefined,
+    prevVelocity: Phaser.Math.Vector2,
+    body: Phaser.Physics.Arcade.Body,
+  ) {
+    switch (primaryDirection) {
+      case 'left':
+        body.setVelocityX(-MOVEMENT_SPEED);
+        petObjects.sprite.anims.play('duck-left-walk', true);
+        break;
+      case 'right':
+        body.setVelocityX(MOVEMENT_SPEED);
+        petObjects.sprite.anims.play('duck-right-walk', true);
+        break;
+      case 'front':
+        body.setVelocityY(MOVEMENT_SPEED);
+        petObjects.sprite.anims.play('duck-front-walk', true);
+        break;
+      case 'back':
+        body.setVelocityY(-MOVEMENT_SPEED);
+        petObjects.sprite.anims.play('duck-back-walk', true);
+        break;
+      default:
+        // Not moving
+        petObjects.sprite.anims.stop();
+        // If we were moving, pick and idle frame to use
+        if (prevVelocity.x < 0) {
+          petObjects.sprite.setTexture('duck-sprites', 'duck-left');
+        } else if (prevVelocity.x > 0) {
+          petObjects.sprite.setTexture('duck-sprites', 'duck-right');
+        } else if (prevVelocity.y < 0) {
+          petObjects.sprite.setTexture('duck-sprites', 'duck-back');
+        } else if (prevVelocity.y > 0) petObjects.sprite.setTexture('duck-sprites', 'duck-front');
+        break;
     }
   }
 
@@ -455,7 +815,7 @@ export default class TownGameScene extends Phaser.Scene {
       .setOffset(0, 24)
       .setDepth(6);
     const label = this.add
-      .text(spawnPoint.x, spawnPoint.y - 20, '(You)', {
+      .text(spawnPoint.x, spawnPoint.y + LABEL_OFFSET_Y, '(You)', {
         font: '18px monospace',
         color: '#000000',
         // padding: {x: 20, y: 10},
@@ -527,6 +887,204 @@ export default class TownGameScene extends Phaser.Scene {
       repeat: -1,
     });
 
+    // Add dog animations
+    anims.create({
+      key: 'dog-left-walk',
+      frames: anims.generateFrameNames('dog-sprites', {
+        prefix: 'dog-left-walk',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 5,
+      repeat: -1,
+    });
+    anims.create({
+      key: 'dog-right-walk',
+      frames: anims.generateFrameNames('dog-sprites', {
+        prefix: 'dog-right-walk',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 5,
+      repeat: -1,
+    });
+    anims.create({
+      key: 'dog-front-walk',
+      frames: anims.generateFrameNames('dog-sprites', {
+        prefix: 'dog-front-walk',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 5,
+      repeat: -1,
+    });
+    anims.create({
+      key: 'dog-back-walk',
+      frames: anims.generateFrameNames('dog-sprites', {
+        prefix: 'dog-back-walk',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 5,
+      repeat: -1,
+    });
+
+    // Add cat animations
+    anims.create({
+      key: 'cat-left-walk',
+      frames: anims.generateFrameNames('cat-sprites', {
+        prefix: 'cat-left-walk',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 7,
+      repeat: -1,
+    });
+    anims.create({
+      key: 'cat-right-walk',
+      frames: anims.generateFrameNames('cat-sprites', {
+        prefix: 'cat-right-walk',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 7,
+      repeat: -1,
+    });
+    anims.create({
+      key: 'cat-front-walk',
+      frames: anims.generateFrameNames('cat-sprites', {
+        prefix: 'cat-front-walk',
+        start: 1,
+        end: 4,
+      }),
+      frameRate: 7,
+      repeat: -1,
+    });
+    anims.create({
+      key: 'cat-back-walk',
+      frames: anims.generateFrameNames('cat-sprites', {
+        prefix: 'cat-back-walk',
+        start: 1,
+        end: 3,
+      }),
+      frameRate: 10,
+      repeat: -1,
+    });
+
+    // Add duck animations
+    anims.create({
+      key: 'duck-left-walk',
+      frames: anims.generateFrameNames('duck-sprites', {
+        prefix: 'duck-left-walk',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 5,
+      repeat: -1,
+    });
+    anims.create({
+      key: 'duck-right-walk',
+      frames: anims.generateFrameNames('duck-sprites', {
+        prefix: 'duck-right-walk',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 5,
+      repeat: -1,
+    });
+    anims.create({
+      key: 'duck-front-walk',
+      frames: anims.generateFrameNames('duck-sprites', {
+        prefix: 'duck-front-walk',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 5,
+      repeat: -1,
+    });
+    anims.create({
+      key: 'duck-back-walk',
+      frames: anims.generateFrameNames('duck-sprites', {
+        prefix: 'duck-back-walk',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 5,
+      repeat: -1,
+    });
+
+    // add emoticons
+    anims.create({
+      key: 'emoticon-love',
+      frames: anims.generateFrameNames('emoticons', {
+        prefix: 'love',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+    anims.create({
+      key: 'emoticon-happy',
+      frames: anims.generateFrameNames('emoticons', {
+        prefix: 'happy',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+    anims.create({
+      key: 'emoticon-alert',
+      frames: anims.generateFrameNames('emoticons', {
+        prefix: 'alert',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+    anims.create({
+      key: 'emoticon-angry',
+      frames: anims.generateFrameNames('emoticons', {
+        prefix: 'angry',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+    anims.create({
+      key: 'emoticon-grumpy',
+      frames: anims.generateFrameNames('emoticons', {
+        prefix: 'grumpy',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+    anims.create({
+      key: 'emoticon-joyous',
+      frames: anims.generateFrameNames('emoticons', {
+        prefix: 'joyous',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+    anims.create({
+      key: 'emoticon-neutral',
+      frames: anims.generateFrameNames('emoticons', {
+        prefix: 'neutral',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+
     const camera = this.cameras.main;
     camera.startFollow(this.coveyTownController.ourPlayer.gameObjects.sprite);
     camera.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
@@ -552,8 +1110,88 @@ export default class TownGameScene extends Phaser.Scene {
     this._onGameReadyListeners = [];
     this.coveyTownController.addListener('playersChanged', players => this.updatePlayers(players));
 
-    this._petSprite = this.add.sprite(0, 0, 'petSpriteKey');
-    this._petSprite.setDepth(5);
+    console.log('checking for pet');
+    console.log(this.coveyTownController.ourPet);
+
+    //temporary stat decaying. This should be accomplished by the backend emitting an event later
+    const decayEvent = this.time.addEvent({
+      delay: STAT_DECAY_SECONDS * 1000,
+      loop: true,
+      callback: () => {
+        this._decayPetStats();
+      },
+      callbackScope: this,
+    });
+  }
+
+  private _decayPetStats() {
+    if (this.coveyTownController.ourPet) {
+      this.coveyTownController.updatePetStats(this.coveyTownController.ourPet!.petID, -1);
+      console.log([
+        this.coveyTownController.ourPet.petHappiness,
+        this.coveyTownController.ourPet.petHunger,
+        this.coveyTownController.ourPet.petHealth,
+      ]);
+    }
+  }
+
+  private _addInitialPetSprite(
+    petType: PetType,
+    spawnPoint: Phaser.GameObjects.Components.Transform,
+  ) {
+    switch (petType) {
+      case 'dog':
+        return this.physics.add
+          .sprite(spawnPoint.x + 32, spawnPoint.y + 16, 'dog-sprites', 'dog-front')
+          .setSize(30, 40)
+          .setOffset(0, 24)
+          .setDepth(5);
+      case 'cat':
+        return this.physics.add
+          .sprite(spawnPoint.x + 32, spawnPoint.y + 16, 'cat-sprites', 'cat-front')
+          .setSize(30, 40)
+          .setOffset(0, 24)
+          .setDepth(5);
+      case 'duck':
+        return this.physics.add
+          .sprite(spawnPoint.x + 32, spawnPoint.y + 16, 'duck-sprites', 'duck-front')
+          .setSize(30, 40)
+          .setOffset(0, 24)
+          .setDepth(5);
+      default:
+        console.error(`Invalid pet type ${petType}`);
+        return this.physics.add
+          .sprite(spawnPoint.x + 32, spawnPoint.y, 'dog-sprites', 'dog-front')
+          .setSize(30, 40)
+          .setOffset(0, 24)
+          .setDepth(5);
+    }
+  }
+
+  private _addInitialPetLabel(spawnPoint: Phaser.GameObjects.Components.Transform) {
+    // add label
+    return this.add
+      .text(
+        spawnPoint.x + 32,
+        spawnPoint.y + PET_LABEL_OFFSET_Y,
+        this.coveyTownController.ourPet?.petName || 'Pet',
+        {
+          font: '12px monospace',
+          color: '#000000',
+          // padding: {x: 20, y: 10},
+          backgroundColor: '#ffffff',
+        },
+      )
+      .setDepth(6);
+  }
+
+  private _addInitialPetEmoticon(spawnPoint: Phaser.GameObjects.Components.Transform) {
+    return this.physics.add
+      .sprite(spawnPoint.x + 32, spawnPoint.y + PET_EMOTICON_OFFSET_Y, 'emoticons', 'love1')
+      .setScale(0.1)
+      .setOffset(0, 24)
+      .setDepth(5)
+      .setVisible(false);
   }
 
   createPlayerSprites(player: PlayerController) {
@@ -564,7 +1202,7 @@ export default class TownGameScene extends Phaser.Scene {
         .setOffset(0, 24);
       const label = this.add.text(
         player.location.x,
-        player.location.y - 20,
+        player.location.y + LABEL_OFFSET_Y,
         player === this.coveyTownController.ourPlayer ? '(You)' : player.userName,
         {
           font: '18px monospace',
