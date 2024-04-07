@@ -168,6 +168,8 @@ export async function mockTownControllerConnection(
       providerVideoToken: nanoid(),
       sessionToken: nanoid(),
       userID: ourUserID,
+      currentPets: [],
+      createdResponse: { pet: undefined, logoutTime: new Date().getTime() },
     };
     responseToSendController.interactables.push({
       id: nanoid(),

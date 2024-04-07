@@ -1,9 +1,12 @@
 import { ITiledMap, ITiledMapObjectLayer } from '@jonbell/tiled-map-type-guard';
 import { nanoid } from 'nanoid';
 import { BroadcastOperator } from 'socket.io';
+import { response } from 'express';
+import e from 'cors';
 import InvalidParametersError from '../lib/InvalidParametersError';
 import IVideoClient from '../lib/IVideoClient';
 import Player from '../lib/Player';
+import Pet from '../lib/Pet';
 import TwilioVideo from '../lib/TwilioVideo';
 import { isViewingArea } from '../TestUtils';
 import {
@@ -17,6 +20,10 @@ import {
   ServerToClientEvents,
   SocketData,
   ViewingArea as ViewingAreaModel,
+  Player as PlayerModel,
+  Pet as PetModel,
+  PetType,
+  PetSettingsUpdate,
 } from '../types/CoveyTownSocket';
 import { logError } from '../Utils';
 import ConversationArea from './ConversationArea';
@@ -50,6 +57,10 @@ export default class Town {
     return this._players;
   }
 
+  get pets(): Pet[] {
+    return this._pets;
+  }
+
   get occupancy(): number {
     return this.players.length;
   }
@@ -73,6 +84,8 @@ export default class Town {
 
   /** The list of players currently in the town * */
   private _players: Player[] = [];
+
+  private _pets: Pet[] = [];
 
   /** The videoClient that this CoveyTown will use to provision video resources * */
   private _videoClient: IVideoClient = TwilioVideo.getInstance();
@@ -109,14 +122,87 @@ export default class Town {
     this._broadcastEmitter = broadcastEmitter;
   }
 
+  async getPet(petID: string): Promise<Pet | undefined> {
+    const pet = this._pets.find(p => p.id === petID);
+    return pet;
+  }
+
+  async addNewPet(
+    user: PlayerModel,
+    petName: string,
+    petID: string,
+    petType: PetType,
+  ): Promise<Pet | undefined> {
+    if (user !== undefined) {
+      const playerObject = this._players.find(
+        player => player.userName === user.userName && player.id === user.id,
+      );
+      if (user.pet === undefined && playerObject !== undefined && playerObject.pet === undefined) {
+        const pet = new Pet(
+          petName,
+          petType,
+          user.id,
+          user.location,
+          100,
+          100,
+          100,
+          false,
+          false,
+          petID,
+        );
+        user.pet = pet.toPetModel();
+        playerObject.addNewPet(pet);
+        this._pets.push(pet);
+        return pet;
+      }
+    }
+    return undefined;
+  }
+  /*
+   * if the given user Player has a pet, then that pet is added to the town
+   */
+
+  async addExistingPet(user: PlayerModel | undefined): Promise<Pet | undefined> {
+    let returnedPet;
+    if (user !== undefined) {
+      const playerObject = this._players.find(
+        player => player.userName === user.userName && player.id === user.id,
+      );
+      if (user.pet !== undefined && playerObject !== undefined && playerObject.pet === undefined) {
+        const pet = new Pet(
+          user.pet.userName,
+          user.pet.type,
+          user.pet.ownerID,
+          user.location,
+          user.pet.health,
+          user.pet.hunger,
+          user.pet.happiness,
+          user.pet.inHospital,
+          user.pet.isSick,
+          user.pet.id,
+        );
+        playerObject.addNewPet(pet);
+        this._pets.push(pet);
+        returnedPet = pet;
+      }
+    }
+    return returnedPet;
+  }
+
   /**
    * Adds a player to this Covey Town, provisioning the necessary credentials for the
    * player, and returning them
    *
    * @param newPlayer The new player to add to the town
    */
-  async addPlayer(userName: string, socket: CoveyTownSocket): Promise<Player> {
-    const newPlayer = new Player(userName, socket.to(this._townID));
+  async addPlayer(
+    userName: string,
+    userID: string,
+    socket: CoveyTownSocket,
+    pet?: PetModel,
+  ): Promise<Player> {
+    const newPlayer = new Player(userName, userID, socket.to(this._townID));
+
     this._players.push(newPlayer);
 
     this._connectedSockets.add(socket);
@@ -149,6 +235,115 @@ export default class Town {
     socket.on('playerMovement', (movementData: PlayerLocation) => {
       try {
         this._updatePlayerLocation(newPlayer, movementData);
+      } catch (err) {
+        logError(err);
+      }
+    });
+
+    socket.on(
+      'addNewPet',
+      (player: PlayerModel, petName: string, petID: string, petType: PetType) => {
+        try {
+          if (player.pet === undefined) {
+            this.addNewPet(player, petName, petID, petType);
+          }
+        } catch (err) {
+          logError(err);
+        }
+      },
+    );
+
+    socket.on('decreaseStats', (delta: number) => {
+      try {
+        this._pets.forEach(p => {
+          p.decreseStats(delta);
+        });
+      } catch (err) {
+        logError(err);
+      }
+    });
+
+    socket.on('updatePetStats', async (petID: string, updates: PetSettingsUpdate) => {
+      try {
+        const updatedPet = await this.getPet(petID);
+        let updatePetResponse = {
+          petid: petID,
+          happiness: -1,
+          hunger: -1,
+          health: -1,
+          sick: false,
+          hospital: false,
+        };
+        if (updatedPet !== undefined) {
+          updatedPet.cleanPet(updates.healthDelta);
+          updatedPet.feedPet(updates.hungerDelta);
+          updatedPet.playWithPet(updates.happinessDelta);
+          updatePetResponse = {
+            petid: petID,
+            happiness: updatedPet.happiness,
+            hunger: updatedPet.hunger,
+            health: updatedPet.health,
+            sick: updatedPet.sick,
+            hospital: updatedPet.hospitalStatus,
+          };
+        }
+        socket.emit('petStatsResponse', updatePetResponse);
+      } catch (err) {
+        logError(err);
+      }
+    });
+
+    socket.on('hospitalizePet', async (petID: string) => {
+      try {
+        const hospitalizedPet = await this.getPet(petID);
+        let hospitalizedPetResponse = {
+          petid: petID,
+          happiness: -1,
+          hunger: -1,
+          health: -1,
+          sick: false,
+          hospital: false,
+        };
+        if (hospitalizedPet !== undefined) {
+          hospitalizedPet.hospitalizePet();
+          hospitalizedPetResponse = {
+            petid: petID,
+            happiness: hospitalizedPet.happiness,
+            hunger: hospitalizedPet.hunger,
+            health: hospitalizedPet.health,
+            sick: hospitalizedPet.sick,
+            hospital: hospitalizedPet.hospitalStatus,
+          };
+        }
+        socket.emit('petStatsResponse', hospitalizedPetResponse);
+      } catch (err) {
+        logError(err);
+      }
+    });
+
+    socket.on('dischargePet', async (petID: string) => {
+      try {
+        const dischargedPet = await this.getPet(petID);
+        let dischargedPetResponse = {
+          petid: petID,
+          happiness: -1,
+          hunger: -1,
+          health: -1,
+          sick: false,
+          hospital: false,
+        };
+        if (dischargedPet !== undefined) {
+          dischargedPet.dischargePet();
+          dischargedPetResponse = {
+            petid: petID,
+            happiness: dischargedPet.happiness,
+            hunger: dischargedPet.hunger,
+            health: dischargedPet.health,
+            sick: dischargedPet.sick,
+            hospital: dischargedPet.hospitalStatus,
+          };
+        }
+        socket.emit('petStatsResponse', dischargedPetResponse);
       } catch (err) {
         logError(err);
       }
@@ -262,7 +457,9 @@ export default class Town {
     }
 
     player.location = location;
-
+    if (player.pet !== undefined) {
+      player.pet.location = location;
+    }
     this._broadcastEmitter.emit('playerMoved', player.toPlayerModel());
   }
 

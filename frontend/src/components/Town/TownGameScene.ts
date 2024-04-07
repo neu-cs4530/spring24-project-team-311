@@ -2,7 +2,7 @@ import assert from 'assert';
 import Phaser from 'phaser';
 import PlayerController, { MOVEMENT_SPEED } from '../../classes/PlayerController';
 import TownController from '../../classes/TownController';
-import { Direction, PlayerLocation } from '../../types/CoveyTownSocket';
+import { Direction, PetType, PlayerLocation } from '../../types/CoveyTownSocket';
 import { Callback } from '../VideoCall/VideoFrontend/types';
 import Interactable from './Interactable';
 import ConversationArea from './interactables/ConversationArea';
@@ -11,7 +11,7 @@ import Transporter from './interactables/Transporter';
 import ViewingArea from './interactables/ViewingArea';
 import HospitalArea from './interactables/HospitalArea';
 import PetInteractivePopup from './PetInteractivePopup';
-import PetController, { PetGameObjects, PetType } from '../../classes/PetController';
+import PetController, { PetGameObjects } from '../../classes/PetController';
 
 export class NoPetError extends Error {
   constructor(msg = 'No pet found') {
@@ -478,13 +478,13 @@ export default class TownGameScene extends Phaser.Scene {
 
       const ourPetType = this.coveyTownController.ourPet!.petType;
       switch (ourPetType) {
-        case 'dog':
+        case 'Dog':
           this._setDogSprite(petObjects, primaryDirection, prevVelocity, body);
           break;
-        case 'cat':
+        case 'Cat':
           this._setCatSprite(petObjects, primaryDirection, prevVelocity, body);
           break;
-        case 'duck':
+        case 'Duck':
           this._setDuckSprite(petObjects, primaryDirection, prevVelocity, body);
           break;
         default:
@@ -1140,19 +1140,19 @@ export default class TownGameScene extends Phaser.Scene {
     spawnPoint: Phaser.GameObjects.Components.Transform,
   ) {
     switch (petType) {
-      case 'dog':
+      case 'Dog':
         return this.physics.add
           .sprite(spawnPoint.x + 32, spawnPoint.y + 16, 'dog-sprites', 'dog-front')
           .setSize(30, 40)
           .setOffset(0, 24)
           .setDepth(5);
-      case 'cat':
+      case 'Cat':
         return this.physics.add
           .sprite(spawnPoint.x + 32, spawnPoint.y + 16, 'cat-sprites', 'cat-front')
           .setSize(30, 40)
           .setOffset(0, 24)
           .setDepth(5);
-      case 'duck':
+      case 'Duck':
         return this.physics.add
           .sprite(spawnPoint.x + 32, spawnPoint.y + 16, 'duck-sprites', 'duck-front')
           .setSize(30, 40)

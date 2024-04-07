@@ -29,7 +29,12 @@ import { signOut } from 'firebase/auth';
 import SignInOrUp from './SignInOrUp';
 import { auth } from '../../firebase';
 
-export default function TownSelection({ username }: { username: string }): JSX.Element {
+interface TownSelectionProps {
+  username: string;
+  userId: string; // Add userId prop
+}
+
+export default function TownSelection({ username, userId }: TownSelectionProps): JSX.Element {
   // const [loggedIn, setLoggedIn] = useState<boolean>(false);
   // const [userName, setUserName] = useState<string>('');
   const userName = username;
@@ -120,6 +125,7 @@ export default function TownSelection({ username }: { username: string }): JSX.E
         setIsJoining(true);
         const newController = new TownController({
           userName,
+          userID: userId,
           townID: coveyRoomID,
           loginController,
         });
@@ -156,7 +162,7 @@ export default function TownSelection({ username }: { username: string }): JSX.E
         }
       }
     },
-    [setTownController, userName, toast, videoConnect, loginController],
+    [userName, userId, loginController, videoConnect, setTownController, toast],
   );
 
   const handleCreate = async () => {
