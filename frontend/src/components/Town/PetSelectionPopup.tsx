@@ -60,9 +60,7 @@ const PetSelectionPopup = (props: PetSelectionPopupProps) => {
         petName,
         {
           ...props.townController.ourPlayer.location,
-          x: props.townController.ourPlayer.location.x + 10,
         },
-        // props.townController.ourPlayer.location,
       );
       props.townController.addPet(newPet);
       console.log('new pet added');
