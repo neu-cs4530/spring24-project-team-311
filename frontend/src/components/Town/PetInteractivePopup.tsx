@@ -74,7 +74,7 @@ const PetInteractivePopup = (props: PetInteractivePopupProps) => {
 
   useEffect(() => {
     ourPet?.addListener('petStatsUpdated', newStats => {
-      setProgressValues([newStats.petHunger, newStats.petHealth, newStats.petHappiness]);
+      setProgressValues([newStats.hunger, newStats.health, newStats.happiness]);
     });
   }, [ourPet]);
 

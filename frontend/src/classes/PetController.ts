@@ -116,6 +116,10 @@ export default class PetController extends (EventEmitter as new () => TypedEmitt
     this._isInHospital = newIsInHospital;
   }
 
+  set isSick(sick: boolean) {
+    this._isSick = sick;
+  }
+
   get isSick(): boolean {
     return this._isSick;
   }
