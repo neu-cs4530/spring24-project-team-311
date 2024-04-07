@@ -21,7 +21,8 @@ export class NoPetError extends Error {
 }
 
 const LABEL_OFFSET_Y = -20;
-const PET_LABEL_OFFSET_Y = -40;
+const PET_LABEL_OFFSET_Y = 10;
+const PET_EMOTICON_OFFSET_Y = -20;
 
 const STAT_DECAY_SECONDS = 1;
 
@@ -110,6 +111,10 @@ export default class TownGameScene extends Phaser.Scene {
 
   private _resourcePathPrefix: string;
 
+  private _petEmoticonTimer: number;
+
+  private _petEmoticon?: Phaser.GameObjects.Sprite;
+
   constructor(
     coveyTownController: TownController,
     _handlePetSpriteClicked: () => void,
@@ -120,6 +125,7 @@ export default class TownGameScene extends Phaser.Scene {
     this.coveyTownController = coveyTownController;
     this._players = this.coveyTownController.players;
     this._handlePetSpriteClicked = _handlePetSpriteClicked;
+    this._petEmoticonTimer = 0;
   }
 
   preload() {
@@ -181,6 +187,13 @@ export default class TownGameScene extends Phaser.Scene {
       'duck-sprites',
       this._resourcePathPrefix + '/assets/atlas/duck-sprites.png',
       this._resourcePathPrefix + '/assets/atlas/duck-sprites.json',
+    );
+
+    // Load atlas for pet emoticons
+    this.load.atlas(
+      'emoticons',
+      this._resourcePathPrefix + '/assets/atlas/emoticons.png',
+      this._resourcePathPrefix + '/assets/atlas/emoticons.json',
     );
   }
 
@@ -278,7 +291,7 @@ export default class TownGameScene extends Phaser.Scene {
     // TODO: emit movement for pet
   }
 
-  update() {
+  update(time: number, delta: number) {
     const spawnPoint = this.map.findObject(
       'Objects',
       obj => obj.name === 'Spawn Point',
@@ -388,6 +401,7 @@ export default class TownGameScene extends Phaser.Scene {
         spawnPoint,
       );
       const petLabel = this._addInitialPetLabel(spawnPoint);
+      this._petEmoticon = this._addInitialPetEmoticon(spawnPoint);
       this.coveyTownController.ourPet.gameObjects = {
         sprite: petSprite,
         label: petLabel,
@@ -497,6 +511,63 @@ export default class TownGameScene extends Phaser.Scene {
           pet.gameObjects.label.setX(pet.gameObjects.sprite.body.x);
           pet.gameObjects.label.setY(pet.gameObjects.sprite.body.y + PET_LABEL_OFFSET_Y);
         }
+      }
+
+      this._petEmoticonTimer += delta;
+      if (this._petEmoticonTimer > 10000 && this._petEmoticon) {
+        this._petEmoticon.visible = true;
+        this._petEmoticon.setX(petObjects.sprite.x);
+        this._petEmoticon.setY(petObjects.sprite.y + PET_EMOTICON_OFFSET_Y);
+        let numHighStats = 0;
+        let numMediumStats = 0;
+        let numLowStats = 0;
+        if (this.coveyTownController.ourPet!.petHappiness > 70) {
+          numHighStats++;
+        }
+        if (this.coveyTownController.ourPet!.petHealth > 70) {
+          numHighStats++;
+        }
+        if (this.coveyTownController.ourPet!.petHunger > 70) {
+          numHighStats++;
+        }
+        if (this.coveyTownController.ourPet!.petHappiness > 30) {
+          numMediumStats++;
+        }
+        if (this.coveyTownController.ourPet!.petHealth > 30) {
+          numMediumStats++;
+        }
+        if (this.coveyTownController.ourPet!.petHunger > 30) {
+          numMediumStats++;
+        }
+        if (this.coveyTownController.ourPet!.petHappiness <= 30) {
+          numLowStats++;
+        }
+        if (this.coveyTownController.ourPet!.petHealth <= 30) {
+          numLowStats++;
+        }
+        if (this.coveyTownController.ourPet!.petHunger <= 30) {
+          numLowStats++;
+        }
+
+        if (numLowStats === 3) {
+          this._petEmoticon.anims.play('emoticon-angry', true);
+        } else if (numLowStats === 2) {
+          this._petEmoticon.anims.play('emoticon-grumpy', true);
+        } else if (numLowStats === 1) {
+          this._petEmoticon.anims.play('emoticon-alert', true);
+        } else if (numHighStats === 3) {
+          this._petEmoticon.anims.play('emoticon-love', true);
+        } else if (numHighStats === 2) {
+          this._petEmoticon.anims.play('emoticon-joyous', true);
+        } else if (numHighStats === 1) {
+          this._petEmoticon.anims.play('emoticon-happy', true);
+        } else {
+          this._petEmoticon.anims.play('emoticon-neutral', true);
+        }
+      }
+      if (this._petEmoticonTimer > 12000 && this._petEmoticon) {
+        this._petEmoticon.visible = false;
+        this._petEmoticonTimer = 0;
       }
 
       // If pet is in hospital, set invisible
@@ -942,6 +1013,78 @@ export default class TownGameScene extends Phaser.Scene {
       repeat: -1,
     });
 
+    // add emoticons
+    anims.create({
+      key: 'emoticon-love',
+      frames: anims.generateFrameNames('emoticons', {
+        prefix: 'love',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+    anims.create({
+      key: 'emoticon-happy',
+      frames: anims.generateFrameNames('emoticons', {
+        prefix: 'happy',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+    anims.create({
+      key: 'emoticon-alert',
+      frames: anims.generateFrameNames('emoticons', {
+        prefix: 'alert',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+    anims.create({
+      key: 'emoticon-angry',
+      frames: anims.generateFrameNames('emoticons', {
+        prefix: 'angry',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+    anims.create({
+      key: 'emoticon-grumpy',
+      frames: anims.generateFrameNames('emoticons', {
+        prefix: 'grumpy',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+    anims.create({
+      key: 'emoticon-joyous',
+      frames: anims.generateFrameNames('emoticons', {
+        prefix: 'joyous',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+    anims.create({
+      key: 'emoticon-neutral',
+      frames: anims.generateFrameNames('emoticons', {
+        prefix: 'neutral',
+        start: 1,
+        end: 2,
+      }),
+      frameRate: 2,
+      repeat: -1,
+    });
+
     const camera = this.cameras.main;
     camera.startFollow(this.coveyTownController.ourPlayer.gameObjects.sprite);
     camera.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
@@ -1040,6 +1183,15 @@ export default class TownGameScene extends Phaser.Scene {
         },
       )
       .setDepth(6);
+  }
+
+  private _addInitialPetEmoticon(spawnPoint: Phaser.GameObjects.Components.Transform) {
+    return this.physics.add
+      .sprite(spawnPoint.x + 32, spawnPoint.y + PET_EMOTICON_OFFSET_Y, 'emoticons', 'love1')
+      .setScale(0.1)
+      .setOffset(0, 24)
+      .setDepth(5)
+      .setVisible(false);
   }
 
   createPlayerSprites(player: PlayerController) {
