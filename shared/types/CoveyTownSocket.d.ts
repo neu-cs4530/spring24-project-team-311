@@ -109,6 +109,8 @@ export interface BoundingBox {
   height: number;
 };
 
+export type HospitalArea = Interactable
+
 export interface ViewingArea extends Interactable {
   video?: string;
   isPlaying: boolean;

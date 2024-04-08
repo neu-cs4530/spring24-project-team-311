@@ -395,15 +395,17 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     newStats: { health: number; happiness: number; hunger: number },
   ) {
     const petToUpdate = this._petsInternal.find(eachPet => eachPet.petID === petID);
+    const originalPetHealth = petToUpdate?.petHealth || 0;
+    const originalPetHappiness = petToUpdate?.petHappiness || 0;
+    const originalPetHunger = petToUpdate?.petHunger || 0;
     if (petToUpdate) {
       petToUpdate.petHealth = Math.max(newStats.health, 0);
       petToUpdate.petHappiness = Math.max(newStats.happiness, 0);
       petToUpdate.petHunger = Math.max(newStats.hunger, 0);
       this._socket.emit('updatePetStats', petID, {
-        health: petToUpdate.petHealth,
-        happiness: petToUpdate.petHappiness,
-        hunger: petToUpdate.petHunger,
-        hospital: petToUpdate.isInHospital,
+        healthDelta: petToUpdate.petHealth - originalPetHealth,
+        happinessDelta: petToUpdate.petHappiness - originalPetHappiness,
+        hungerDelta: petToUpdate.petHunger - originalPetHunger,
       });
 
       // TODO: update backend
@@ -414,9 +416,9 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     const petToUpdate = this._petsInternal.find(eachPet => eachPet.petID === petID);
     if (petToUpdate) {
       this.setPetStats(petID, {
-        health: petToUpdate.petHealth + delta,
-        happiness: petToUpdate.petHappiness + delta,
-        hunger: petToUpdate.petHunger + delta,
+        health: delta,
+        happiness: delta,
+        hunger: delta,
       });
     }
   }
