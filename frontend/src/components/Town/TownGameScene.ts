@@ -55,6 +55,8 @@ export default class TownGameScene extends Phaser.Scene {
 
   private _players: PlayerController[] = [];
 
+  private _pets: PetController[] = [];
+
   private _pet: PetController | undefined = undefined;
 
   private _interactables: Interactable[] = [];
@@ -124,6 +126,7 @@ export default class TownGameScene extends Phaser.Scene {
     this._resourcePathPrefix = resourcePathPrefix;
     this.coveyTownController = coveyTownController;
     this._players = this.coveyTownController.players;
+    this._pets = this.coveyTownController.pets;
     this._handlePetSpriteClicked = _handlePetSpriteClicked;
     this._petEmoticonTimer = 0;
   }
@@ -469,11 +472,11 @@ export default class TownGameScene extends Phaser.Scene {
         } else {
           primaryDirection = undefined;
         }
-        console.log('------');
-        console.log(`deltaX: ${deltaX}, deltaY: ${deltaY}`);
-        console.log(`prevLocation: ${JSON.stringify(targetLocation)}`);
-        console.log(`petLocation: ${JSON.stringify(petLocation)}`);
-        console.log(`primaryDirection: ${primaryDirection}`);
+        // console.log('------');
+        // console.log(`deltaX: ${deltaX}, deltaY: ${deltaY}`);
+        // console.log(`prevLocation: ${JSON.stringify(targetLocation)}`);
+        // console.log(`petLocation: ${JSON.stringify(petLocation)}`);
+        // console.log(`primaryDirection: ${primaryDirection}`);
       }
 
       const ourPetType = this.coveyTownController.ourPet!.petType;
@@ -1126,7 +1129,7 @@ export default class TownGameScene extends Phaser.Scene {
 
   private _decayPetStats() {
     if (this.coveyTownController.ourPet) {
-      this.coveyTownController.updatePetStats(this.coveyTownController.ourPet!.petID, -1);
+      this.coveyTownController.decreasePetStats(1);
       console.log([
         this.coveyTownController.ourPet.petHappiness,
         this.coveyTownController.ourPet.petHunger,

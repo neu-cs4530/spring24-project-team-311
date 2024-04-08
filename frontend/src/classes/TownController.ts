@@ -214,6 +214,11 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   private _userID: string;
 
   /**
+   * A reference to the Pet object that represents the pet whose player is the one whose browser created this TownController
+   */
+  private _ourPet?: PetController;
+
+  /**
    * A reference to the Player object that represents the player whose browser created this TownController.
    */
   private _ourPlayer?: PlayerController;
@@ -258,12 +263,6 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     const url = process.env.NEXT_PUBLIC_TOWNS_SERVICE_URL;
     assert(url);
     const currentTime = new Date().getTime().toString();
-
-    console.log('USERNAME: ' + userName);
-    console.log('USERID: ' + userID);
-    console.log('CURRENTTIME: ' + currentTime);
-    console.log('TOWNID: ' + townID);
-
     this._socket = io(url, { auth: { userName, userID, townID, currentTime } });
     this._townsService = new TownsServiceClient({ BASE: url }).towns;
     this.registerSocketListeners();
@@ -322,7 +321,9 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   }
 
   public get ourPet() {
-    return this._petsInternal.find(eachPet => eachPet.playerID === this.userID);
+    const ret = this._ourPet;
+    return ret;
+    // return this._petsInternal.find(eachPet => eachPet.playerID === this.userID);
   }
 
   public get townID() {
@@ -382,18 +383,11 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
 
   public addPet(player: PlayerModel, newPet: PetController) {
     // TODO: update backend
-    this._petsInternal = [newPet];
-    this._socket.emit('addNewPet', player, newPet.petName, newPet.petID, newPet.petType);
-
-    //  const newLoc = this._updatePlayerLocationToGeneratedModel(player.location);
-
-    // this._townsService.createPet(this.townID, player.id, newPet.petID, {
-    //   petName: newPet.petName,
-    //   ownerID: { id: player.id, userName: player.userName, location: newLoc },
-    //   petID: newPet.petID,
-    //   type: newPet.petType,
-    //   location: player.location,
-    // });
+    if (!this._ourPet) {
+      this._ourPet = newPet;
+      this._petsInternal.push(newPet);
+      this._socket.emit('addNewPet', player, newPet.petName, newPet.petID, newPet.petType);
+    }
   }
 
   public setPetStats(
@@ -402,16 +396,14 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   ) {
     const petToUpdate = this._petsInternal.find(eachPet => eachPet.petID === petID);
     if (petToUpdate) {
-      const healthChange = newStats.health - petToUpdate.petHealth;
-      const happinessChange = newStats.happiness - petToUpdate.petHappiness;
-      const hungerChange = newStats.hunger - petToUpdate.petHunger;
       petToUpdate.petHealth = Math.max(newStats.health, 0);
       petToUpdate.petHappiness = Math.max(newStats.happiness, 0);
       petToUpdate.petHunger = Math.max(newStats.hunger, 0);
       this._socket.emit('updatePetStats', petID, {
-        healthDelta: healthChange,
-        happinessDelta: happinessChange,
-        hungerDelta: hungerChange,
+        health: petToUpdate.petHealth,
+        happiness: petToUpdate.petHappiness,
+        hunger: petToUpdate.petHunger,
+        hospital: petToUpdate.isInHospital,
       });
 
       // TODO: update backend
@@ -425,11 +417,6 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         health: petToUpdate.petHealth + delta,
         happiness: petToUpdate.petHappiness + delta,
         hunger: petToUpdate.petHunger + delta,
-      });
-      this._socket.emit('updatePetStats', petID, {
-        healthDelta: delta,
-        happinessDelta: delta,
-        hungerDelta: delta,
       });
     }
   }
@@ -561,6 +548,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
      * return to the login screen
      */
     this._socket.on('townClosing', () => {
+      // this.emit()
       this.emit('disconnect');
       this._loginController.setTownController(null);
     });
@@ -797,6 +785,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
             eachPetModel.location,
           ).fromPetModel(eachPetModel),
         );
+
         this._interactableControllers = [];
         initialData.interactables.forEach(eachInteractable => {
           if (isConversationArea(eachInteractable)) {
@@ -824,6 +813,30 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         });
         this._userID = initialData.userID;
         this._ourPlayer = this.players.find(eachPlayer => eachPlayer.id == this.userID);
+
+        if (initialData.createdResponse.pet) {
+          const currPet = this._petsInternal.find(eachPet => eachPet.playerID === this._userID);
+          if (currPet) {
+            this._ourPet = currPet;
+          } else {
+            const newPet = new PetController(
+              initialData.createdResponse.pet.ownerID,
+              initialData.createdResponse.pet.id,
+              initialData.createdResponse.pet.type,
+              initialData.createdResponse.pet.userName,
+              initialData.createdResponse.pet.location,
+            ).fromPetModel(initialData.createdResponse.pet);
+            this._petsInternal.push(newPet);
+            this._ourPet = newPet;
+          }
+        }
+
+        console.log(this._petsInternal);
+        console.log('OUR PET' + this._ourPet?.petName);
+        console.log('Hunger' + this._ourPet?.petHunger);
+        console.log('Health' + this._ourPet?.petHealth);
+        console.log('Hunger' + this._ourPet?.petHappiness);
+
         this.emit('connect', initialData.providerVideoToken);
         resolve();
       });
