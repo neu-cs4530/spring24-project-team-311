@@ -630,7 +630,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
 
     this._socket.on('petStatsResponse', response => {
       const petToUpdate = this._petsInternal.find(eachPet => eachPet.petID === response.petid);
-      if (petToUpdate) {
+      if (petToUpdate && petToUpdate !== this.ourPet) {
         petToUpdate.petHealth = response.health;
         petToUpdate.petHappiness = response.happiness;
         petToUpdate.petHunger = response.hunger;

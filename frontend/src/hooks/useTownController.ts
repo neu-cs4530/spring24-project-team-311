@@ -10,7 +10,6 @@ import TownControllerContext from '../contexts/TownControllerContext';
  */
 export default function useTownController(): TownController {
   const ctx = useContext(TownControllerContext);
-  console.log(ctx);
   assert(ctx, 'TownController context should be defined in order to use this hook.');
   return ctx;
 }
