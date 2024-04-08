@@ -109,6 +109,10 @@ export interface BoundingBox {
   height: number;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface HospitalArea extends Interactable {
+}
+
 export interface ViewingArea extends Interactable {
   video?: string;
   isPlaying: boolean;
