@@ -12,7 +12,6 @@ import clsx from 'clsx';
 import { createStyles, makeStyles, Theme } from '@material-ui/core';
 import PetSelectionPopup from './PetSelectionPopup';
 import PetInteractivePopup from './PetInteractivePopup';
-import { PetType } from '../../classes/PetController';
 import TownController from '../../classes/TownController';
 import HospitalAreaPopup from './HospitalAreaPopup';
 
