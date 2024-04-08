@@ -23,14 +23,14 @@ describe('ViewingArea', () => {
       testAreaBox,
       townEmitter,
     );
-    newPlayer = new Player(nanoid(), nanoid(), 'test@test.com', mock<TownEmitter>());
+    newPlayer = new Player(nanoid(), nanoid(), mock<TownEmitter>());
     testArea.add(newPlayer);
   });
 
   describe('remove', () => {
     it('Removes the player from the list of occupants and emits an interactableUpdate event', () => {
       // Add another player so that we are not also testing what happens when the last player leaves
-      const extraPlayer = new Player(nanoid(), nanoid(), 'test@test.com', mock<TownEmitter>());
+      const extraPlayer = new Player(nanoid(), nanoid(), mock<TownEmitter>());
       testArea.add(extraPlayer);
       testArea.remove(newPlayer);
 
