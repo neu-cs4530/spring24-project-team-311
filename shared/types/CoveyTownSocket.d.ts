@@ -65,9 +65,10 @@ export interface Pet {
 };
 
 export type PetSettingsUpdate = {
-  healthDelta: number;
-  hungerDelta: number;
-  happinessDelta: number;
+  health: number;
+  hunger: number;
+  happiness: number;
+  hospital: boolean;
 }
 
 export type PetSettingsResponse = {
@@ -313,9 +314,9 @@ export interface ClientToServerEvents {
   playerMovement: (movementData: PlayerLocation) => void;
   interactableUpdate: (update: Interactable) => void;
   interactableCommand: (command: InteractableCommand & InteractableCommandBase) => void;
-  addNewPet: (player: PlayerModel, petName: string, petID: string, petType: PetType) => void;
+  addNewPet: (petName: string, petID: string, petType: PetType) => void;
   decreaseStats: (delta: number) => void;
-  updatePetStats: (petID: string, updates: PetSettingsUpdate) => void;
+  updatePetStats: (userID:string, petID: string, updates: PetSettingsUpdate) => void;
   hospitalizePet: (petID: string) => void;
   dischargePet: (petID : string) => void;
 }

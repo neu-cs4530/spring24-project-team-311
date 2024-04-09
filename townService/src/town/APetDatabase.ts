@@ -1,12 +1,7 @@
 import { PetType, Pet, Player, PlayerLocation } from '../types/CoveyTownSocket';
 
 export default abstract class APetDatabase {
-  abstract addUser(
-    userID: string,
-    username: string,
-    loginTime: number,
-    location: PlayerLocation,
-  ): Promise<void>;
+  abstract addUser(userID: string, username: string, location: PlayerLocation): Promise<void>;
 
   abstract addPet(
     petName: string,
@@ -20,12 +15,13 @@ export default abstract class APetDatabase {
     userID: string,
     username: string,
     location: PlayerLocation,
-    loginTime: number,
   ): Promise<Player | undefined>;
 
   abstract getUserLogOutTime(userID: string): Promise<number>;
 
   abstract setUserLogOutTime(userID: string, logoutTime: number): Promise<void>;
+
+  abstract setUserLoginTime(userID: string, logoutTime: number): Promise<void>;
 
   abstract getPet(userID: string): Promise<Pet | undefined>;
 
@@ -50,4 +46,6 @@ export default abstract class APetDatabase {
   abstract deletePet(ownerID: string, petID: string): Promise<void>;
 
   abstract changeOwner(currentOwner: string, newOwner: string, petID: string): Promise<void>;
+
+  abstract updateLocation(userID: string, location: PlayerLocation): Promise<void>;
 }

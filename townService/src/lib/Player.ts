@@ -66,7 +66,7 @@ export default class Player {
     return this._pet;
   }
 
-  addNewPet(pet: Pet) {
+  set pet(pet: Pet | undefined) {
     this._pet = pet;
   }
 

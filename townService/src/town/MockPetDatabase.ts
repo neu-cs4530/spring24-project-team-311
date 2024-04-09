@@ -5,14 +5,19 @@ type MockDatabasePlayer = {
   player: Player;
   loginTime: number;
   logoutTimeLeft: number;
+  location: PlayerLocation;
 };
 
 export default class MockPetDatabase extends APetDatabase {
+  setUserLoginTime(userID: string, logoutTime: number): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+
   private _players: MockDatabasePlayer[] = [];
 
   private _pets: Pet[] = [];
 
-  async addUser(userID: string, username: string, loginTime: number): Promise<void> {
+  async addUser(userID: string, username: string): Promise<void> {
     const player: Player = {
       id: userID,
       userName: username,
@@ -23,7 +28,17 @@ export default class MockPetDatabase extends APetDatabase {
         rotation: 'front',
       },
     };
-    this._players.push({ player, loginTime, logoutTimeLeft: 0 });
+    this._players.push({
+      player,
+      loginTime: 0,
+      logoutTimeLeft: 0,
+      location: {
+        x: 0,
+        y: 0,
+        moving: false,
+        rotation: 'front',
+      },
+    });
   }
 
   async addPet(
@@ -57,11 +72,9 @@ export default class MockPetDatabase extends APetDatabase {
     userID: string,
     username: string,
     location: PlayerLocation,
-    loginTime: number,
   ): Promise<Player | undefined> {
     const user = this._players.find(p => p.player.id === userID);
     if (user !== undefined) {
-      user.loginTime = loginTime;
       let existingPlayer: Player = {
         userName: username,
         id: userID,
@@ -78,8 +91,15 @@ export default class MockPetDatabase extends APetDatabase {
       }
       return existingPlayer;
     }
-    await this.addUser(userID, username, loginTime);
+    await this.addUser(userID, username);
     return undefined;
+  }
+
+  async updateUserLogInTime(userID: string, logInTime: number): Promise<void> {
+    const user = this._players.find(p => p.player.id === userID);
+    if (user !== undefined) {
+      user.loginTime = logInTime;
+    }
   }
 
   async getUserLogOutTime(userID: string): Promise<number> {
@@ -100,6 +120,13 @@ export default class MockPetDatabase extends APetDatabase {
   async getPet(userID: string): Promise<Pet | undefined> {
     const pet = this._pets.find(p => p.ownerID === userID);
     return pet;
+  }
+
+  async updateLocation(userID: string, location: PlayerLocation): Promise<void> {
+    const user = this._players.find(p => p.player.id === userID);
+    if (user !== undefined) {
+      user.location = location;
+    }
   }
 
   async getHospitalStatus(ownerID: string, petID: string): Promise<boolean | undefined> {

@@ -3,6 +3,38 @@ import { PetType, Pet, Player, PlayerLocation } from '../types/CoveyTownSocket';
 import APetDatabase from './APetDatabase';
 
 export default class PetDatabase extends APetDatabase {
+  async updateLocation(userID: string, location: PlayerLocation): Promise<void> {
+    let newLocation = location;
+
+    if (!location.interactableID) {
+      newLocation = {
+        x: location.x,
+        y: location.y,
+        rotation: location.rotation,
+        moving: location.moving,
+        interactableID: 'unknown',
+      };
+    }
+
+    const uesrRef = ref(this._db, `users/${userID}`);
+    const snapshot = await get(uesrRef);
+    if (snapshot.exists()) {
+      const petData = snapshot.val();
+      const updates: Record<string, PlayerLocation> = {};
+      updates.location = newLocation;
+      update(uesrRef, updates);
+    }
+
+    const userPetsRef = ref(this._db, `users/${userID}/pet`);
+    const snapshotPet = await get(userPetsRef);
+    if (snapshot.exists()) {
+      const petData = snapshotPet.val();
+      const updates: Record<string, PlayerLocation> = {};
+      updates.location = newLocation;
+      update(userPetsRef, updates);
+    }
+  }
+
   private _db;
 
   constructor() {
@@ -10,30 +42,26 @@ export default class PetDatabase extends APetDatabase {
     this._db = getDatabase();
   }
 
-  async addUser(
-    userID: string,
-    username: string,
-    loginTime: number,
-    location: PlayerLocation,
-  ): Promise<void> {
-    // if (
-    //   userID !== undefined &&
-    //   username !== undefined &&
-    //   loginTime !== undefined &&
-    //   location !== undefined
-    // ) {
+  async addUser(userID: string, username: string, location: PlayerLocation): Promise<void> {
+    let newLocation = location;
+
+    if (!location.interactableID) {
+      newLocation = {
+        x: location.x,
+        y: location.y,
+        rotation: location.rotation,
+        moving: location.moving,
+        interactableID: 'unknown',
+      };
+    }
+
     await set(ref(this._db, `users/${userID}`), {
       userID,
       username,
       logoutTimeLeft: 0,
-      loginTime,
-      location,
+      loginTime: 0,
+      newLocation,
     });
-    // return {
-    //   userName: username,
-    //   id: userID,
-    //   location,
-    // };
   }
 
   async addPet(
@@ -47,7 +75,6 @@ export default class PetDatabase extends APetDatabase {
     const userSnapshot = await get(userRef);
 
     if (!userSnapshot.exists()) {
-      // User does not exist, return false
       return false;
     }
 
@@ -57,18 +84,30 @@ export default class PetDatabase extends APetDatabase {
       return false;
     }
 
+    let newLocation = location;
+
+    if (!location.interactableID) {
+      newLocation = {
+        x: location.x,
+        y: location.y,
+        rotation: location.rotation,
+        moving: location.moving,
+        interactableID: 'unknown',
+      };
+    }
+
     await set(ref(this._db, `users/${ownerID}/pet`), {
       name: petName,
       type: petType,
       id: petID,
       owner: ownerID,
-      health: 100,
-      hunger: 100,
-      happiness: 100,
+      health: 50,
+      hunger: 50,
+      happiness: 50,
       inHospital: false,
       currentPet: true,
       isSick: false,
-      location,
+      newLocation,
     });
 
     return true;
@@ -78,13 +117,11 @@ export default class PetDatabase extends APetDatabase {
     userID: string,
     username: string,
     location: PlayerLocation,
-    loginTime: number,
   ): Promise<Player | undefined> {
     const userRef = ref(this._db, `users/${userID}`);
     const snapshot = await get(userRef);
     if (snapshot.exists()) {
       const user = snapshot.val();
-      await this._updateLoginTime(userID, loginTime);
       let existingPlayer: Player = {
         userName: user.userName,
         id: user.userID,
@@ -101,11 +138,11 @@ export default class PetDatabase extends APetDatabase {
       }
       return existingPlayer;
     }
-    await this.addUser(userID, username, loginTime, location);
+    await this.addUser(userID, username, location);
     return undefined;
   }
 
-  private async _updateLoginTime(userID: string, loginTime: number): Promise<void> {
+  async setUserLoginTime(userID: string, loginTime: number): Promise<void> {
     const userRef = ref(this._db, `users/${userID}`);
     const snapshot = await get(userRef);
     if (snapshot.exists()) {
@@ -143,18 +180,17 @@ export default class PetDatabase extends APetDatabase {
     const snapshot = await get(userPetRef);
     if (snapshot.exists()) {
       const petData = snapshot.val();
-      const { pet } = petData;
       return {
-        userName: pet.name,
-        type: pet.type,
-        ownerID: pet.ownerID,
-        health: pet.health,
-        hunger: pet.hunger,
-        happiness: pet.happiness,
-        inHospital: pet.inHospital,
-        isSick: pet.isSick,
-        id: pet.id,
-        location: pet.location,
+        userName: petData.name,
+        type: petData.type,
+        ownerID: petData.ownerID,
+        health: petData.health,
+        hunger: petData.hunger,
+        happiness: petData.happiness,
+        inHospital: petData.inHospital,
+        isSick: petData.isSick,
+        id: petData.id,
+        location: petData.location,
       };
     }
     return undefined;
@@ -210,53 +246,38 @@ export default class PetDatabase extends APetDatabase {
     return undefined;
   }
 
-  async changeHappiness(ownerID: string, petID: string, delta: number) {
+  async changeHappiness(ownerID: string, petID: string, happinessVal: number) {
     const userPetsRef = ref(this._db, `users/${ownerID}/pet}`);
     const snapshot = await get(userPetsRef);
 
     if (snapshot.exists()) {
       const petData = snapshot.val();
-      const happinessVal = petData.happiness;
       const updates: Record<string, number> = {};
-      if (delta > 0) {
-        updates.happiness = Math.max(happinessVal + delta, 100);
-      } else {
-        updates.happiness = Math.min(happinessVal + delta, 0);
-      }
+      updates.happiness = happinessVal;
       update(userPetsRef, updates);
     }
   }
 
-  async changeHealth(ownerID: string, petID: string, delta: number) {
-    const userPetsRef = ref(this._db, `users/${ownerID}/pet`);
+  async changeHealth(ownerID: string, petID: string, healthVal: number) {
+    const userPetsRef = ref(this._db, `users/${ownerID}/pet}`);
     const snapshot = await get(userPetsRef);
+
     if (snapshot.exists()) {
       const petData = snapshot.val();
-      if (petData.currentPet) {
-        const healthVal = petData.health;
-        const updates: Record<string, number> = {};
-        if (delta > 0) {
-          updates.health = Math.max(healthVal + delta, 100);
-        } else {
-          updates.health = Math.min(healthVal + delta, 0);
-        }
-        update(userPetsRef, updates);
-      }
+      const updates: Record<string, number> = {};
+      updates.health = healthVal;
+      update(userPetsRef, updates);
     }
   }
 
-  async changeHunger(ownerID: string, petID: string, delta: number) {
-    const userPetsRef = ref(this._db, `users/${ownerID}/pet`);
+  async changeHunger(ownerID: string, petID: string, hungerVal: number) {
+    const userPetsRef = ref(this._db, `users/${ownerID}/pet}`);
     const snapshot = await get(userPetsRef);
+
     if (snapshot.exists()) {
       const petData = snapshot.val();
-      const hungerVal = petData.hunger;
       const updates: Record<string, number> = {};
-      if (delta > 0) {
-        updates.hunger = Math.max(hungerVal + delta, 100);
-      } else {
-        updates.hunger = Math.min(hungerVal + delta, 0);
-      }
+      updates.hunger = hungerVal;
       update(userPetsRef, updates);
     }
   }

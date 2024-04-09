@@ -1128,14 +1128,14 @@ export default class TownGameScene extends Phaser.Scene {
   }
 
   private _decayPetStats() {
-    if (this.coveyTownController.ourPet) {
-      this.coveyTownController.decreasePetStats(1);
-      console.log([
-        this.coveyTownController.ourPet.petHappiness,
-        this.coveyTownController.ourPet.petHunger,
-        this.coveyTownController.ourPet.petHealth,
-      ]);
-    }
+    //if (this.coveyTownController.ourPet) {
+    this.coveyTownController.decreasePetStats(1);
+    console.log([
+      this.coveyTownController.ourPet?.petHappiness,
+      this.coveyTownController.ourPet?.petHunger,
+      this.coveyTownController.ourPet?.petHealth,
+    ]);
+    //}
   }
 
   private _addInitialPetSprite(

@@ -12,7 +12,6 @@ import { RegisterRoutes } from '../generated/routes';
 import TownsStore from './lib/TownsStore';
 import { ClientToServerEvents, ServerToClientEvents } from './types/CoveyTownSocket';
 import { TownsController } from './town/TownsController';
-import { PetsController } from './town/PetsController';
 import { logError } from './Utils';
 import PetDatabase from './town/PetDatabase';
 
@@ -49,7 +48,7 @@ TownsStore.initializeTownsStore((townID: string) => socketServer.to(townID));
 // (the library that we use for REST), which creates a new controller instance for each request
 socketServer.on('connection', socket => {
   // new TownsController().joinTown(socket);
-  new PetsController().joinTown(socket);
+  new TownsController().joinTown(socket);
 });
 
 // Set the default content-type to JSON

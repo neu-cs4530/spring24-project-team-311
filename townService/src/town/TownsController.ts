@@ -42,11 +42,14 @@ import PetDatabase from './PetDatabase';
 export class TownsController extends Controller {
   protected _firebaseSchema;
 
+  private _connectedToFirebase;
+
   protected _townsStore: CoveyTownsStore = CoveyTownsStore.getInstance();
 
-  constructor(db: APetDatabase = new PetDatabase()) {
+  constructor(db: APetDatabase = new PetDatabase(), firebaseConnection = true) {
     super();
     this._firebaseSchema = db;
+    this._connectedToFirebase = firebaseConnection;
   }
 
   /**
@@ -73,6 +76,7 @@ export class TownsController extends Controller {
       request.friendlyName,
       request.isPubliclyListed,
       request.mapFile,
+      this._connectedToFirebase,
     );
     return {
       townID,
@@ -211,14 +215,11 @@ export class TownsController extends Controller {
    */
   public async joinTown(socket: CoveyTownSocket) {
     // Parse the client's requested username from the connection
-    const { userName, userID, townID, loginTime } = socket.handshake.auth as {
+    const { userName, userID, townID } = socket.handshake.auth as {
       userName: string;
       userID: string;
       townID: string;
-      loginTime: string;
     };
-
-    console.log(`LOGINTIME: ${loginTime}`);
 
     const town = this._townsStore.getTownByID(townID);
     if (!town) {
@@ -227,7 +228,7 @@ export class TownsController extends Controller {
     }
     // Connect the client to the socket.io broadcast room for this town
     socket.join(town.townID);
-    const player = await this._createUser(userID, userName, Number(loginTime));
+    const player = await this._createUser(userID, userName);
 
     // console.log(`Player${player?.userName} ${player?.id} ${player?.location}`);
 
@@ -236,11 +237,7 @@ export class TownsController extends Controller {
       logoutTime: await this._firebaseSchema.getUserLogOutTime(userID),
     };
 
-    const newPlayer = await town.addPlayer(userName, userID, socket);
-
-    if (player !== undefined) {
-      await town.addExistingPet(player);
-    }
+    const newPlayer = await town.addPlayer(userName, userID, socket, player?.pet);
 
     assert(newPlayer.videoToken);
     socket.emit('initialize', {
@@ -256,35 +253,13 @@ export class TownsController extends Controller {
     });
   }
 
-  private async _createUser(
-    userID: string,
-    username: string,
-    loginTime: number,
-  ): Promise<Player | undefined> {
-    console.log(`USERID: ${userID}`);
-    console.log(`USERNAME: ${username}`);
-    console.log(`LOGINTIME: ${loginTime}`);
-    const playerInDB = await this._firebaseSchema.getOrAddPlayer(
-      userID,
-      username,
-      {
-        x: 0,
-        y: 0,
-        moving: false,
-        rotation: 'front',
-      },
-      0,
-    );
+  private async _createUser(userID: string, username: string): Promise<Player | undefined> {
+    const playerInDB = await this._firebaseSchema.getOrAddPlayer(userID, username, {
+      x: 0,
+      y: 0,
+      moving: false,
+      rotation: 'front',
+    });
     return playerInDB;
   }
-
-  // public async createNewPet(request: PetCreateParams): Promise<void> {
-  //   await this._firebaseSchema.addPet(
-  //     request.petName,
-  //     request.petID,
-  //     request.type,
-  //     request.ownerID.id,
-  //     request.location,
-  //   );
-  // }
 }

@@ -48,9 +48,9 @@ export default class Pet {
     type: PetType,
     user: string,
     location: PlayerLocation,
-    health = 100,
-    hunger = 100,
-    happiness = 100,
+    health = 50,
+    hunger = 50,
+    happiness = 50,
     inHospital = false,
     isSick = false,
     id: string = nanoid(),
@@ -126,31 +126,16 @@ export default class Pet {
     }
   }
 
-  private async _updateHunger(delta: number) {
-    this._hunger =
-      delta > 0 ? Math.max(100, this._hunger + delta) : Math.min(0, this._hunger - delta);
-    if (this._hunger === 0 && !this._isSick) {
-      await this._updateSickStatus(true);
-    }
-    await this._checkHealth();
+  private async _updateHunger(hunger: number) {
+    this._hunger = hunger;
   }
 
-  private async _updateHealth(delta: number) {
-    this._health =
-      delta > 0 ? Math.max(100, this._health + delta) : Math.min(0, this._health - delta);
-    if (this._health === 0 && !this._isSick) {
-      await this._updateSickStatus(true);
-    }
-    await this._checkHealth();
+  private async _updateHealth(health: number) {
+    this._health = health;
   }
 
-  private async _updateHappiness(delta: number) {
-    this._happiness =
-      delta > 0 ? Math.max(100, this._happiness + delta) : Math.min(0, this._happiness - delta);
-    if (this._happiness === 0 && !this._isSick) {
-      await this._updateSickStatus(true);
-    }
-    await this._checkHealth();
+  private async _updateHappiness(happiness: number) {
+    this._happiness = happiness;
   }
 
   private async _updateSickStatus(isSick: boolean) {
@@ -163,16 +148,16 @@ export default class Pet {
 
   decreseStats(delta: number) {
     const promises: Promise<void>[] = [];
-    promises.push(this._updateHunger(delta));
-    promises.push(this._updateHealth(delta));
-    promises.push(this._updateHappiness(delta));
+    promises.push(this._updateHunger(this._hunger - delta));
+    promises.push(this._updateHealth(this._health - delta));
+    promises.push(this._updateHappiness(this._happiness - delta));
     Promise.all(promises);
   }
 
   // returns whether or not it was a success
   feedPet(delta: number): boolean {
     if (this._hunger > 0) {
-      this._updateHunger(delta);
+      this._updateHunger(this._hunger + delta);
       return true;
     }
     return false;
@@ -180,7 +165,7 @@ export default class Pet {
 
   playWithPet(delta: number): boolean {
     if (this._happiness > 0) {
-      this._updateHappiness(delta);
+      this._updateHappiness(this._happiness + delta);
       return true;
     }
     return false;
@@ -188,7 +173,7 @@ export default class Pet {
 
   cleanPet(delta: number): boolean {
     if (this._health > 0) {
-      this._updateHealth(delta);
+      this._updateHealth(this._health + delta);
       return true;
     }
     return false;
@@ -205,7 +190,6 @@ export default class Pet {
   dischargePet(): boolean {
     if (this._inHospital && this._isSick) {
       this._updateHospitalStatus(false);
-      this._updateSickStatus(false);
       if (this._hunger === 0) this._hunger = 100;
       if (this._health === 0) this._health = 100;
       if (this._happiness === 0) this._happiness = 100;

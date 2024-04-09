@@ -1,6 +1,8 @@
 import { ITiledMap } from '@jonbell/tiled-map-type-guard';
 import * as fs from 'fs/promises';
 import { customAlphabet } from 'nanoid';
+import PetsController from '../town/PetsController';
+import PetDatabase from '../town/PetDatabase';
 import Town from '../town/Town';
 import { TownEmitterFactory } from '../types/CoveyTownSocket';
 
@@ -84,12 +86,25 @@ export default class TownsStore {
     friendlyName: string,
     isPubliclyListed: boolean,
     mapFile = '../frontend/public/assets/tilemaps/indoors.json',
+    firebaseConnection = true,
   ): Promise<Town> {
     if (friendlyName.length === 0) {
       throw new Error('FriendlyName must be specified');
     }
     const townID = process.env.DEMO_TOWN_ID === friendlyName ? friendlyName : friendlyNanoID();
-    const newTown = new Town(friendlyName, isPubliclyListed, townID, this._emitterFactory(townID));
+    let newTown;
+    if (firebaseConnection) {
+      newTown = new Town(
+        friendlyName,
+        isPubliclyListed,
+        townID,
+        this._emitterFactory(townID),
+        new PetsController(new PetDatabase()),
+      );
+    } else {
+      newTown = new Town(friendlyName, isPubliclyListed, townID, this._emitterFactory(townID));
+    }
+
     const data = JSON.parse(await fs.readFile(mapFile, 'utf-8'));
     const map = ITiledMap.parse(data);
     newTown.initializeFromMap(map);

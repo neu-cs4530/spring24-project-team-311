@@ -83,7 +83,7 @@ describe('TownsController integration tests', () => {
       return mockRoomEmitter;
     });
     TownsStore.initializeTownsStore(broadcastEmitter);
-    controller = new TownsController(new MockPetDatabase());
+    controller = new TownsController(new MockPetDatabase(), false);
   });
   describe('createTown', () => {
     it('Allows for multiple towns with the same friendlyName', async () => {

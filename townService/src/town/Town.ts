@@ -30,6 +30,8 @@ import ConversationArea from './ConversationArea';
 import GameAreaFactory from './games/GameAreaFactory';
 import InteractableArea from './InteractableArea';
 import ViewingArea from './ViewingArea';
+import PetsController from './PetsController';
+import MockPetDatabase from './MockPetDatabase';
 
 /**
  * The Town class implements the logic for each town: managing the various events that
@@ -108,11 +110,14 @@ export default class Town {
 
   private _chatMessages: ChatMessage[] = [];
 
+  private _petsController: PetsController;
+
   constructor(
     friendlyName: string,
     isPubliclyListed: boolean,
     townID: string,
     broadcastEmitter: BroadcastOperator<ServerToClientEvents, SocketData>,
+    petsController = new PetsController(new MockPetDatabase()),
   ) {
     this._townID = townID;
     this._capacity = 50;
@@ -120,6 +125,7 @@ export default class Town {
     this._isPubliclyListed = isPubliclyListed;
     this._friendlyName = friendlyName;
     this._broadcastEmitter = broadcastEmitter;
+    this._petsController = petsController;
   }
 
   async getPet(petID: string): Promise<Pet | undefined> {
@@ -127,17 +133,10 @@ export default class Town {
     return pet;
   }
 
-  async addNewPet(
-    user: PlayerModel,
-    petName: string,
-    petID: string,
-    petType: PetType,
-  ): Promise<Pet | undefined> {
+  async addNewPet(user: Player, petName: string, petID: string, petType: PetType) {
     if (user !== undefined) {
-      const playerObject = this._players.find(
-        player => player.userName === user.userName && player.id === user.id,
-      );
-      if (user.pet === undefined && playerObject !== undefined && playerObject.pet === undefined) {
+      const playerObject = this._players.find(player => player.id === user.id);
+      if (playerObject && !playerObject.pet) {
         const pet = new Pet(
           petName,
           petType,
@@ -150,43 +149,35 @@ export default class Town {
           false,
           petID,
         );
-        user.pet = pet.toPetModel();
-        playerObject.addNewPet(pet);
+        playerObject.pet = pet;
         this._pets.push(pet);
-        return pet;
+        console.log('NEW PET ADDED');
       }
     }
-    return undefined;
   }
   /*
    * if the given user Player has a pet, then that pet is added to the town
    */
 
-  async addExistingPet(user: PlayerModel | undefined): Promise<Pet | undefined> {
-    let returnedPet;
-    if (user !== undefined) {
-      const playerObject = this._players.find(
-        player => player.userName === user.userName && player.id === user.id,
+  async addExistingPet(userID: string, pet: PetModel) {
+    const playerObject = this._players.find(player => player.id === userID);
+    if (playerObject && playerObject.pet === undefined) {
+      const newPet = new Pet(
+        pet.userName,
+        pet.type,
+        userID,
+        pet.location,
+        pet.health,
+        pet.hunger,
+        pet.happiness,
+        pet.inHospital,
+        pet.isSick,
+        pet.id,
       );
-      if (user.pet !== undefined && playerObject !== undefined && playerObject.pet === undefined) {
-        const pet = new Pet(
-          user.pet.userName,
-          user.pet.type,
-          user.pet.ownerID,
-          user.location,
-          user.pet.health,
-          user.pet.hunger,
-          user.pet.happiness,
-          user.pet.inHospital,
-          user.pet.isSick,
-          user.pet.id,
-        );
-        playerObject.addNewPet(pet);
-        this._pets.push(pet);
-        returnedPet = pet;
-      }
+      playerObject.pet = newPet;
+      this._pets.push(newPet);
+      console.log('EXISITNG PET ADDED');
     }
-    return returnedPet;
   }
 
   /**
@@ -205,7 +196,16 @@ export default class Town {
 
     this._players.push(newPlayer);
 
+    console.log(`PLAYERS: ${this._players.length}`);
+
     this._connectedSockets.add(socket);
+    this._petsController.userLogIn(newPlayer.id);
+
+    if (pet) {
+      this.addExistingPet(newPlayer.id, pet);
+    }
+
+    console.log(`PET: ${newPlayer.pet?.petName}`);
 
     // Create a video token for this user to join this town
     newPlayer.videoToken = await this._videoClient.getTokenForTown(this._townID, newPlayer.id);
@@ -218,6 +218,7 @@ export default class Town {
     // player's session is disconnected
     socket.on('disconnect', () => {
       this._removePlayer(newPlayer);
+      this._petsController.userLogOut(newPlayer.id);
       this._connectedSockets.delete(socket);
     });
 
@@ -240,54 +241,53 @@ export default class Town {
       }
     });
 
-    socket.on(
-      'addNewPet',
-      (player: PlayerModel, petName: string, petID: string, petType: PetType) => {
-        try {
-          if (player.pet === undefined) {
-            this.addNewPet(player, petName, petID, petType);
-          }
-        } catch (err) {
-          logError(err);
-        }
-      },
-    );
-
-    socket.on('decreaseStats', (delta: number) => {
+    socket.on('addNewPet', (petName: string, petID: string, petType: PetType) => {
       try {
-        this._pets.forEach(p => {
-          p.decreseStats(delta);
+        this.addNewPet(newPlayer, petName, petID, petType);
+        this._petsController.createNewPet({
+          petName,
+          petID,
+          ownerID: newPlayer.toPlayerModel(),
+          type: petType,
+          location: newPlayer.location,
         });
       } catch (err) {
         logError(err);
       }
     });
 
-    socket.on('updatePetStats', async (petID: string, updates: PetSettingsUpdate) => {
+    socket.on('decreaseStats', (delta: number) => {
+      try {
+        this._pets.forEach(p => {
+          p.decreseStats(delta);
+          const updates = {
+            health: p.health,
+            hunger: p.hunger,
+            happiness: p.happiness,
+            hospital: p.hospitalStatus,
+          };
+          this._petsController.updateStats(p.owner, p.id, updates);
+        });
+      } catch (err) {
+        logError(err);
+      }
+    });
+
+    socket.on('updatePetStats', async (uid: string, petID: string, updates: PetSettingsUpdate) => {
       try {
         const updatedPet = await this.getPet(petID);
-        let updatePetResponse = {
-          petid: petID,
-          happiness: -1,
-          hunger: -1,
-          health: -1,
-          sick: false,
-          hospital: false,
-        };
         if (updatedPet !== undefined) {
-          updatedPet.cleanPet(updates.healthDelta);
-          updatedPet.feedPet(updates.hungerDelta);
-          updatedPet.playWithPet(updates.happinessDelta);
-          updatePetResponse = {
-            petid: petID,
-            happiness: updatedPet.happiness,
-            hunger: updatedPet.hunger,
-            health: updatedPet.health,
-            sick: updatedPet.sick,
-            hospital: updatedPet.hospitalStatus,
-          };
+          console.log(`Updated Pet Exists  ${this._pets.length}`);
+          updatedPet.cleanPet(updates.health);
+          updatedPet.feedPet(updates.hunger);
+          updatedPet.playWithPet(updates.happiness);
+          // console.log(`Updated Health  ${updates.health}`);
+          // console.log(`Updated Hunger  ${updates.hunger}`);
+          // console.log(`Updated Happiness  ${updates.happiness}`);
+          this._petsController.updateStats(uid, petID, updates);
+          console.log('PET UPDATED');
         }
-        socket.emit('petStatsResponse', updatePetResponse);
+        // socket.emit('petStatsResponse', updatePetResponse);
       } catch (err) {
         logError(err);
       }
@@ -315,7 +315,7 @@ export default class Town {
             hospital: hospitalizedPet.hospitalStatus,
           };
         }
-        socket.emit('petStatsResponse', hospitalizedPetResponse);
+        // socket.emit('petStatsResponse', hospitalizedPetResponse);
       } catch (err) {
         logError(err);
       }
@@ -343,7 +343,7 @@ export default class Town {
             hospital: dischargedPet.hospitalStatus,
           };
         }
-        socket.emit('petStatsResponse', dischargedPetResponse);
+        // socket.emit('petStatsResponse', dischargedPetResponse);
       } catch (err) {
         logError(err);
       }
@@ -422,6 +422,7 @@ export default class Town {
       this._removePlayerFromInteractable(player);
     }
     this._players = this._players.filter(p => p.id !== player.id);
+    this._pets = this._pets.filter(p => p.owner !== player.id);
     this._broadcastEmitter.emit('playerDisconnect', player.toPlayerModel());
   }
 
@@ -460,6 +461,8 @@ export default class Town {
     if (player.pet !== undefined) {
       player.pet.location = location;
     }
+
+    this._petsController.updateLocation(player.id, location);
     this._broadcastEmitter.emit('playerMoved', player.toPlayerModel());
   }
 
