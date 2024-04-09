@@ -10,8 +10,8 @@ export default class PetsController {
     this._firebaseSchema = db;
   }
 
-  public createNewPet(request: PetCreateParams) {
-    this._firebaseSchema.addPet(
+  public async createNewPet(request: PetCreateParams) {
+    await this._firebaseSchema.addPet(
       request.petName,
       request.petID,
       request.type,
@@ -20,24 +20,24 @@ export default class PetsController {
     );
   }
 
-  public updateStats(userID: string, petID: string, request: PetSettingsUpdate) {
-    this._firebaseSchema.changeHappiness(userID, petID, request.happiness);
-    this._firebaseSchema.changeHunger(userID, petID, request.hunger);
-    this._firebaseSchema.changeHealth(userID, petID, request.health);
-    this._firebaseSchema.updateHospitalStatus(userID, petID, request.hospital);
+  public async updateStats(userID: string, petID: string, request: PetSettingsUpdate) {
+    await this._firebaseSchema.changeHappiness(userID, petID, request.happiness);
+    await this._firebaseSchema.changeHunger(userID, petID, request.hunger);
+    await this._firebaseSchema.changeHealth(userID, petID, request.health);
+    await this._firebaseSchema.updateHospitalStatus(userID, petID, request.hospital);
   }
 
-  public userLogOut(userID: string) {
+  public async userLogOut(userID: string) {
     const time = new Date().getTime();
-    this._firebaseSchema.setUserLogOutTime(userID, time);
+    await this._firebaseSchema.setUserLogOutTime(userID, time);
   }
 
-  public userLogIn(userID: string) {
+  public async userLogIn(userID: string) {
     const time = new Date().getTime();
-    this._firebaseSchema.setUserLoginTime(userID, time);
+    await this._firebaseSchema.setUserLoginTime(userID, time);
   }
 
-  public updateLocation(userID: string, location: PlayerLocation) {
-    this._firebaseSchema.updateLocation(userID, location);
+  public async updateLocation(userID: string, location: PlayerLocation) {
+    await this._firebaseSchema.updateLocation(userID, location);
   }
 }

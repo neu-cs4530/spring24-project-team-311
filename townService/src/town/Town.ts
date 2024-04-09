@@ -199,7 +199,7 @@ export default class Town {
     console.log(`PLAYERS: ${this._players.length}`);
 
     this._connectedSockets.add(socket);
-    this._petsController.userLogIn(newPlayer.id);
+    await this._petsController.userLogIn(newPlayer.id);
 
     if (pet) {
       this.addExistingPet(newPlayer.id, pet);
@@ -216,9 +216,9 @@ export default class Town {
     // Register an event listener for the client socket: if the client disconnects,
     // clean up our listener adapter, and then let the CoveyTownController know that the
     // player's session is disconnected
-    socket.on('disconnect', () => {
+    socket.on('disconnect', async () => {
       this._removePlayer(newPlayer);
-      this._petsController.userLogOut(newPlayer.id);
+      await this._petsController.userLogOut(newPlayer.id);
       this._connectedSockets.delete(socket);
     });
 
@@ -233,18 +233,18 @@ export default class Town {
 
     // Register an event listener for the client socket: if the client updates their
     // location, inform the CoveyTownController
-    socket.on('playerMovement', (movementData: PlayerLocation) => {
+    socket.on('playerMovement', async (movementData: PlayerLocation) => {
       try {
-        this._updatePlayerLocation(newPlayer, movementData);
+        await this._updatePlayerLocation(newPlayer, movementData);
       } catch (err) {
         logError(err);
       }
     });
 
-    socket.on('addNewPet', (petName: string, petID: string, petType: PetType) => {
+    socket.on('addNewPet', async (petName: string, petID: string, petType: PetType) => {
       try {
         this.addNewPet(newPlayer, petName, petID, petType);
-        this._petsController.createNewPet({
+        await this._petsController.createNewPet({
           petName,
           petID,
           ownerID: newPlayer.toPlayerModel(),
@@ -258,7 +258,7 @@ export default class Town {
 
     socket.on('decreaseStats', (delta: number) => {
       try {
-        this._pets.forEach(p => {
+        this._pets.forEach(async p => {
           p.decreseStats(delta);
           const updates = {
             health: p.health,
@@ -266,7 +266,7 @@ export default class Town {
             happiness: p.happiness,
             hospital: p.hospitalStatus,
           };
-          this._petsController.updateStats(p.owner, p.id, updates);
+          await this._petsController.updateStats(p.owner, p.id, updates);
         });
       } catch (err) {
         logError(err);
@@ -284,7 +284,7 @@ export default class Town {
           // console.log(`Updated Health  ${updates.health}`);
           // console.log(`Updated Hunger  ${updates.hunger}`);
           // console.log(`Updated Happiness  ${updates.happiness}`);
-          this._petsController.updateStats(uid, petID, updates);
+          await this._petsController.updateStats(uid, petID, updates);
           console.log('PET UPDATED');
         }
         // socket.emit('petStatsResponse', updatePetResponse);
@@ -436,7 +436,7 @@ export default class Town {
    * @param player Player to update location for
    * @param location New location for this player
    */
-  private _updatePlayerLocation(player: Player, location: PlayerLocation): void {
+  private async _updatePlayerLocation(player: Player, location: PlayerLocation): Promise<void> {
     const prevInteractable = this._interactables.find(
       conv => conv.id === player.location.interactableID,
     );
@@ -462,7 +462,7 @@ export default class Town {
       player.pet.location = location;
     }
 
-    this._petsController.updateLocation(player.id, location);
+    await this._petsController.updateLocation(player.id, location);
     this._broadcastEmitter.emit('playerMoved', player.toPlayerModel());
   }
 
