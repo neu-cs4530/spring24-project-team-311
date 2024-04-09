@@ -844,7 +844,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         console.log('OUR PET' + this._ourPet?.petName);
         console.log('Hunger' + this._ourPet?.petHunger);
         console.log('Health' + this._ourPet?.petHealth);
-        console.log('Hunger' + this._ourPet?.petHappiness);
+        console.log('Happiness' + this._ourPet?.petHappiness);
 
         this.emit('connect', initialData.providerVideoToken);
         resolve();

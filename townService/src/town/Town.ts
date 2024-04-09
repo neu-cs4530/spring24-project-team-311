@@ -276,16 +276,17 @@ export default class Town {
     socket.on('updatePetStats', async (uid: string, petID: string, updates: PetSettingsUpdate) => {
       try {
         const updatedPet = await this.getPet(petID);
-        if (updatedPet !== undefined) {
-          console.log(`Updated Pet Exists  ${this._pets.length}`);
+        const player = this._players.find(p => p.id === uid);
+        if (updatedPet && player && uid === updatedPet.owner) {
+          // console.log(`Updated Pet Exists  ${this._pets.length}`);
           updatedPet.cleanPet(updates.health);
           updatedPet.feedPet(updates.hunger);
           updatedPet.playWithPet(updates.happiness);
           // console.log(`Updated Health  ${updates.health}`);
           // console.log(`Updated Hunger  ${updates.hunger}`);
-          // console.log(`Updated Happiness  ${updates.happiness}`);
+          console.log(`Updated Happiness  ${updates.happiness} for ${uid}`);
           await this._petsController.updateStats(uid, petID, updates);
-          console.log('PET UPDATED');
+          // console.log('PET UPDATED');
         }
         // socket.emit('petStatsResponse', updatePetResponse);
       } catch (err) {
