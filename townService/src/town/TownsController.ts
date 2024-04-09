@@ -15,7 +15,7 @@ import {
   Tags,
 } from 'tsoa';
 
-import { PetCreateParams, Town, TownCreateParams, TownCreateResponse } from '../api/Model';
+import { Town, TownCreateParams, TownCreateResponse } from '../api/Model';
 import InvalidParametersError from '../lib/InvalidParametersError';
 import CoveyTownsStore from '../lib/TownsStore';
 import {
@@ -24,10 +24,8 @@ import {
   CoveyTownSocket,
   InitialUserCreationResponse,
   Player,
-  Pet as PetModel,
   TownSettingsUpdate,
   ViewingArea,
-  PlayerLocation,
 } from '../types/CoveyTownSocket';
 import APetDatabase from './APetDatabase';
 import PetDatabase from './PetDatabase';

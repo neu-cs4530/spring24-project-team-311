@@ -20,7 +20,6 @@ import {
   ServerToClientEvents,
   SocketData,
   ViewingArea as ViewingAreaModel,
-  Player as PlayerModel,
   Pet as PetModel,
   PetType,
   PetSettingsUpdate,
@@ -151,7 +150,6 @@ export default class Town {
         );
         playerObject.pet = pet;
         this._pets.push(pet);
-        console.log('NEW PET ADDED');
       }
     }
   }
@@ -176,7 +174,6 @@ export default class Town {
       );
       playerObject.pet = newPet;
       this._pets.push(newPet);
-      console.log('EXISITNG PET ADDED');
     }
   }
 
@@ -196,16 +193,12 @@ export default class Town {
 
     this._players.push(newPlayer);
 
-    console.log(`PLAYERS: ${this._players.length}`);
-
     this._connectedSockets.add(socket);
     await this._petsController.userLogIn(newPlayer.id);
 
     if (pet) {
       this.addExistingPet(newPlayer.id, pet);
     }
-
-    console.log(`PET: ${newPlayer.pet?.petName}`);
 
     // Create a video token for this user to join this town
     newPlayer.videoToken = await this._videoClient.getTokenForTown(this._townID, newPlayer.id);
@@ -278,17 +271,11 @@ export default class Town {
         const updatedPet = await this.getPet(petID);
         const player = this._players.find(p => p.id === uid);
         if (updatedPet && player && uid === updatedPet.owner) {
-          // console.log(`Updated Pet Exists  ${this._pets.length}`);
           updatedPet.cleanPet(updates.health);
           updatedPet.feedPet(updates.hunger);
           updatedPet.playWithPet(updates.happiness);
-          // console.log(`Updated Health  ${updates.health}`);
-          // console.log(`Updated Hunger  ${updates.hunger}`);
-          console.log(`Updated Happiness  ${updates.happiness} for ${uid}`);
           await this._petsController.updateStats(uid, petID, updates);
-          // console.log('PET UPDATED');
         }
-        // socket.emit('petStatsResponse', updatePetResponse);
       } catch (err) {
         logError(err);
       }
@@ -316,7 +303,7 @@ export default class Town {
             hospital: hospitalizedPet.hospitalStatus,
           };
         }
-        // socket.emit('petStatsResponse', hospitalizedPetResponse);
+        socket.emit('petStatsResponse', hospitalizedPetResponse);
       } catch (err) {
         logError(err);
       }
@@ -344,7 +331,7 @@ export default class Town {
             hospital: dischargedPet.hospitalStatus,
           };
         }
-        // socket.emit('petStatsResponse', dischargedPetResponse);
+        socket.emit('petStatsResponse', dischargedPetResponse);
       } catch (err) {
         logError(err);
       }

@@ -57,27 +57,6 @@ export type ConnectionProperties = {
   loginController: LoginController;
 };
 
-enum EnumPetType {
-  CAT = 'Cat',
-  DOG = 'Dog',
-  DUCK = 'Duck',
-}
-
-enum EnumDirection {
-  FRONT = 'front',
-  BACK = 'back',
-  LEFT = 'left',
-  RIGHT = 'right',
-}
-
-type TypePlayerLocation = {
-  x: number;
-  y: number;
-  rotation: EnumDirection;
-  moving: boolean;
-  interactableID?: string;
-};
-
 /**
  * The TownController emits these events. Components may subscribe to these events
  * by calling the `addListener` method on a TownController
@@ -360,28 +339,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     return this._petsInternal;
   }
 
-  private _updatePlayerLocationToGeneratedModel(location: PlayerLocation): TypePlayerLocation {
-    let dir: EnumDirection = EnumDirection.LEFT;
-
-    if (location.rotation === 'front') {
-      dir = EnumDirection.FRONT;
-    } else if (location.rotation === 'back') {
-      dir = EnumDirection.BACK;
-    } else if (location.rotation === 'right') {
-      dir = EnumDirection.RIGHT;
-    }
-
-    return {
-      x: location.x,
-      y: location.y,
-      rotation: dir,
-      moving: location.moving,
-      interactableID: location.interactableID,
-    };
-  }
-
   public addPet(player: PlayerModel, newPet: PetController) {
-    // TODO: update backend
     if (!this._ourPet) {
       this._ourPet = newPet;
       this._petsInternal.push(newPet);

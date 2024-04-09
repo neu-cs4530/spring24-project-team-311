@@ -19,16 +19,13 @@ export default class PetDatabase extends APetDatabase {
     const uesrRef = ref(this._db, `users/${userID}`);
     const snapshot = await get(uesrRef);
     if (snapshot.exists()) {
-      const petData = snapshot.val();
       const updates: Record<string, PlayerLocation> = {};
       updates.location = newLocation;
       update(uesrRef, updates);
     }
 
     const userPetsRef = ref(this._db, `users/${userID}/pet`);
-    const snapshotPet = await get(userPetsRef);
     if (snapshot.exists()) {
-      const petData = snapshotPet.val();
       const updates: Record<string, PlayerLocation> = {};
       updates.location = newLocation;
       update(userPetsRef, updates);
@@ -146,7 +143,6 @@ export default class PetDatabase extends APetDatabase {
     const userRef = ref(this._db, `users/${userID}`);
     const snapshot = await get(userRef);
     if (snapshot.exists()) {
-      const petData = snapshot.val();
       const updates: Record<string, number> = {};
       updates.loginTime = loginTime;
       update(userRef, updates);
@@ -206,7 +202,7 @@ export default class PetDatabase extends APetDatabase {
     return undefined;
   }
 
-  async getSickStatus(ownerID: string, petID: string): Promise<boolean | undefined> {
+  async getSickStatus(ownerID: string): Promise<boolean | undefined> {
     const userPetRef = ref(this._db, `users/${ownerID}/pet`);
     const snapshot = await get(userPetRef);
     if (snapshot.exists()) {
@@ -247,19 +243,13 @@ export default class PetDatabase extends APetDatabase {
   }
 
   async changeHappiness(ownerID: string, petID: string, happinessVal: number) {
-    console.log(`Change Happiness called for: ${ownerID}`);
     const userPetsRef = ref(this._db, `users/${ownerID}/pet`);
     const snapshot = await get(userPetsRef);
 
     if (snapshot.exists()) {
-      console.log('Console Exists');
-      const petData = snapshot.val();
       const updates: Record<string, number> = {};
       updates.happiness = happinessVal;
-      await update(userPetsRef, updates);
-      const updatedSnapshot = await get(userPetsRef);
-      const updatedPetData = updatedSnapshot.val();
-      console.log(`Updated DB Happiness: ${updatedPetData.happiness}`);
+      update(userPetsRef, updates);
     }
   }
 
@@ -268,7 +258,6 @@ export default class PetDatabase extends APetDatabase {
     const snapshot = await get(userPetsRef);
 
     if (snapshot.exists()) {
-      const petData = snapshot.val();
       const updates: Record<string, number> = {};
       updates.health = healthVal;
       update(userPetsRef, updates);
@@ -280,7 +269,6 @@ export default class PetDatabase extends APetDatabase {
     const snapshot = await get(userPetsRef);
 
     if (snapshot.exists()) {
-      const petData = snapshot.val();
       const updates: Record<string, number> = {};
       updates.hunger = hungerVal;
       update(userPetsRef, updates);
@@ -291,7 +279,6 @@ export default class PetDatabase extends APetDatabase {
     const userPetsRef = ref(this._db, `users/${ownerID}/pet`);
     const snapshot = await get(userPetsRef);
     if (snapshot.exists()) {
-      const petData = snapshot.val();
       const updates: Record<string, boolean> = {};
       updates.inHospital = status;
       update(userPetsRef, updates);
@@ -302,7 +289,6 @@ export default class PetDatabase extends APetDatabase {
     const userPetsRef = ref(this._db, `users/${ownerID}/pet`);
     const snapshot = await get(userPetsRef);
     if (snapshot.exists()) {
-      const petData = snapshot.val();
       const updates: Record<string, boolean> = {};
       updates.isSick = status;
       update(userPetsRef, updates);
