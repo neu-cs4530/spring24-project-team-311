@@ -149,7 +149,7 @@ describe('TownController', () => {
 
       testController.addListener('playerMoved', movedPlayerListener);
 
-      testController.emitMovement(newLocation);
+      testController.emitMovement(newLocation, newLocation);
 
       //Emits the event to the socket
       expect(mockSocket.emit).toBeCalledWith('playerMovement', newLocation);

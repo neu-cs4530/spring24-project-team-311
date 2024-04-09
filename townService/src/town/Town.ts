@@ -226,13 +226,16 @@ export default class Town {
 
     // Register an event listener for the client socket: if the client updates their
     // location, inform the CoveyTownController
-    socket.on('playerMovement', async (movementData: PlayerLocation) => {
-      try {
-        await this._updatePlayerLocation(newPlayer, movementData);
-      } catch (err) {
-        logError(err);
-      }
-    });
+    socket.on(
+      'playerMovement',
+      async (movementData: PlayerLocation, petMovementData: PlayerLocation) => {
+        try {
+          await this._updatePlayerLocation(newPlayer, movementData, petMovementData);
+        } catch (err) {
+          logError(err);
+        }
+      },
+    );
 
     socket.on('addNewPet', async (petName: string, petID: string, petType: PetType) => {
       try {
@@ -424,7 +427,11 @@ export default class Town {
    * @param player Player to update location for
    * @param location New location for this player
    */
-  private async _updatePlayerLocation(player: Player, location: PlayerLocation): Promise<void> {
+  private async _updatePlayerLocation(
+    player: Player,
+    location: PlayerLocation,
+    petLocation: PlayerLocation,
+  ): Promise<void> {
     const prevInteractable = this._interactables.find(
       conv => conv.id === player.location.interactableID,
     );
@@ -447,10 +454,10 @@ export default class Town {
 
     player.location = location;
     if (player.pet !== undefined) {
-      player.pet.location = location;
+      player.pet.location = petLocation;
     }
 
-    await this._petsController.updateLocation(player.id, location);
+    await this._petsController.updateLocation(player.id, location, petLocation);
     this._broadcastEmitter.emit('playerMoved', player.toPlayerModel());
   }
 

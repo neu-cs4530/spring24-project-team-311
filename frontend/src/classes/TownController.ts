@@ -604,11 +604,14 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
    *
    * @param newLocation
    */
-  public emitMovement(newLocation: PlayerLocation) {
-    this._socket.emit('playerMovement', newLocation);
+  public emitMovement(newLocation: PlayerLocation, petLocation: PlayerLocation) {
+    this._socket.emit('playerMovement', newLocation, petLocation);
     const ourPlayer = this._ourPlayer;
     assert(ourPlayer);
     ourPlayer.location = newLocation;
+    if (this._ourPet) {
+      this._ourPet.location = petLocation;
+    }
     this.emit('playerMoved', ourPlayer);
   }
 
