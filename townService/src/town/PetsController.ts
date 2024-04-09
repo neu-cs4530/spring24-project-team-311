@@ -11,7 +11,6 @@ export default class PetsController {
   }
 
   public async createNewPet(request: PetCreateParams) {
-    console.log('CONTROLLER NEW PET CALLED');
     await this._firebaseSchema.addPet(
       request.petName,
       request.petID,
