@@ -9,10 +9,6 @@ type MockDatabasePlayer = {
 };
 
 export default class MockPetDatabase extends APetDatabase {
-  setUserLoginTime(userID: string, logoutTime: number): Promise<void> {
-    throw new Error('Method not implemented.');
-  }
-
   private _players: MockDatabasePlayer[] = [];
 
   private _pets: Pet[] = [];
@@ -95,7 +91,7 @@ export default class MockPetDatabase extends APetDatabase {
     return undefined;
   }
 
-  async updateUserLogInTime(userID: string, logInTime: number): Promise<void> {
+  async setUserLoginTime(userID: string, logInTime: number): Promise<void> {
     const user = this._players.find(p => p.player.id === userID);
     if (user !== undefined) {
       user.loginTime = logInTime;

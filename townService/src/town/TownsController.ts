@@ -228,8 +228,6 @@ export class TownsController extends Controller {
     socket.join(town.townID);
     const player = await this._createUser(userID, userName);
 
-    // console.log(`Player${player?.userName} ${player?.id} ${player?.location}`);
-
     const response: InitialUserCreationResponse = {
       pet: player?.pet,
       logoutTime: await this._firebaseSchema.getUserLogOutTime(userID),

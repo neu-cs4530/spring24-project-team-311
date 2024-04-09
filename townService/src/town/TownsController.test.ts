@@ -221,6 +221,8 @@ describe('TownsController integration tests', () => {
         expect(initialData.currentPlayers.length).toBe(1);
         expect(initialData.currentPlayers[0].userName).toEqual(player.userName);
         expect(initialData.currentPlayers[0].id).toEqual(initialData.userID);
+        expect(initialData.createdResponse.pet).toEqual(undefined);
+        expect(initialData.createdResponse.logoutTime).toBeDefined();
       };
       await joinAndCheckInitialData(true);
       await joinAndCheckInitialData(false);

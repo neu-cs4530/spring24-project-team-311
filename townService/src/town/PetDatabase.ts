@@ -77,7 +77,11 @@ export default class PetDatabase extends APetDatabase {
 
     const userPetRef = ref(this._db, `users/${ownerID}/pet`);
     const snapshot = await get(userPetRef);
-    if (snapshot.exists()) {
+    if (snapshot.exists() && snapshot.val().name) {
+      console.log('PET ALREADY EXISTS');
+      const data = snapshot.val();
+      console.log(`PET NAME: ${data.name}`);
+
       return false;
     }
 
@@ -93,6 +97,8 @@ export default class PetDatabase extends APetDatabase {
       };
     }
 
+    console.log('PET NEEDS TO BE ADDED');
+
     await set(ref(this._db, `users/${ownerID}/pet`), {
       name: petName,
       type: petType,
@@ -106,6 +112,13 @@ export default class PetDatabase extends APetDatabase {
       isSick: false,
       newLocation,
     });
+
+    const userPetRef2 = ref(this._db, `users/${ownerID}/pet`);
+    const snapshotPet = await get(userPetRef2);
+
+    const petData = snapshotPet.val();
+    console.log(`PET NAME: ${petData.name}`);
+    console.log(`PET LOCATION: ${petData.location}`);
 
     return true;
   }
