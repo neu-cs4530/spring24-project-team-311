@@ -37,7 +37,11 @@ export default class PetsController {
     await this._firebaseSchema.setUserLoginTime(userID, time);
   }
 
-  public async updateLocation(userID: string, location: PlayerLocation) {
-    await this._firebaseSchema.updateLocation(userID, location);
+  public async updateLocation(
+    userID: string,
+    location: PlayerLocation,
+    petLocation: PlayerLocation,
+  ) {
+    await this._firebaseSchema.updateLocation(userID, location, petLocation);
   }
 }

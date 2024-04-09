@@ -47,5 +47,9 @@ export default abstract class APetDatabase {
 
   abstract changeOwner(currentOwner: string, newOwner: string, petID: string): Promise<void>;
 
-  abstract updateLocation(userID: string, location: PlayerLocation): Promise<void>;
+  abstract updateLocation(
+    userID: string,
+    playerlocation: PlayerLocation,
+    petLocation?: PlayerLocation,
+  ): Promise<void>;
 }

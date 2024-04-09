@@ -3,15 +3,19 @@ import { PetType, Pet, Player, PlayerLocation } from '../types/CoveyTownSocket';
 import APetDatabase from './APetDatabase';
 
 export default class PetDatabase extends APetDatabase {
-  async updateLocation(userID: string, location: PlayerLocation): Promise<void> {
-    let newLocation = location;
+  async updateLocation(
+    userID: string,
+    playerLocation: PlayerLocation,
+    petLocation?: PlayerLocation,
+  ): Promise<void> {
+    let newPlayerLocation = playerLocation;
 
-    if (!location.interactableID) {
-      newLocation = {
-        x: location.x,
-        y: location.y,
-        rotation: location.rotation,
-        moving: location.moving,
+    if (!playerLocation.interactableID) {
+      newPlayerLocation = {
+        x: playerLocation.x,
+        y: playerLocation.y,
+        rotation: playerLocation.rotation,
+        moving: playerLocation.moving,
         interactableID: 'unknown',
       };
     }
@@ -20,15 +24,29 @@ export default class PetDatabase extends APetDatabase {
     const snapshot = await get(uesrRef);
     if (snapshot.exists()) {
       const updates: Record<string, PlayerLocation> = {};
-      updates.location = newLocation;
+      updates.location = newPlayerLocation;
       update(uesrRef, updates);
     }
 
-    const userPetsRef = ref(this._db, `users/${userID}/pet`);
-    if (snapshot.exists()) {
-      const updates: Record<string, PlayerLocation> = {};
-      updates.location = newLocation;
-      update(userPetsRef, updates);
+    if (petLocation) {
+      let newPetLocation = petLocation;
+
+      if (!petLocation?.interactableID) {
+        newPetLocation = {
+          x: petLocation.x,
+          y: petLocation.y,
+          rotation: petLocation.rotation,
+          moving: petLocation.moving,
+          interactableID: 'unknown',
+        };
+      }
+
+      const userPetsRef = ref(this._db, `users/${userID}/pet`);
+      if (snapshot.exists()) {
+        const updates: Record<string, PlayerLocation> = {};
+        updates.location = newPetLocation;
+        update(userPetsRef, updates);
+      }
     }
   }
 

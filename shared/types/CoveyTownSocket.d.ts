@@ -311,7 +311,7 @@ export interface ServerToClientEvents {
 
 export interface ClientToServerEvents {
   chatMessage: (message: ChatMessage) => void;
-  playerMovement: (movementData: PlayerLocation) => void;
+  playerMovement: (movementData: PlayerLocation, petMovementData: PlayerLocation) => void;
   interactableUpdate: (update: Interactable) => void;
   interactableCommand: (command: InteractableCommand & InteractableCommandBase) => void;
   addNewPet: (petName: string, petID: string, petType: PetType) => void;
