@@ -103,8 +103,10 @@ function SignInComponent(): JSX.Element {
 
 function SignUpComponent({
   updateUserName,
+  onSignUpCompleted,
 }: {
   updateUserName: (newName: string) => void;
+  onSignUpCompleted: () => void;
 }): JSX.Element {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -150,6 +152,12 @@ function SignUpComponent({
         if (!errorState) {
           updateUserName(userName);
           await updateProfile(auth.currentUser!, { displayName: userName });
+          toast({
+            title: 'Account created.',
+            status: 'success',
+          });
+          setIsSigningUp(false);
+          onSignUpCompleted();
         }
       });
   };
@@ -251,7 +259,12 @@ function SignInOrUp({
             </Stack>
           </Box>
         </Flex>
-        <SignUpComponent updateUserName={updateUserName} />
+        <SignUpComponent
+          updateUserName={updateUserName}
+          onSignUpCompleted={() => {
+            setIsSigningIn(true);
+          }}
+        />
       </>
     );
   }
