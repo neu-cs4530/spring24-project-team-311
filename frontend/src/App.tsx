@@ -17,9 +17,7 @@ import TownMap from './components/Town/TownMap';
 import TownControllerContext from './contexts/TownControllerContext';
 import LoginControllerContext from './contexts/LoginControllerContext';
 import { TownsServiceClient } from './generated/client';
-import { nanoid } from 'nanoid';
 import ToggleChatButton from './components/VideoCall/VideoFrontend/components/Buttons/ToggleChatButton/ToggleChatButton';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { signOut, onAuthStateChanged, getAuth } from 'firebase/auth';
 import { auth } from './firebase';
 
@@ -100,7 +98,6 @@ function DebugApp(): JSX.Element {
       }
     }
     getOrCreateDebugTownID().then(townID => {
-      console.log(auth.currentUser);
       let username = 'test';
       let uid = 'testID';
       const aAuth = getAuth();
@@ -110,8 +107,6 @@ function DebugApp(): JSX.Element {
           // https://firebase.google.com/docs/reference/js/firebase.User
           uid = user.displayName !== null ? user.displayName : username;
           username = user.displayName !== null ? user.displayName : username;
-          console.log(user.email);
-          // ...
         }
       });
       assert(townID);

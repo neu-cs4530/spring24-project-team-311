@@ -1,8 +1,6 @@
 import { ITiledMap, ITiledMapObjectLayer } from '@jonbell/tiled-map-type-guard';
 import { nanoid } from 'nanoid';
 import { BroadcastOperator } from 'socket.io';
-import { response } from 'express';
-import e from 'cors';
 import InvalidParametersError from '../lib/InvalidParametersError';
 import IVideoClient from '../lib/IVideoClient';
 import Player from '../lib/Player';
@@ -273,7 +271,6 @@ export default class Town {
         const updatedPet = await this._getPet(petID);
         const player = this._players.find(p => p.id === uid);
         if (updatedPet && player && uid === updatedPet.owner) {
-          console.log('CALLED');
           updatedPet.cleanPet(updates.health);
           updatedPet.feedPet(updates.hunger);
           updatedPet.playWithPet(updates.happiness);

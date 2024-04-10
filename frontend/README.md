@@ -6,7 +6,7 @@ This frontend is created using the [nextjs](https://nextjs.org) toolchain. You
 can start a development server by running `npm run dev`. To create a production build, run
 `npm run build`.
 
-Because of the implementation of the hospital area, popup, and its behavior, automated testing is not feasible. Here is a discussion of our manual testing strategy:
+Because of certain implementations and their behavior, automated testing is not feasible. Here is a discussion of our manual testing strategy:
 
 For the hospital interactive area on the map:
 

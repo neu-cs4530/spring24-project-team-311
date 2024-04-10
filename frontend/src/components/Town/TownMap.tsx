@@ -12,7 +12,6 @@ import clsx from 'clsx';
 import { createStyles, makeStyles, Theme } from '@material-ui/core';
 import PetSelectionPopup from './PetSelectionPopup';
 import PetInteractivePopup from './PetInteractivePopup';
-import TownController from '../../classes/TownController';
 import HospitalAreaPopup from './HospitalAreaPopup';
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -53,9 +52,6 @@ export default function TownMap(): JSX.Element {
   );
   const [isPetInteractivePopupOpen, setIsPetInteractivePopupOpen] = useState(false);
 
-  console.log('Town controller after context');
-  console.log(coveyTownController);
-
   useEffect(() => {
     const config = {
       type: Phaser.AUTO,
@@ -81,7 +77,6 @@ export default function TownMap(): JSX.Element {
       },
     };
     const handlePetSpriteClicked = () => {
-      console.log('Received petSpriteClicked event');
       setIsPetInteractivePopupOpen(true);
     };
     const game = new Phaser.Game(config);

@@ -10,7 +10,6 @@ import {
   ModalHeader,
   ModalOverlay,
   Text,
-  HStack,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import React from 'react';
@@ -57,12 +56,7 @@ const PetInteractivePopup = (props: PetInteractivePopupProps) => {
   const interactionImages = [feed.src, clean.src, play.src];
 
   const handleSubmit = () => {
-    // Reset error message
     setErrorMessage('');
-
-    // Call API or emit socket event...
-
-    // On success
     props.onClose();
   };
 

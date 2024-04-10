@@ -64,8 +64,6 @@ const PetSelectionPopup = (props: PetSelectionPopupProps) => {
         },
       );
       props.townController.addPet(props.townController.ourPlayer, newPet);
-      console.log('new pet added');
-      // props.townController._petsInternal = [newPet];
 
       props.townController.unPause();
 
