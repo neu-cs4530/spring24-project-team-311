@@ -25,7 +25,7 @@ declare global {
 
   // Helps create a union type with TwilioError
   interface Error {
-    code: undefined;
+    code: string | undefined;
   }
 }
 
