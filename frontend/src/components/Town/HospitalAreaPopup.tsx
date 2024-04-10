@@ -174,7 +174,7 @@ export default function HospitalAreaPopup(): JSX.Element {
                       Hunger Check-up
                     </Button>
                   </Flex>
-                  <Image boxSize='20px' src={clean.src} alt={'Health'} />
+                  <Image boxSize='20px' src={feed.src} alt={'Hunger'} />
                   <Box ml='2'>
                     <Progress
                       value={progressValues[0]}
@@ -201,10 +201,10 @@ export default function HospitalAreaPopup(): JSX.Element {
                       mb='2'
                       height='32px'
                       width='200px'>
-                      Health Check-up
+                      Cleanliness Check-up
                     </Button>
                   </Flex>
-                  <Image boxSize='20px' src={play.src} alt={'Happiness'} />
+                  <Image boxSize='20px' src={clean.src} alt={'Cleanliness'} />
                   <Box ml='2'>
                     <Progress
                       value={progressValues[1]}
@@ -234,7 +234,7 @@ export default function HospitalAreaPopup(): JSX.Element {
                       Happiness Check-up
                     </Button>
                   </Flex>
-                  <Image boxSize='20px' src={feed.src} alt={'Hunger'} />
+                  <Image boxSize='20px' src={play.src} alt={'Happiness'} />
                   <Box ml='2'>
                     <Progress
                       value={progressValues[2]}
