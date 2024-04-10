@@ -19,30 +19,15 @@ import ConnectFourAreaController, {
 import GameAreaController, { NO_GAME_IN_PROGRESS_ERROR } from './GameAreaController';
 
 describe('ConnectFourAreaController', () => {
-  const ourPlayer = new PlayerController(
-    nanoid(),
-    nanoid(),
-    {
-      x: 0,
-      y: 0,
-      moving: false,
-      rotation: 'front',
-    },
-    'test@test.com',
-  );
+  const ourPlayer = new PlayerController(nanoid(), nanoid(), {
+    x: 0,
+    y: 0,
+    moving: false,
+    rotation: 'front',
+  });
   const otherPlayers = [
-    new PlayerController(
-      nanoid(),
-      nanoid(),
-      { x: 0, y: 0, moving: false, rotation: 'front' },
-      'test@test.com',
-    ),
-    new PlayerController(
-      nanoid(),
-      nanoid(),
-      { x: 0, y: 0, moving: false, rotation: 'front' },
-      'test@test.com',
-    ),
+    new PlayerController(nanoid(), nanoid(), { x: 0, y: 0, moving: false, rotation: 'front' }),
+    new PlayerController(nanoid(), nanoid(), { x: 0, y: 0, moving: false, rotation: 'front' }),
   ];
 
   const mockTownController = mock<TownController>();

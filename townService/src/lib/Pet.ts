@@ -5,8 +5,6 @@ import { Pet as PetModel, PetType, PlayerLocation } from '../types/CoveyTownSock
  * Each pet following a user is connected to a userID
  */
 
-export type PetType = 'Cat' | 'Dog' | 'Other';
-
 export default class Pet {
   /** The unique identifier for this player * */
   /** TO DO: make persistent */
@@ -23,11 +21,6 @@ export default class Pet {
 
   /** The secret token that allows this client to access our Covey.Town service for this town * */
   private readonly _sessionToken: string;
-
-  /**
-   * should this pet be visible
-   */
-  private _visibility: boolean;
 
   private readonly _type: PetType;
 
@@ -59,7 +52,7 @@ export default class Pet {
     hunger = 50,
     happiness = 50,
     inHospital = false,
-    currentPet = true,
+    isSick = false,
     id: string = nanoid(),
   ) {
     this._petName = petName;
@@ -67,7 +60,6 @@ export default class Pet {
     this._sessionToken = nanoid();
     this._user = user;
     this._type = type;
-    this._visibility = currentPet;
     this._health = health;
     this._hunger = hunger;
     this._happiness = happiness;
@@ -96,19 +88,11 @@ export default class Pet {
     return this._id;
   }
 
-  set visibility(visibility: boolean) {
-    this._visibility = visibility;
-  }
-
-  get visibiliyt(): boolean {
-    return this._visibility;
-  }
-
   get sessionToken(): string {
     return this._sessionToken;
   }
 
-  get user(): string {
+  get owner(): string {
     return this._user;
   }
 

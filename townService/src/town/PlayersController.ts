@@ -1,5 +1,6 @@
 import { getDatabase, ref, set, get, child, update, remove } from 'firebase/database';
-import Pet, { PetType } from '../lib/Pet';
+import Pet from '../lib/Pet';
+import { PetType } from '../types/CoveyTownSocket';
 
 /*
 API Calls to make

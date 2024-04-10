@@ -50,6 +50,7 @@ export interface Player {
 };
 
 export type PetID = string;
+export type PetType = 'Cat' | 'Dog' | 'Duck';
 export interface Pet {
   id: PetID;
   userName: string;
