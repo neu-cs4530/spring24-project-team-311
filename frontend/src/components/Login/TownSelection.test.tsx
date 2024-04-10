@@ -14,7 +14,7 @@ import * as useLoginController from '../../hooks/useLoginController';
 import { mockTownController } from '../../TestUtils';
 import TownSelection from './TownSelection';
 import app from '../../firebase';
-import { getAuth, signInWithEmailAndPassword } from '@firebase/auth';
+// import { getAuth, signInWithEmailAndPassword } from '@firebase/auth';
 
 const mockConnect = jest.fn(() => Promise.resolve());
 
@@ -113,8 +113,8 @@ describe('Town Selection', () => {
 
     coveyTownControllerConstructorSpy = jest.spyOn(TownController, 'default');
 
-    const auth = getAuth(app);
-    signInWithEmailAndPassword(auth, 'test@mail.com', 'password');
+    // const auth = getAuth(app);
+    // signInWithEmailAndPassword(auth, 'test@mail.com', 'password');
   });
   beforeEach(() => {
     jest.useFakeTimers();
