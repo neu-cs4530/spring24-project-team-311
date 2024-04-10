@@ -133,7 +133,7 @@ describe('GamesArea', () => {
   }
 
   beforeEach(() => {
-    ourPlayer = new PlayerController('player x', 'player x', randomLocation(), 'test@test.com');
+    ourPlayer = new PlayerController('player x', 'player x', randomLocation());
     mockReset(townController);
     useInteractableAreaControllerSpy.mockReturnValue(gameAreaController);
     setGameAreaControllerID(nanoid());
@@ -232,9 +232,9 @@ describe('GamesArea', () => {
   describe('[T2.3] List of observers', () => {
     beforeEach(() => {
       gameAreaController.mockObservers = [
-        new PlayerController('player 1', 'player 1', randomLocation(), 'test@test.com'),
-        new PlayerController('player 2', 'player 2', randomLocation(), 'test@test.com'),
-        new PlayerController('player 3', 'player 3', randomLocation(), 'test@test.com'),
+        new PlayerController('player 1', 'player 1', randomLocation()),
+        new PlayerController('player 2', 'player 2', randomLocation()),
+        new PlayerController('player 3', 'player 3', randomLocation()),
       ];
     });
     it('Displays the correct observers when the component is mounted', () => {
@@ -250,10 +250,10 @@ describe('GamesArea', () => {
       renderGamesArea();
       act(() => {
         gameAreaController.mockObservers = [
-          new PlayerController('player 1', 'player 1', randomLocation(), 'test@test.com'),
-          new PlayerController('player 2', 'player 2', randomLocation(), 'test@test.com'),
-          new PlayerController('player 3', 'player 3', randomLocation(), 'test@test.com'),
-          new PlayerController('player 4', 'player 4', randomLocation(), 'test@test.com'),
+          new PlayerController('player 1', 'player 1', randomLocation()),
+          new PlayerController('player 2', 'player 2', randomLocation()),
+          new PlayerController('player 3', 'player 3', randomLocation()),
+          new PlayerController('player 4', 'player 4', randomLocation()),
         ];
         gameAreaController.emit('gameUpdated');
       });

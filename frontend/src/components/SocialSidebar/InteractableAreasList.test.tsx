@@ -226,7 +226,6 @@ describe('[T5.2] InteractableAreasList', () => {
                 rotation: 'front',
                 moving: false,
               },
-              'test@test.com',
             ),
           );
         }
