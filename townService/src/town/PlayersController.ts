@@ -2,14 +2,6 @@ import { getDatabase, ref, set, get, child, update, remove } from 'firebase/data
 import Pet from '../lib/Pet';
 import { PetType } from '../types/CoveyTownSocket';
 
-/*
-API Calls to make
- - add a user
- - add a pet
- - update a pet
- - delete a pet
- - transfer a pet --> for future use
-*/
 const db = getDatabase();
 
 export default class PlayersController {
