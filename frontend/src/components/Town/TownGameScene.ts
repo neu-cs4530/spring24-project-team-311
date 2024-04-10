@@ -490,11 +490,6 @@ export default class TownGameScene extends Phaser.Scene {
         } else {
           primaryDirection = undefined;
         }
-        // console.log('------');
-        // console.log(`deltaX: ${deltaX}, deltaY: ${deltaY}`);
-        // console.log(`prevLocation: ${JSON.stringify(targetLocation)}`);
-        // console.log(`petLocation: ${JSON.stringify(petLocation)}`);
-        // console.log(`primaryDirection: ${primaryDirection}`);
       }
 
       const ourPetType = this.coveyTownController.ourPet!.petType;
@@ -604,7 +599,6 @@ export default class TownGameScene extends Phaser.Scene {
         this._animatePet(pet);
       }
     }
-    console.log(this._pets);
   }
 
   private _catchPetUp(pet: PetController) {
@@ -692,11 +686,6 @@ export default class TownGameScene extends Phaser.Scene {
         } else {
           primaryDirection = undefined;
         }
-        // console.log('------');
-        // console.log(`deltaX: ${deltaX}, deltaY: ${deltaY}`);
-        // console.log(`prevLocation: ${JSON.stringify(targetLocation)}`);
-        // console.log(`petLocation: ${JSON.stringify(petLocation)}`);
-        // console.log(`primaryDirection: ${primaryDirection}`);
       }
 
       const petType = petToAnimate.petType;
@@ -1275,9 +1264,6 @@ export default class TownGameScene extends Phaser.Scene {
     this._onGameReadyListeners = [];
     this.coveyTownController.addListener('playersChanged', players => this.updatePlayers(players));
     this.coveyTownController.addListener('petsChanged', pets => this.updatePets(pets, spawnPoint));
-
-    console.log('checking for pet');
-    console.log(this.coveyTownController.ourPet);
 
     const decayEvent = this.time.addEvent({
       delay: STAT_DECAY_SECONDS * 1000,

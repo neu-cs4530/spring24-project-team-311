@@ -98,7 +98,6 @@ function DebugApp(): JSX.Element {
       }
     }
     getOrCreateDebugTownID().then(townID => {
-      console.log(auth.currentUser);
       let username = 'test';
       let uid = 'testID';
       const aAuth = getAuth();
@@ -108,8 +107,6 @@ function DebugApp(): JSX.Element {
           // https://firebase.google.com/docs/reference/js/firebase.User
           uid = user.displayName !== null ? user.displayName : username;
           username = user.displayName !== null ? user.displayName : username;
-          console.log(user.email);
-          // ...
         }
       });
       assert(townID);

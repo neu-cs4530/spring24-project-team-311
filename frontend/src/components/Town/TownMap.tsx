@@ -52,9 +52,6 @@ export default function TownMap(): JSX.Element {
   );
   const [isPetInteractivePopupOpen, setIsPetInteractivePopupOpen] = useState(false);
 
-  console.log('Town controller after context');
-  console.log(coveyTownController);
-
   useEffect(() => {
     const config = {
       type: Phaser.AUTO,
@@ -80,7 +77,6 @@ export default function TownMap(): JSX.Element {
       },
     };
     const handlePetSpriteClicked = () => {
-      console.log('Received petSpriteClicked event');
       setIsPetInteractivePopupOpen(true);
     };
     const game = new Phaser.Game(config);
