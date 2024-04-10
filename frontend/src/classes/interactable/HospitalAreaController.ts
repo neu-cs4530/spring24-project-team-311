@@ -32,9 +32,7 @@ export default class HospitalAreaController extends InteractableAreaController<
     return this.occupants.length > 0;
   }
 
-  protected _updateFrom(): void {
-    // TODO: Implement this
-  }
+  protected _updateFrom(updatedModel: HospitalAreaModel): void {}
 
   toInteractableAreaModel(): HospitalAreaModel {
     return this._model;
