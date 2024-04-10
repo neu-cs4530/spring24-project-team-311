@@ -65,6 +65,11 @@ Integration Testing
 - Town Controller Interaction: Manually verify that the HospitalAreaPopup component interacts correctly with the town controller, pausing and unpausing as expected.
 - Pet Stats Update: Ensure that pet stats are correctly updated in response to treatment submission and reflect the changes in the UI.
 
+Database Testing
+- As users do not get access to our firebase database, manual testing is only possible by verifying persistence. Database interactions have been tested using a mock database
+- Check for persistence by signing in and out multiple times. Verify that pet type and pet name are the same on arrival.
+- Verify that pet stats are in the same state as they were on the last sign off.
+
 Edge Cases Testing
 - Test edge cases, such as extreme values for pet stats and treatment submissions, to ensure the component handles them gracefully without crashing or producing unexpected behavior.
 - Stress test the component by repeatedly submitting treatments and verifying that it remains responsive and functional.
