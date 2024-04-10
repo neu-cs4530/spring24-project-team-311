@@ -372,16 +372,13 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   }
 
   public decreasePetStats(delta: number) {
-    if (this._petsInternal.find(eachPet => eachPet.petID === this._ourPet?.petID)) {
-      console.log('UPDATING OUR PET');
-    }
-    this._petsInternal.forEach(pet => {
-      this.setPetStats(pet.petID, {
-        health: pet.petHealth - delta,
-        happiness: pet.petHappiness - delta,
-        hunger: pet.petHunger - delta,
+    if (this._ourPet) {
+      this.setPetStats(this._ourPet?.petID || '', {
+        health: this._ourPet?.petHealth - delta || 0,
+        happiness: this._ourPet?.petHappiness - delta || 0,
+        hunger: this._ourPet?.petHunger - delta || 0,
       });
-    });
+    }
   }
 
   public hospitalizePet(petID: string) {
