@@ -150,6 +150,7 @@ export default class Town {
         );
         playerObject.pet = pet;
         this._pets.push(pet);
+        this._broadcastEmitter.emit('petAdded', pet.toPetModel());
       }
     }
   }

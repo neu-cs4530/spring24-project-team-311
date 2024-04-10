@@ -306,7 +306,7 @@ export interface ServerToClientEvents {
   interactableUpdate: (interactable: Interactable) => void;
   commandResponse: (response: InteractableCommandResponse) => void;
   petStatsResponse: (response: PetSettingsResponse) => void;
-  
+  petAdded: (pet: Pet) => void;
 }
 
 export interface ClientToServerEvents {

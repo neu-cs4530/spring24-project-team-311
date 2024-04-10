@@ -532,6 +532,20 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
       }
       this.emit('playerMoved', newPlayerObj);
     });
+
+    this._socket.on('petAdded', newPet => {
+      if (this._ourPet?.petID !== newPet.id) {
+        const pet = new PetController(
+          newPet.ownerID,
+          newPet.id,
+          newPet.type,
+          newPet.userName,
+          newPet.location,
+        ).fromPetModel(newPet);
+        this._pets = this.pets.concat([pet]);
+      }
+    });
+
     /**
      * When a player disconnects from the town, update local state
      *
