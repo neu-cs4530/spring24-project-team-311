@@ -225,9 +225,9 @@ export default class TownGameScene extends Phaser.Scene {
     this._players = players;
   }
 
-  updatePets(pets: PetController[]) {
+  updatePets(pets: PetController[], spawnPoint?: Phaser.GameObjects.Components.Transform) {
     //Make sure that each pet has sprites
-    pets.map(eachPet => this.createPetSprites(eachPet));
+    pets.map(eachPet => this.createPetSprites(eachPet, spawnPoint));
 
     // Remove disconnected pets from board
     const disconnectedPets = this._pets.filter(pet => !pets.find(p => p.petID === pet.petID));
@@ -523,13 +523,14 @@ export default class TownGameScene extends Phaser.Scene {
       petObjects.label.setX(body.x);
       petObjects.label.setY(body.y + PET_LABEL_OFFSET_Y);
 
-      // replace with emit later
       this.coveyTownController.ourPet!.location = {
         x: petObjects.sprite.getBounds().centerX,
         y: petObjects.sprite.getBounds().centerY,
         rotation: primaryDirection || 'front',
         moving: primaryDirection !== undefined,
       };
+
+      this._catchPetUp(this.coveyTownController.ourPet!);
 
       // update other pet labels
       for (const pet of this.coveyTownController.pets) {
@@ -604,10 +605,42 @@ export default class TownGameScene extends Phaser.Scene {
     for (const pet of this._pets) {
       if (pet.petID !== this.coveyTownController.ourPet?.petID) {
         this.createPetSprites(pet);
+        this._catchPetUp(pet);
         this._animatePet(pet);
       }
     }
     console.log(this._pets);
+  }
+
+  private _catchPetUp(pet: PetController) {
+    const petOwnerLocation = this.coveyTownController.players.filter(
+      player => player.id === pet.playerID,
+    )[0].location;
+    const deltaX = petOwnerLocation.x - pet.location.x;
+    const deltaY = petOwnerLocation.y - pet.location.y;
+    if (Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2)) > 100 && !petOwnerLocation.moving) {
+      if (petOwnerLocation.rotation === 'left') {
+        pet.location.x = petOwnerLocation.x + 32;
+        pet.location.y = petOwnerLocation.y + 16;
+        pet.gameObjects?.sprite.setX(petOwnerLocation.x + 32);
+        pet.gameObjects?.sprite.setY(petOwnerLocation.y + 16);
+      } else if (petOwnerLocation.rotation === 'right') {
+        pet.location.x = petOwnerLocation.x - 32;
+        pet.location.y = petOwnerLocation.y + 16;
+        pet.gameObjects?.sprite.setX(petOwnerLocation.x - 32);
+        pet.gameObjects?.sprite.setY(petOwnerLocation.y + 16);
+      } else if (petOwnerLocation.rotation === 'front') {
+        pet.location.x = petOwnerLocation.x;
+        pet.location.y = petOwnerLocation.y - 32;
+        pet.gameObjects?.sprite.setX(petOwnerLocation.x);
+        pet.gameObjects?.sprite.setY(petOwnerLocation.y - 32);
+      } else if (petOwnerLocation.rotation === 'back') {
+        pet.location.x = petOwnerLocation.x;
+        pet.location.y = petOwnerLocation.y + 32;
+        pet.gameObjects?.sprite.setX(petOwnerLocation.x);
+        pet.gameObjects?.sprite.setY(petOwnerLocation.y + 32);
+      }
+    }
   }
 
   private _animatePet(petToAnimate: PetController) {
@@ -1246,7 +1279,7 @@ export default class TownGameScene extends Phaser.Scene {
     this._onGameReadyListeners.forEach(listener => listener());
     this._onGameReadyListeners = [];
     this.coveyTownController.addListener('playersChanged', players => this.updatePlayers(players));
-    this.coveyTownController.addListener('petsChanged', pets => this.updatePets(pets));
+    this.coveyTownController.addListener('petsChanged', pets => this.updatePets(pets, spawnPoint));
 
     console.log('checking for pet');
     console.log(this.coveyTownController.ourPet);
@@ -1361,9 +1394,9 @@ export default class TownGameScene extends Phaser.Scene {
     }
   }
 
-  createPetSprites(pet: PetController) {
+  createPetSprites(pet: PetController, spawnPoint?: Phaser.GameObjects.Components.Transform) {
     if (!pet.gameObjects) {
-      const sprite = this._addInitialPetSprite(pet.petType, pet.location);
+      const sprite = this._addInitialPetSprite(pet.petType, spawnPoint || pet.location);
       const label = this._addInitialPetLabel(pet.location, pet);
       pet.gameObjects = {
         sprite,
