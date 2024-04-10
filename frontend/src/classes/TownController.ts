@@ -373,6 +373,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
 
   public decreasePetStats(delta: number) {
     if (this._petsInternal.find(eachPet => eachPet.petID === this._ourPet?.petID)) {
+      console.log('UPDATING OUR PET');
     }
     this._petsInternal.forEach(pet => {
       this.setPetStats(pet.petID, {

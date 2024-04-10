@@ -7,7 +7,6 @@ dotenv.config();
 console.log(process.env.TEST_VAR);
 console.log(process.env.NEXT_TEST_VAR);
 // Your web app's Firebase configuration
-// TODO: put this in .env file
 const firebaseConfig = {
   apiKey: 'AIzaSyCIOW_Yip0CHd5hJe5mjO674dpm40YOeTk',
   authDomain: 'covey-town-pets.firebaseapp.com',
