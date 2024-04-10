@@ -36,9 +36,9 @@ export default class TwilioVideo implements IVideoClient {
   public static getInstance(): TwilioVideo {
     if (!TwilioVideo._instance) {
       TwilioVideo._instance = new TwilioVideo(
-        process.env.TWILIO_ACCOUNT_SID || MISSING_TOKEN_NAME,
-        process.env.TWILIO_API_KEY_SID || MISSING_TOKEN_NAME,
-        process.env.TWILIO_API_KEY_SECRET || MISSING_TOKEN_NAME,
+        process.env.TWILIO_ACCOUNT_SID || 'AC0176fb26d66cf8ffe6cfe2fd4c135adb',
+        process.env.TWILIO_API_KEY_SID || 'SK7fa45b91279bd21c224125b41ada71fc',
+        process.env.TWILIO_API_KEY_SECRET || 'e9ltXVfvhf5uilFDXlMJSDwqFdlJm4Oc',
       );
     }
     return TwilioVideo._instance;

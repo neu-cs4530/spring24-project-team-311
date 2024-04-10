@@ -21,11 +21,14 @@ export default class PlayerController extends (EventEmitter as new () => TypedEm
 
   public gameObjects?: PlayerGameObjects;
 
-  constructor(id: string, userName: string, location: PlayerLocation) {
+  private readonly _email: string;
+
+  constructor(id: string, userName: string, location: PlayerLocation, email: string) {
     super();
     this._id = id;
     this._userName = userName;
     this._location = location;
+    this._email = email;
   }
 
   set location(newLocation: PlayerLocation) {
@@ -47,7 +50,7 @@ export default class PlayerController extends (EventEmitter as new () => TypedEm
   }
 
   toPlayerModel(): PlayerModel {
-    return { id: this.id, userName: this.userName, location: this.location };
+    return { id: this.id, userName: this.userName, location: this.location, email: this._email };
   }
 
   private _updateGameComponentLocation() {
@@ -84,6 +87,11 @@ export default class PlayerController extends (EventEmitter as new () => TypedEm
   }
 
   static fromPlayerModel(modelPlayer: PlayerModel): PlayerController {
-    return new PlayerController(modelPlayer.id, modelPlayer.userName, modelPlayer.location);
+    return new PlayerController(
+      modelPlayer.id,
+      modelPlayer.userName,
+      modelPlayer.location,
+      modelPlayer.email,
+    );
   }
 }

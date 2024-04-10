@@ -29,9 +29,9 @@ const PetInteractivePopup = (props: PetInteractivePopupProps) => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const ourPet = props.townController.ourPet;
   const [progressValues, setProgressValues] = useState<number[]>([
-    ourPet ? ourPet.petHunger : 20,
-    ourPet ? ourPet.petHealth : 0,
-    ourPet ? ourPet.petHappiness : 70,
+    ourPet ? ourPet.petHunger : 50,
+    ourPet ? ourPet.petHealth : 50,
+    ourPet ? ourPet.petHappiness : 50,
   ]); // Initial progress values
 
   const handleProgressIncrement = (index: number, action: string) => {
@@ -68,7 +68,7 @@ const PetInteractivePopup = (props: PetInteractivePopupProps) => {
 
   useEffect(() => {
     ourPet?.addListener('petStatsUpdated', newStats => {
-      setProgressValues([newStats.petHunger, newStats.petHealth, newStats.petHappiness]);
+      setProgressValues([newStats.hunger, newStats.health, newStats.happiness]);
     });
   }, [ourPet]);
 

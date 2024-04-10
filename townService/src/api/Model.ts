@@ -1,3 +1,5 @@
+import { Player, Pet as PetModel, PlayerLocation, PetType } from '../types/CoveyTownSocket';
+
 /**
  * The public-facing model that represents a town. More information about the town
  * is available for users who join it.
@@ -57,4 +59,53 @@ export interface TownCreateParams {
    * Not currently used on frontend
    */
   mapFile?: string;
+}
+
+export interface User {
+  username: string;
+  userID: string;
+  pet?: PetModel | undefined;
+}
+
+export interface UserCreateResponse {
+  pet: PetModel | undefined;
+  logoutTime: number;
+}
+
+export interface UserCreateParams {
+  username: string;
+  userID: string;
+  loginTime: number;
+  location: PlayerLocation;
+}
+
+export interface Pet {
+  petID: string;
+  petName: string;
+  ownerID: string;
+  petType: PetType;
+  location: PlayerLocation;
+}
+
+export interface PetCreateResponse {
+  /**
+   * The ID of the newly created pet. This ID is needed to join the town along with the userID.
+   */
+  petID: string;
+}
+
+export interface PetCreateParams {
+  /**
+   * A "Friendly Name" to use to identify the newly created pet, which need not be unique to existing pet names
+   */
+  petName: string;
+  /**
+   * Players can choose to see this pet following them around or not.
+   */
+  petID: string;
+  ownerID: Player;
+
+  type: PetType;
+
+  location: PlayerLocation;
 }

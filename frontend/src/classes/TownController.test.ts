@@ -40,6 +40,7 @@ jest.mock('socket.io-client', () => {
 describe('TownController', () => {
   let mockLoginController: MockProxy<LoginController>;
   let userName: string;
+  let userID: string;
   let townID: string;
   beforeAll(() => {
     mockLoginController = mock<LoginController>();
@@ -83,8 +84,14 @@ describe('TownController', () => {
   beforeEach(() => {
     mockClear(mockSocket);
     userName = nanoid();
+    userID = nanoid();
     townID = nanoid();
-    testController = new TownController({ userName, townID, loginController: mockLoginController });
+    testController = new TownController({
+      userName,
+      userID,
+      townID,
+      loginController: mockLoginController,
+    });
   });
   describe('With an unsuccesful connection', () => {
     it('Throws an error', async () => {
@@ -411,6 +418,7 @@ describe('TownController', () => {
         id: nanoid(),
         location: { moving: false, rotation: 'back', x: 0, y: 1, interactableID: nanoid() },
         userName: nanoid(),
+        email: 'test@test.com',
       };
       //Add that player to the test town
       testPlayerPlayersChangedFn = emitEventAndExpectListenerFiring(

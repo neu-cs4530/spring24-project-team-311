@@ -15,9 +15,10 @@ import React from 'react';
 import dog from './images/dog-front.png';
 import cat from './images/cat-front.png';
 import duck from './images/duck-front.png';
-import PetController, { PetType } from '../../classes/PetController';
+import PetController from '../../classes/PetController';
 import { nanoid } from 'nanoid';
 import TownController from '../../classes/TownController';
+import { PetType } from '../../types/CoveyTownSocket';
 
 interface PetSelectionPopupProps {
   isOpen: boolean;
@@ -62,7 +63,7 @@ const PetSelectionPopup = (props: PetSelectionPopupProps) => {
           ...props.townController.ourPlayer.location,
         },
       );
-      props.townController.addPet(newPet);
+      props.townController.addPet(props.townController.ourPlayer, newPet);
       console.log('new pet added');
       // props.townController._petsInternal = [newPet];
 
@@ -86,21 +87,21 @@ const PetSelectionPopup = (props: PetSelectionPopupProps) => {
             </Flex>
             <Flex justifyContent={'space-evenly'}>
               <Button
-                onClick={() => handlePetSelection('cat')}
-                variant={selectedPetType === 'cat' ? 'solid' : 'outline'}
-                colorScheme={selectedPetType === 'cat' ? 'blue' : 'gray'}>
+                onClick={() => handlePetSelection('Cat')}
+                variant={selectedPetType === 'Cat' ? 'solid' : 'outline'}
+                colorScheme={selectedPetType === 'Cat' ? 'blue' : 'gray'}>
                 Cat
               </Button>
               <Button
-                onClick={() => handlePetSelection('dog')}
-                variant={selectedPetType === 'dog' ? 'solid' : 'outline'}
-                colorScheme={selectedPetType === 'dog' ? 'blue' : 'gray'}>
+                onClick={() => handlePetSelection('Dog')}
+                variant={selectedPetType === 'Dog' ? 'solid' : 'outline'}
+                colorScheme={selectedPetType === 'Dog' ? 'blue' : 'gray'}>
                 Dog
               </Button>
               <Button
-                onClick={() => handlePetSelection('duck')}
-                variant={selectedPetType === 'duck' ? 'solid' : 'outline'}
-                colorScheme={selectedPetType === 'duck' ? 'blue' : 'gray'}>
+                onClick={() => handlePetSelection('Duck')}
+                variant={selectedPetType === 'Duck' ? 'solid' : 'outline'}
+                colorScheme={selectedPetType === 'Duck' ? 'blue' : 'gray'}>
                 Duck
               </Button>
             </Flex>

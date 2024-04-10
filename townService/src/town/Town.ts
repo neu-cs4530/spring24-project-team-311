@@ -1,6 +1,8 @@
 import { ITiledMap, ITiledMapObjectLayer } from '@jonbell/tiled-map-type-guard';
 import { nanoid } from 'nanoid';
 import { BroadcastOperator } from 'socket.io';
+import { response } from 'express';
+import e from 'cors';
 import InvalidParametersError from '../lib/InvalidParametersError';
 import IVideoClient from '../lib/IVideoClient';
 import Player from '../lib/Player';
@@ -17,12 +19,18 @@ import {
   ServerToClientEvents,
   SocketData,
   ViewingArea as ViewingAreaModel,
+  Pet as PetModel,
+  PetType,
+  PetSettingsUpdate,
 } from '../types/CoveyTownSocket';
 import { logError } from '../Utils';
 import ConversationArea from './ConversationArea';
 import GameAreaFactory from './games/GameAreaFactory';
 import InteractableArea from './InteractableArea';
 import ViewingArea from './ViewingArea';
+import PetsController from './PetsController';
+import MockPetDatabase from './MockPetDatabase';
+import Pet from '../lib/Pet';
 
 /**
  * The Town class implements the logic for each town: managing the various events that
@@ -50,6 +58,10 @@ export default class Town {
     return this._players;
   }
 
+  get pets(): Pet[] {
+    return this._pets;
+  }
+
   get occupancy(): number {
     return this.players.length;
   }
@@ -74,6 +86,9 @@ export default class Town {
   /** The list of players currently in the town * */
   private _players: Player[] = [];
 
+  /** The list of pets currently in the town * */
+  private _pets: Pet[] = [];
+
   /** The videoClient that this CoveyTown will use to provision video resources * */
   private _videoClient: IVideoClient = TwilioVideo.getInstance();
 
@@ -95,11 +110,14 @@ export default class Town {
 
   private _chatMessages: ChatMessage[] = [];
 
+  private _petsController: PetsController;
+
   constructor(
     friendlyName: string,
     isPubliclyListed: boolean,
     townID: string,
     broadcastEmitter: BroadcastOperator<ServerToClientEvents, SocketData>,
+    petsController = new PetsController(new MockPetDatabase()),
   ) {
     this._townID = townID;
     this._capacity = 50;
@@ -107,6 +125,58 @@ export default class Town {
     this._isPubliclyListed = isPubliclyListed;
     this._friendlyName = friendlyName;
     this._broadcastEmitter = broadcastEmitter;
+    this._petsController = petsController;
+  }
+
+  async getPet(petID: string): Promise<Pet | undefined> {
+    const pet = this._pets.find(p => p.id === petID);
+    return pet;
+  }
+
+  async addNewPet(user: Player, petName: string, petID: string, petType: PetType) {
+    if (user !== undefined) {
+      const playerObject = this._players.find(player => player.id === user.id);
+      if (playerObject && !playerObject.pet) {
+        const pet = new Pet(
+          petName,
+          petType,
+          user.id,
+          user.location,
+          100,
+          100,
+          100,
+          false,
+          false,
+          petID,
+        );
+        playerObject.pet = pet;
+        this._pets.push(pet);
+        this._broadcastEmitter.emit('petAdded', pet.toPetModel());
+      }
+    }
+  }
+  /*
+   * if the given user Player has a pet, then that pet is added to the town
+   */
+
+  async addExistingPet(userID: string, pet: PetModel) {
+    const playerObject = this._players.find(player => player.id === userID);
+    if (playerObject && playerObject.pet === undefined) {
+      const newPet = new Pet(
+        pet.userName,
+        pet.type,
+        userID,
+        pet.location,
+        pet.health,
+        pet.hunger,
+        pet.happiness,
+        pet.inHospital,
+        pet.isSick,
+        pet.id,
+      );
+      playerObject.pet = newPet;
+      this._pets.push(newPet);
+    }
   }
 
   /**
@@ -115,11 +185,22 @@ export default class Town {
    *
    * @param newPlayer The new player to add to the town
    */
-  async addPlayer(userName: string, socket: CoveyTownSocket): Promise<Player> {
-    const newPlayer = new Player(userName, socket.to(this._townID));
+  async addPlayer(
+    userName: string,
+    userID: string,
+    socket: CoveyTownSocket,
+    pet?: PetModel,
+  ): Promise<Player> {
+    const newPlayer = new Player(userName, userID, socket.to(this._townID));
+
     this._players.push(newPlayer);
 
     this._connectedSockets.add(socket);
+    await this._petsController.userLogIn(newPlayer.id);
+
+    if (pet) {
+      this.addExistingPet(newPlayer.id, pet);
+    }
 
     // Create a video token for this user to join this town
     newPlayer.videoToken = await this._videoClient.getTokenForTown(this._townID, newPlayer.id);
@@ -130,8 +211,9 @@ export default class Town {
     // Register an event listener for the client socket: if the client disconnects,
     // clean up our listener adapter, and then let the CoveyTownController know that the
     // player's session is disconnected
-    socket.on('disconnect', () => {
+    socket.on('disconnect', async () => {
       this._removePlayer(newPlayer);
+      await this._petsController.userLogOut(newPlayer.id);
       this._connectedSockets.delete(socket);
     });
 
@@ -146,9 +228,112 @@ export default class Town {
 
     // Register an event listener for the client socket: if the client updates their
     // location, inform the CoveyTownController
-    socket.on('playerMovement', (movementData: PlayerLocation) => {
+    socket.on('playerMovement', async (movementData: PlayerLocation) => {
       try {
-        this._updatePlayerLocation(newPlayer, movementData);
+        await this._updatePlayerLocation(newPlayer, movementData);
+      } catch (err) {
+        logError(err);
+      }
+    });
+
+    socket.on('addNewPet', async (petName: string, petID: string, petType: PetType) => {
+      try {
+        this.addNewPet(newPlayer, petName, petID, petType);
+        await this._petsController.createNewPet({
+          petName,
+          petID,
+          ownerID: newPlayer.toPlayerModel(),
+          type: petType,
+          location: newPlayer.location,
+        });
+      } catch (err) {
+        logError(err);
+      }
+    });
+
+    socket.on('decreaseStats', (delta: number) => {
+      try {
+        this._pets.forEach(async p => {
+          p.decreseStats(delta);
+          const updates = {
+            health: p.health,
+            hunger: p.hunger,
+            happiness: p.happiness,
+            hospital: p.hospitalStatus,
+          };
+          await this._petsController.updateStats(p.owner, p.id, updates);
+        });
+      } catch (err) {
+        logError(err);
+      }
+    });
+
+    socket.on('updatePetStats', async (uid: string, petID: string, updates: PetSettingsUpdate) => {
+      try {
+        const updatedPet = await this.getPet(petID);
+        const player = this._players.find(p => p.id === uid);
+        if (updatedPet && player && uid === updatedPet.owner) {
+          updatedPet.cleanPet(updates.health);
+          updatedPet.feedPet(updates.hunger);
+          updatedPet.playWithPet(updates.happiness);
+          await this._petsController.updateStats(uid, petID, updates);
+        }
+      } catch (err) {
+        logError(err);
+      }
+    });
+
+    socket.on('hospitalizePet', async (petID: string) => {
+      try {
+        const hospitalizedPet = await this.getPet(petID);
+        let hospitalizedPetResponse = {
+          petid: petID,
+          happiness: -1,
+          hunger: -1,
+          health: -1,
+          sick: false,
+          hospital: false,
+        };
+        if (hospitalizedPet !== undefined) {
+          hospitalizedPet.hospitalizePet();
+          hospitalizedPetResponse = {
+            petid: petID,
+            happiness: hospitalizedPet.happiness,
+            hunger: hospitalizedPet.hunger,
+            health: hospitalizedPet.health,
+            sick: hospitalizedPet.sick,
+            hospital: hospitalizedPet.hospitalStatus,
+          };
+        }
+        socket.emit('petStatsResponse', hospitalizedPetResponse);
+      } catch (err) {
+        logError(err);
+      }
+    });
+
+    socket.on('dischargePet', async (petID: string) => {
+      try {
+        const dischargedPet = await this.getPet(petID);
+        let dischargedPetResponse = {
+          petid: petID,
+          happiness: -1,
+          hunger: -1,
+          health: -1,
+          sick: false,
+          hospital: false,
+        };
+        if (dischargedPet !== undefined) {
+          dischargedPet.dischargePet();
+          dischargedPetResponse = {
+            petid: petID,
+            happiness: dischargedPet.happiness,
+            hunger: dischargedPet.hunger,
+            health: dischargedPet.health,
+            sick: dischargedPet.sick,
+            hospital: dischargedPet.hospitalStatus,
+          };
+        }
+        socket.emit('petStatsResponse', dischargedPetResponse);
       } catch (err) {
         logError(err);
       }
@@ -227,6 +412,7 @@ export default class Town {
       this._removePlayerFromInteractable(player);
     }
     this._players = this._players.filter(p => p.id !== player.id);
+    this._pets = this._pets.filter(p => p.owner !== player.id);
     this._broadcastEmitter.emit('playerDisconnect', player.toPlayerModel());
   }
 
@@ -240,7 +426,7 @@ export default class Town {
    * @param player Player to update location for
    * @param location New location for this player
    */
-  private _updatePlayerLocation(player: Player, location: PlayerLocation): void {
+  private async _updatePlayerLocation(player: Player, location: PlayerLocation): Promise<void> {
     const prevInteractable = this._interactables.find(
       conv => conv.id === player.location.interactableID,
     );
@@ -262,7 +448,11 @@ export default class Town {
     }
 
     player.location = location;
+    if (player.pet !== undefined) {
+      player.pet.location = location;
+    }
 
+    await this._petsController.updateLocation(player.id, location);
     this._broadcastEmitter.emit('playerMoved', player.toPlayerModel());
   }
 

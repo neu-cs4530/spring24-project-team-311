@@ -22,9 +22,13 @@ import {
   ChatMessage,
   ConversationArea,
   CoveyTownSocket,
+  InitialUserCreationResponse,
+  Player,
   TownSettingsUpdate,
   ViewingArea,
 } from '../types/CoveyTownSocket';
+import APetDatabase from './APetDatabase';
+import PetDatabase from './PetDatabase';
 
 /**
  * This is the town route
@@ -34,7 +38,17 @@ import {
 // TSOA (which we use to generate the REST API from this file) does not support default exports, so the controller can't be a default export.
 // eslint-disable-next-line import/prefer-default-export
 export class TownsController extends Controller {
-  private _townsStore: CoveyTownsStore = CoveyTownsStore.getInstance();
+  protected _firebaseSchema;
+
+  private _connectedToFirebase;
+
+  protected _townsStore: CoveyTownsStore = CoveyTownsStore.getInstance();
+
+  constructor(db: APetDatabase = new PetDatabase(), firebaseConnection = true) {
+    super();
+    this._firebaseSchema = db;
+    this._connectedToFirebase = firebaseConnection;
+  }
 
   /**
    * List all towns that are set to be publicly available
@@ -60,6 +74,7 @@ export class TownsController extends Controller {
       request.friendlyName,
       request.isPubliclyListed,
       request.mapFile,
+      this._connectedToFirebase,
     );
     return {
       townID,
@@ -198,18 +213,28 @@ export class TownsController extends Controller {
    */
   public async joinTown(socket: CoveyTownSocket) {
     // Parse the client's requested username from the connection
-    const { userName, townID } = socket.handshake.auth as { userName: string; townID: string };
+    const { userName, userID, townID } = socket.handshake.auth as {
+      userName: string;
+      userID: string;
+      townID: string;
+    };
 
     const town = this._townsStore.getTownByID(townID);
     if (!town) {
       socket.disconnect(true);
       return;
     }
-
     // Connect the client to the socket.io broadcast room for this town
     socket.join(town.townID);
+    const player = await this._createUser(userID, userName);
 
-    const newPlayer = await town.addPlayer(userName, socket);
+    const response: InitialUserCreationResponse = {
+      pet: player?.pet,
+      logoutTime: await this._firebaseSchema.getUserLogOutTime(userID),
+    };
+
+    const newPlayer = await town.addPlayer(userName, userID, socket, player?.pet);
+
     assert(newPlayer.videoToken);
     socket.emit('initialize', {
       userID: newPlayer.id,
@@ -219,6 +244,18 @@ export class TownsController extends Controller {
       friendlyName: town.friendlyName,
       isPubliclyListed: town.isPubliclyListed,
       interactables: town.interactables.map(eachInteractable => eachInteractable.toModel()),
+      currentPets: town.pets.map(eachPet => eachPet.toPetModel()),
+      createdResponse: response,
     });
+  }
+
+  private async _createUser(userID: string, username: string): Promise<Player | undefined> {
+    const playerInDB = await this._firebaseSchema.getOrAddPlayer(userID, username, {
+      x: 0,
+      y: 0,
+      moving: false,
+      rotation: 'front',
+    });
+    return playerInDB;
   }
 }

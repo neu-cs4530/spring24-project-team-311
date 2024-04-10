@@ -50,7 +50,7 @@ export default function HospitalAreaPopup(): JSX.Element {
 
   useEffect(() => {
     townController.ourPet?.addListener('petStatsUpdated', newStats => {
-      setProgressValues([newStats.petHunger, newStats.petHealth, newStats.petHappiness]);
+      setProgressValues([newStats.hunger, newStats.health, newStats.happiness]);
     });
   }, [townController.ourPet]);
 

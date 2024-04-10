@@ -23,6 +23,7 @@ export default function PreJoinScreens() {
   const [loggedIn, setLoggedIn] = useState<boolean>(false);
   const [newSignUp, setNewSignUp] = useState<boolean>(false);
   const [userName, setUserName] = useState<string>('');
+  const [userID, setUserID] = useState<string>('');
   // const { user } = useAppState();
   const { getAudioAndVideoTracks } = useVideoContext();
 
@@ -45,6 +46,7 @@ export default function PreJoinScreens() {
         if (!newSignUp) {
           setLoggedIn(true);
           setUserName(user.displayName || 'DUMMY_USERNAME');
+          setUserID(user.uid || 'DUMMY_UID');
         }
         
       } else {
@@ -92,7 +94,7 @@ export default function PreJoinScreens() {
             </Button>
           </Box>
         </Box>
-        <TownSelection username={userName}/>
+        <TownSelection username={userName} userId ={userID}/>
     </IntroContainer>
   );
 }

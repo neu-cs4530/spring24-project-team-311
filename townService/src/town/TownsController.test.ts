@@ -14,6 +14,7 @@ import {
   MockedPlayer,
 } from '../TestUtils';
 import { TownsController } from './TownsController';
+import MockPetDatabase from './MockPetDatabase';
 
 type TestTownData = {
   friendlyName: string;
@@ -82,7 +83,7 @@ describe('TownsController integration tests', () => {
       return mockRoomEmitter;
     });
     TownsStore.initializeTownsStore(broadcastEmitter);
-    controller = new TownsController();
+    controller = new TownsController(new MockPetDatabase(), false);
   });
   describe('createTown', () => {
     it('Allows for multiple towns with the same friendlyName', async () => {
@@ -220,6 +221,8 @@ describe('TownsController integration tests', () => {
         expect(initialData.currentPlayers.length).toBe(1);
         expect(initialData.currentPlayers[0].userName).toEqual(player.userName);
         expect(initialData.currentPlayers[0].id).toEqual(initialData.userID);
+        expect(initialData.createdResponse.pet).toEqual(undefined);
+        expect(initialData.createdResponse.logoutTime).toBeDefined();
       };
       await joinAndCheckInitialData(true);
       await joinAndCheckInitialData(false);

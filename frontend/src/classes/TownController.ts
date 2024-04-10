@@ -23,6 +23,7 @@ import {
   InteractableID,
   PlayerID,
   PlayerLocation,
+  Player as PlayerModel,
   TownSettingsUpdate,
   ViewingArea as ViewingAreaModel,
 } from '../types/CoveyTownSocket';
@@ -51,6 +52,7 @@ const SOCKET_COMMAND_TIMEOUT_MS = 5000;
 
 export type ConnectionProperties = {
   userName: string;
+  userID: string;
   townID: string;
   loginController: LoginController;
 };
@@ -79,6 +81,8 @@ export type TownEvents = {
    * before updating the proeprties of this TownController; clients will find the new players in the parameter
    */
   playersChanged: (newPlayers: PlayerController[]) => void;
+
+  petsChanged: (newPets: PetController[]) => void;
 
   /**
    * An event that indicates that a player has moved. This event is dispatched after updating the player's location -
@@ -188,7 +192,12 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
    * The user ID of the player whose browser created this TownController. The user ID is set by the backend townsService, and
    * is only available after the service is connected.
    */
-  private _userID?: string;
+  private _userID: string;
+
+  /**
+   * A reference to the Pet object that represents the pet whose player is the one whose browser created this TownController
+   */
+  private _ourPet?: PetController;
 
   /**
    * A reference to the Player object that represents the player whose browser created this TownController.
@@ -218,11 +227,12 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
    */
   private _interactableEmitter = new EventEmitter();
 
-  public constructor({ userName, townID, loginController }: ConnectionProperties) {
+  public constructor({ userName, userID, townID, loginController }: ConnectionProperties) {
     super();
     this._townID = townID;
     this._userName = userName;
     this._loginController = loginController;
+    this._userID = userID;
 
     /*
         The event emitter will show a warning if more than this number of listeners are registered, as it
@@ -233,7 +243,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
 
     const url = process.env.NEXT_PUBLIC_TOWNS_SERVICE_URL;
     assert(url);
-    this._socket = io(url, { auth: { userName, townID } });
+    this._socket = io(url, { auth: { userName, userID, townID } });
     this._townsService = new TownsServiceClient({ BASE: url }).towns;
     this.registerSocketListeners();
     // TEMP CODE TO ADD PET FOR USER
@@ -291,7 +301,9 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   }
 
   public get ourPet() {
-    return this._petsInternal.find(eachPet => eachPet.playerID === this.userID);
+    const ret = this._ourPet;
+    return ret;
+    // return this._petsInternal.find(eachPet => eachPet.playerID === this.userID);
   }
 
   public get townID() {
@@ -322,6 +334,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   }
 
   private set _pets(newPets: PetController[]) {
+    this.emit('petsChanged', newPets);
     this._petsInternal = newPets;
   }
 
@@ -329,9 +342,12 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     return this._petsInternal;
   }
 
-  public addPet(newPet: PetController) {
-    // TODO: update backend
-    this._petsInternal = [newPet];
+  public addPet(player: PlayerModel, newPet: PetController) {
+    if (!this._ourPet) {
+      this._ourPet = newPet;
+      this._petsInternal.push(newPet);
+      this._socket.emit('addNewPet', newPet.petName, newPet.petID, newPet.petType);
+    }
   }
 
   public setPetStats(
@@ -339,22 +355,60 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     newStats: { health: number; happiness: number; hunger: number },
   ) {
     const petToUpdate = this._petsInternal.find(eachPet => eachPet.petID === petID);
+    // console.log('PET TO UPDATE');
     if (petToUpdate) {
+      // console.log('PET TO');
       petToUpdate.petHealth = Math.max(newStats.health, 0);
       petToUpdate.petHappiness = Math.max(newStats.happiness, 0);
       petToUpdate.petHunger = Math.max(newStats.hunger, 0);
+
+      // console.log('PETHEALTH ' + petToUpdate.petHealth);
+      // console.log('PETHUNGER' + petToUpdate.petHunger);
+      // console.log('PETHAPPINESS' + petToUpdate.petHappiness);
+
+      this._socket.emit('updatePetStats', petToUpdate.playerID, petID, {
+        health: petToUpdate.petHealth,
+        happiness: petToUpdate.petHappiness,
+        hunger: petToUpdate.petHunger,
+        hospital: petToUpdate.isInHospital,
+      });
+
       // TODO: update backend
     }
   }
 
-  public updatePetStats(petID: string, delta: number) {
+  public decreasePetStats(delta: number) {
+    if (this._petsInternal.find(eachPet => eachPet.petID === this._ourPet?.petID)) {
+      console.log('UPDATUNG OUR PET');
+    }
+    this._petsInternal.forEach(pet => {
+      this.setPetStats(pet.petID, {
+        health: pet.petHealth - delta,
+        happiness: pet.petHappiness - delta,
+        hunger: pet.petHunger - delta,
+      });
+      // this._socket.emit('decreaseStats', delta);
+    });
+  }
+
+  public hospitalizePet(petID: string) {
     const petToUpdate = this._petsInternal.find(eachPet => eachPet.petID === petID);
     if (petToUpdate) {
-      this.setPetStats(petID, {
-        health: petToUpdate.petHealth + delta,
-        happiness: petToUpdate.petHappiness + delta,
-        hunger: petToUpdate.petHunger + delta,
-      });
+      if (petToUpdate.isSick) {
+        petToUpdate.isInHospital = true;
+        this._socket.emit('hospitalizePet', petID);
+      }
+    }
+  }
+
+  public dischargePet(petID: string) {
+    const petToUpdate = this._petsInternal.find(eachPet => eachPet.petID === petID);
+    if (petToUpdate) {
+      if (petToUpdate.isSick && petToUpdate.isInHospital) {
+        petToUpdate.isInHospital = false;
+        petToUpdate.isSick = false;
+        this._socket.emit('dischargePet', petID);
+      }
     }
   }
 
@@ -453,6 +507,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
      * return to the login screen
      */
     this._socket.on('townClosing', () => {
+      // this.emit()
       this.emit('disconnect');
       this._loginController.setTownController(null);
     });
@@ -465,8 +520,32 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     this._socket.on('playerJoined', newPlayer => {
       const newPlayerObj = PlayerController.fromPlayerModel(newPlayer);
       this._players = this.players.concat([newPlayerObj]);
+      if (newPlayer.pet) {
+        const pet = new PetController(
+          newPlayer.pet.ownerID,
+          newPlayer.pet.id,
+          newPlayer.pet.type,
+          newPlayer.pet.userName,
+          newPlayer.pet.location,
+        ).fromPetModel(newPlayer.pet);
+        this._pets = this.pets.concat([pet]);
+      }
       this.emit('playerMoved', newPlayerObj);
     });
+
+    this._socket.on('petAdded', newPet => {
+      if (this._ourPet?.petID !== newPet.id) {
+        const pet = new PetController(
+          newPet.ownerID,
+          newPet.id,
+          newPet.type,
+          newPet.userName,
+          newPet.location,
+        ).fromPetModel(newPet);
+        this._pets = this.pets.concat([pet]);
+      }
+    });
+
     /**
      * When a player disconnects from the town, update local state
      *
@@ -474,6 +553,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
      */
     this._socket.on('playerDisconnect', disconnectedPlayer => {
       this._players = this.players.filter(eachPlayer => eachPlayer.id !== disconnectedPlayer.id);
+      this._pets = this.pets.filter(eachPet => eachPet.playerID !== disconnectedPlayer.id);
     });
     /**
      * When a player moves, update local state and emit an event to the controller's event listeners
@@ -489,6 +569,42 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
           playerToUpdate.location.interactableID = movedPlayer.location.interactableID;
         } else {
           playerToUpdate.location = movedPlayer.location;
+          const petToUpdate = this._petsInternal.find(
+            eachPet => eachPet.playerID === movedPlayer.id,
+          );
+          if (petToUpdate) {
+            if (playerToUpdate.location.rotation === 'front') {
+              petToUpdate.location = {
+                x: playerToUpdate.location.x,
+                y: playerToUpdate.location.y + 20,
+                rotation: playerToUpdate.location.rotation,
+                moving: playerToUpdate.location.moving,
+              };
+            } else if (playerToUpdate.location.rotation === 'back') {
+              petToUpdate.location = {
+                x: playerToUpdate.location.x,
+                y: playerToUpdate.location.y - 20,
+                rotation: playerToUpdate.location.rotation,
+                moving: playerToUpdate.location.moving,
+              };
+            } else if (playerToUpdate.location.rotation === 'right') {
+              petToUpdate.location = {
+                x: playerToUpdate.location.x - 20,
+                y: playerToUpdate.location.y,
+                rotation: playerToUpdate.location.rotation,
+                moving: playerToUpdate.location.moving,
+              };
+            } else if (playerToUpdate.location.rotation === 'left') {
+              petToUpdate.location = {
+                x: playerToUpdate.location.x + 20,
+                y: playerToUpdate.location.y,
+                rotation: playerToUpdate.location.rotation,
+                moving: playerToUpdate.location.moving,
+              };
+            }
+          } else {
+            console.log('PET TO UPDATE NOT FOUND');
+          }
         }
         this.emit('playerMoved', playerToUpdate);
       }
@@ -519,6 +635,17 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         console.trace(err);
       }
     });
+
+    // this._socket.on('petStatsResponse', response => {
+    //   const petToUpdate = this._petsInternal.find(eachPet => eachPet.petID === response.petid);
+    //   if (petToUpdate) {
+    //     petToUpdate.petHealth = response.health;
+    //     petToUpdate.petHappiness = response.happiness;
+    //     petToUpdate.petHunger = response.hunger;
+    //     petToUpdate.isInHospital = response.hospital;
+    //     petToUpdate.isSick = response.sick;
+    //   }
+    // });
   }
 
   /**
@@ -668,9 +795,17 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         this._players = initialData.currentPlayers.map(eachPlayerModel =>
           PlayerController.fromPlayerModel(eachPlayerModel),
         );
-        // this._petsInternal = initialData.pets.map(eachPetModel =>
-        //   PetController.fromPetModel(eachPetModel),
-        // );
+
+        console.log(initialData.currentPets);
+        this._pets = initialData.currentPets.map(eachPetModel =>
+          new PetController(
+            eachPetModel.ownerID,
+            eachPetModel.id,
+            eachPetModel.type,
+            eachPetModel.userName,
+            eachPetModel.location,
+          ).fromPetModel(eachPetModel),
+        );
 
         this._interactableControllers = [];
         initialData.interactables.forEach(eachInteractable => {
@@ -699,6 +834,30 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         });
         this._userID = initialData.userID;
         this._ourPlayer = this.players.find(eachPlayer => eachPlayer.id == this.userID);
+
+        if (initialData.createdResponse.pet) {
+          const currPet = this._petsInternal.find(eachPet => eachPet.playerID === this._userID);
+          if (currPet) {
+            this._ourPet = currPet;
+          } else {
+            const newPet = new PetController(
+              initialData.createdResponse.pet.ownerID,
+              initialData.createdResponse.pet.id,
+              initialData.createdResponse.pet.type,
+              initialData.createdResponse.pet.userName,
+              initialData.createdResponse.pet.location,
+            ).fromPetModel(initialData.createdResponse.pet);
+            this._petsInternal.push(newPet);
+            this._ourPet = newPet;
+          }
+        }
+
+        console.log(this._petsInternal);
+        console.log('OUR PET' + this._ourPet?.petName);
+        console.log('Hunger' + this._ourPet?.petHunger);
+        console.log('Health' + this._ourPet?.petHealth);
+        console.log('Happiness' + this._ourPet?.petHappiness);
+
         this.emit('connect', initialData.providerVideoToken);
         resolve();
       });
