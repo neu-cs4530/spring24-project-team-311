@@ -73,3 +73,10 @@ Database Testing
 Edge Cases Testing
 - Test edge cases, such as extreme values for pet stats and treatment submissions, to ensure the component handles them gracefully without crashing or producing unexpected behavior.
 - Stress test the component by repeatedly submitting treatments and verifying that it remains responsive and functional.
+
+Interactive pet pop-up and pet selection pop-up:
+- Manually verify the overall UI and appearance of the modals, and correctly-displayed progress bars.
+- For the interactive pet pop-up's stats and interactions with feeding, playing, and cleaning: verify persistence in pet stats with the database by signing in and out multiple times, utilizing the hospital area when a stat drops to 0, and checking the change in stats after feeding, playing, and/or cleaning the pet throughout the session(s).
+
+Modifications to frontend/src/components/Login/TownSelection.test.tsx
+- As we implemented authentication through integrating Firebase, the user enters a username upon signing up with an email and password. The TownSelection tests were modified to pass in a test userName rather than using the old userName input field and testing with that.
