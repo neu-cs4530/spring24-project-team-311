@@ -310,7 +310,8 @@ describe('Town Selection', () => {
       townIDToJoinField = renderData.getByPlaceholderText(
         'ID of town to join, or select from list',
       ) as HTMLInputElement;
-      userNameField = renderData.getByPlaceholderText('Your name') as HTMLInputElement;
+      // Submission note: commented out the below line, since we replaced the 'Your name' section with Current User and Sign Out button
+      // userNameField = renderData.getByPlaceholderText('Your name') as HTMLInputElement;
       joinTownByIDButton = renderData.getByTestId('joinTownByIDButton');
       newTownIsPublicCheckbox = renderData.getByLabelText('Publicly Listed') as HTMLInputElement;
       newTownNameField = renderData.getByPlaceholderText('New Town Name') as HTMLInputElement;
