@@ -128,12 +128,12 @@ export default class Town {
     this._petsController = petsController;
   }
 
-  async getPet(petID: string): Promise<Pet | undefined> {
+  private async _getPet(petID: string): Promise<Pet | undefined> {
     const pet = this._pets.find(p => p.id === petID);
     return pet;
   }
 
-  async addNewPet(user: Player, petName: string, petID: string, petType: PetType) {
+  private async _addNewPet(user: Player, petName: string, petID: string, petType: PetType) {
     if (user !== undefined) {
       const playerObject = this._players.find(player => player.id === user.id);
       if (playerObject && !playerObject.pet) {
@@ -142,9 +142,9 @@ export default class Town {
           petType,
           user.id,
           user.location,
-          100,
-          100,
-          100,
+          50,
+          50,
+          50,
           false,
           false,
           petID,
@@ -159,7 +159,7 @@ export default class Town {
    * if the given user Player has a pet, then that pet is added to the town
    */
 
-  async addExistingPet(userID: string, pet: PetModel) {
+  private async _addExistingPet(userID: string, pet: PetModel) {
     const playerObject = this._players.find(player => player.id === userID);
     if (playerObject && playerObject.pet === undefined) {
       const newPet = new Pet(
@@ -199,7 +199,7 @@ export default class Town {
     await this._petsController.userLogIn(newPlayer.id);
 
     if (pet) {
-      this.addExistingPet(newPlayer.id, pet);
+      this._addExistingPet(newPlayer.id, pet);
     }
 
     // Create a video token for this user to join this town
@@ -238,7 +238,7 @@ export default class Town {
 
     socket.on('addNewPet', async (petName: string, petID: string, petType: PetType) => {
       try {
-        this.addNewPet(newPlayer, petName, petID, petType);
+        this._addNewPet(newPlayer, petName, petID, petType);
         await this._petsController.createNewPet({
           petName,
           petID,
@@ -270,70 +270,15 @@ export default class Town {
 
     socket.on('updatePetStats', async (uid: string, petID: string, updates: PetSettingsUpdate) => {
       try {
-        const updatedPet = await this.getPet(petID);
+        const updatedPet = await this._getPet(petID);
         const player = this._players.find(p => p.id === uid);
         if (updatedPet && player && uid === updatedPet.owner) {
+          console.log('CALLED');
           updatedPet.cleanPet(updates.health);
           updatedPet.feedPet(updates.hunger);
           updatedPet.playWithPet(updates.happiness);
           await this._petsController.updateStats(uid, petID, updates);
         }
-      } catch (err) {
-        logError(err);
-      }
-    });
-
-    socket.on('hospitalizePet', async (petID: string) => {
-      try {
-        const hospitalizedPet = await this.getPet(petID);
-        let hospitalizedPetResponse = {
-          petid: petID,
-          happiness: -1,
-          hunger: -1,
-          health: -1,
-          sick: false,
-          hospital: false,
-        };
-        if (hospitalizedPet !== undefined) {
-          hospitalizedPet.hospitalizePet();
-          hospitalizedPetResponse = {
-            petid: petID,
-            happiness: hospitalizedPet.happiness,
-            hunger: hospitalizedPet.hunger,
-            health: hospitalizedPet.health,
-            sick: hospitalizedPet.sick,
-            hospital: hospitalizedPet.hospitalStatus,
-          };
-        }
-        socket.emit('petStatsResponse', hospitalizedPetResponse);
-      } catch (err) {
-        logError(err);
-      }
-    });
-
-    socket.on('dischargePet', async (petID: string) => {
-      try {
-        const dischargedPet = await this.getPet(petID);
-        let dischargedPetResponse = {
-          petid: petID,
-          happiness: -1,
-          hunger: -1,
-          health: -1,
-          sick: false,
-          hospital: false,
-        };
-        if (dischargedPet !== undefined) {
-          dischargedPet.dischargePet();
-          dischargedPetResponse = {
-            petid: petID,
-            happiness: dischargedPet.happiness,
-            hunger: dischargedPet.hunger,
-            health: dischargedPet.health,
-            sick: dischargedPet.sick,
-            hospital: dischargedPet.hospitalStatus,
-          };
-        }
-        socket.emit('petStatsResponse', dischargedPetResponse);
       } catch (err) {
         logError(err);
       }

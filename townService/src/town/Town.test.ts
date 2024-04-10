@@ -1,6 +1,7 @@
 import { ITiledMap } from '@jonbell/tiled-map-type-guard';
 import { DeepMockProxy, mockClear, mockDeep, mockReset } from 'jest-mock-extended';
 import { nanoid } from 'nanoid';
+import Pet from '../lib/Pet';
 import Player from '../lib/Player';
 import TwilioVideo from '../lib/TwilioVideo';
 import {
@@ -597,6 +598,69 @@ describe('Town', () => {
         expect(interactable?.toModel()).toEqual(update);
       });
     });
+
+    describe('addNewPet', () => {
+      it('adding a new Pet to the town', () => {
+        const handler = getEventListener(playerTestData.socket, 'addNewPet');
+        handler('carla', 'test', 'Cat');
+        const petInArray = town.pets.find(pet => pet.id === 'test');
+        expect(petInArray?.petName).toBe('carla');
+      });
+      it('adding a new Pet to the player', () => {
+        const handler = getEventListener(playerTestData.socket, 'addNewPet');
+        handler('carla', 'test', 'Cat');
+        expect(player.pet?.id).toEqual('test');
+      });
+    });
+
+    describe('decreaseStats', () => {
+      beforeEach(async () => {
+        const handler = getEventListener(playerTestData.socket, 'addNewPet');
+        handler('carla', 'test', 'Cat');
+      });
+      it('decrease stats by 10', () => {
+        const petInArray = town.pets.find(pet => pet.id === 'test');
+        const carlaHealth = petInArray?.health || 0;
+        const carlaHunger = petInArray?.hunger || 0;
+        const carlaHappiness = petInArray?.happiness || 0;
+        const handler = getEventListener(playerTestData.socket, 'decreaseStats');
+        handler(10);
+        expect(petInArray?.health).toEqual(carlaHealth - 10);
+        expect(petInArray?.hunger).toEqual(carlaHunger - 10);
+        expect(petInArray?.happiness).toEqual(carlaHappiness - 10);
+      });
+    });
+
+    describe('updatePetStats', () => {
+      beforeEach(async () => {
+        const handler = getEventListener(playerTestData.socket, 'addNewPet');
+        handler('carla', 'test', 'Cat');
+      });
+      it('increase stats by arbitrary amount', () => {
+        const petInArray = town.pets.find(pet => pet.id === 'test');
+        const carlaHealth = petInArray?.health || 0;
+        const carlaHunger = petInArray?.hunger || 0;
+        const carlaHappiness = petInArray?.happiness || 0;
+        expect(petInArray?.health).toEqual(50);
+        expect(petInArray?.hunger).toEqual(50);
+        expect(petInArray?.happiness).toEqual(50);
+        const handler = getEventListener(playerTestData.socket, 'updatePetStats');
+        const updates = {
+          health: 50,
+          hunger: 50,
+          happiness: 50,
+          hospital: false,
+        };
+        handler(playerID, 'test', updates);
+        expect(petInArray?.id).toEqual('test');
+        expect(petInArray?.owner).toEqual(playerID);
+        expect(petInArray?.health).toEqual(50);
+        expect(petInArray?.hunger).toEqual(50);
+        expect(petInArray?.happiness).toEqual(50);
+        expect(petInArray?.hospitalStatus).toEqual(false);
+      });
+    });
+
     it('Forwards chat messages to all players in the same town', async () => {
       const chatHandler = getEventListener(playerTestData.socket, 'chatMessage');
       const chatMessage: ChatMessage = {

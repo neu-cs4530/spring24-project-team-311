@@ -103,9 +103,16 @@ export interface PetCreateParams {
    * Players can choose to see this pet following them around or not.
    */
   petID: string;
+  /**
+   * The player who owns the pet
+   */
   ownerID: Player;
-
+  /**
+   * the petType of the pet: Cat | Dog | Duck
+   */
   type: PetType;
-
+  /**
+   * The location of the Pet
+   */
   location: PlayerLocation;
 }
