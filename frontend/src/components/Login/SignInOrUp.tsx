@@ -1,5 +1,9 @@
 /* eslint-disable import/no-extraneous-dependencies */
-import { updateProfile } from 'firebase/auth';
+import {
+  updateProfile,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+} from 'firebase/auth';
 import React, { useState } from 'react';
 import {
   Box,
@@ -15,9 +19,9 @@ import {
   useToast,
   Image,
 } from '@chakra-ui/react';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../firebase';
 import paws from '../Town/images/paws-town.png';
+import assert from 'assert';
 
 function SignInComponent(): JSX.Element {
   const [email, setEmail] = useState('');
@@ -27,28 +31,39 @@ function SignInComponent(): JSX.Element {
   const toast = useToast();
   const handleSignIn = async () => {
     setIsSigningIn(true);
-    signInWithEmailAndPassword(auth, email, password).catch(error => {
-      setIsSigningIn(false);
-      switch (error.code) {
-        case 'auth/invalid-email':
+    let errorState = false;
+    signInWithEmailAndPassword(auth, email, password)
+      .catch(error => {
+        setIsSigningIn(false);
+        errorState = true;
+        switch (error.code) {
+          case 'auth/invalid-email':
+            toast({
+              title: 'Invalid email address',
+              status: 'error',
+            });
+            break;
+          case 'auth/invalid-credential':
+            toast({
+              title: 'Invalid email/password, please try again',
+              status: 'error',
+            });
+            break;
+          default:
+            toast({
+              title: 'An error occurred while signing in',
+              status: 'error',
+            });
+        }
+      })
+      .then(async () => {
+        if (!errorState) {
           toast({
-            title: 'Invalid email address',
-            status: 'error',
+            title: 'Signed in successfully',
+            status: 'success',
           });
-          break;
-        case 'auth/invalid-credential':
-          toast({
-            title: 'Invalid email/password, plase try again',
-            status: 'error',
-          });
-          break;
-        default:
-          toast({
-            title: 'An error occurred while signing in',
-            status: 'error',
-          });
-      }
-    });
+        }
+      });
   };
   return (
     <>
@@ -67,6 +82,7 @@ function SignInComponent(): JSX.Element {
                   placeholder='test@test.com'
                   value={email}
                   onChange={event => setEmail(event.target.value)}
+                  aria-label='EmailField'
                 />
               </FormControl>
               <FormControl isRequired mt={6}>
@@ -76,6 +92,7 @@ function SignInComponent(): JSX.Element {
                   placeholder='*******'
                   onChange={event => setPassword(event.target.value)}
                   value={password}
+                  aria-label='PasswordField'
                 />
                 <InputRightElement width='4.5rem'>
                   <Button h='1.75rem' size='sm' onClick={event => setShowPassword(!showPassword)}>
@@ -90,7 +107,8 @@ function SignInComponent(): JSX.Element {
                 colorScheme='blue'
                 isLoading={isSigningIn}
                 isDisabled={isSigningIn}
-                onClick={handleSignIn}>
+                onClick={handleSignIn}
+                aria-label='SignInButton'>
                 Sign In
               </Button>
             </form>
@@ -119,7 +137,6 @@ function SignUpComponent({
     let errorState = false;
     await createUserWithEmailAndPassword(auth, email, password)
       .catch(async error => {
-        console.log(error.code, error.message);
         errorState = true;
         setIsSigningUp(false);
         switch (error.code) {
@@ -151,7 +168,8 @@ function SignUpComponent({
       .then(async () => {
         if (!errorState) {
           updateUserName(userName);
-          await updateProfile(auth.currentUser!, { displayName: userName });
+          assert(auth.currentUser !== null, 'User is null');
+          await updateProfile(auth.currentUser, { displayName: userName });
           toast({
             title: 'Account created.',
             status: 'success',
@@ -209,7 +227,8 @@ function SignUpComponent({
                 colorScheme='blue'
                 isDisabled={isSigningUp}
                 isLoading={isSigningUp}
-                onClick={handleSignUp}>
+                onClick={handleSignUp}
+                aria-label='SignUpButton'>
                 Sign Up
               </Button>
             </form>

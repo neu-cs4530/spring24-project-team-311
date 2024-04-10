@@ -17,6 +17,7 @@ import feed from './images/feed.png';
 import clean from './images/clean.png';
 import play from './images/play.png';
 import TownController from '../../classes/TownController';
+import assert from 'assert';
 
 interface PetInteractivePopupProps {
   isOpen: boolean;
@@ -41,7 +42,8 @@ const PetInteractivePopup = (props: PetInteractivePopupProps) => {
       setErrorMessage('');
     }
     updatedProgressValues[index] = Math.min(updatedProgressValues[index] + 10, 100); // Increase progress by 10%
-    props.townController.setPetStats(ourPet!.petID, {
+    assert(ourPet !== undefined, 'Pet should not be undefined');
+    props.townController.setPetStats(ourPet.petID, {
       hunger: updatedProgressValues[0],
       health: updatedProgressValues[1],
       happiness: updatedProgressValues[2],

@@ -82,6 +82,10 @@ export type TownEvents = {
    */
   playersChanged: (newPlayers: PlayerController[]) => void;
 
+  /**
+   * An event that indicates that the set of pets in the town has changed. This event is dispatched
+   * before updating the properties of this TownController; clients will find the new pets in the parameter
+   */
   petsChanged: (newPets: PetController[]) => void;
 
   /**
@@ -357,6 +361,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
       petToUpdate.petHealth = Math.max(newStats.health, 0);
       petToUpdate.petHappiness = Math.max(newStats.happiness, 0);
       petToUpdate.petHunger = Math.max(newStats.hunger, 0);
+
       this._socket.emit('updatePetStats', petToUpdate.playerID, petID, {
         health: petToUpdate.petHealth,
         happiness: petToUpdate.petHappiness,
