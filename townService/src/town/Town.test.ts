@@ -1,7 +1,6 @@
 import { ITiledMap } from '@jonbell/tiled-map-type-guard';
 import { DeepMockProxy, mockClear, mockDeep, mockReset } from 'jest-mock-extended';
 import { nanoid } from 'nanoid';
-import Pet from '../lib/Pet';
 import Player from '../lib/Player';
 import TwilioVideo from '../lib/TwilioVideo';
 import {

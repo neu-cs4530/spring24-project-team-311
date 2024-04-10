@@ -21,7 +21,6 @@ export default class PetsController {
   }
 
   public async updateStats(userID: string, petID: string, request: PetSettingsUpdate) {
-    console.log('UPDATE CALLED');
     await this._firebaseSchema.changeHappiness(userID, petID, request.happiness);
     await this._firebaseSchema.changeHunger(userID, petID, request.hunger);
     await this._firebaseSchema.changeHealth(userID, petID, request.health);

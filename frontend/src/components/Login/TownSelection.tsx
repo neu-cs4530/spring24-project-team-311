@@ -25,9 +25,6 @@ import useLoginController from '../../hooks/useLoginController';
 import TownController from '../../classes/TownController';
 import useVideoContext from '../VideoCall/VideoFrontend/hooks/useVideoContext/useVideoContext';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { signOut } from 'firebase/auth';
-import SignInOrUp from './SignInOrUp';
-import { auth } from '../../firebase';
 
 interface TownSelectionProps {
   username: string;
@@ -35,8 +32,6 @@ interface TownSelectionProps {
 }
 
 export default function TownSelection({ username, userId }: TownSelectionProps): JSX.Element {
-  // const [loggedIn, setLoggedIn] = useState<boolean>(false);
-  // const [userName, setUserName] = useState<string>('');
   const userName = username;
   const [newTownName, setNewTownName] = useState<string>('');
   const [newTownIsPublic, setNewTownIsPublic] = useState<boolean>(true);
@@ -46,7 +41,6 @@ export default function TownSelection({ username, userId }: TownSelectionProps):
   const loginController = useLoginController();
   const { setTownController, townsService } = loginController;
   const { connect: videoConnect } = useVideoContext();
-
   const toast = useToast();
 
   const updateTownListings = useCallback(() => {
@@ -62,28 +56,11 @@ export default function TownSelection({ username, userId }: TownSelectionProps):
     };
   }, [updateTownListings]);
 
-  // useEffect(() => {
-  //   const unsubscribe = auth.onAuthStateChanged(user => {
-  //     if (user) {
-  //       setLoggedIn(true);
-  //       // set username here
-  //       setUserName(user.displayName || 'DUMMY_USERNAME');
-  //       // console.log(userName);
-  //     } else {
-  //       setLoggedIn(false);
-  //     }
-  //   });
-  //   return () => unsubscribe();
-  // });
-
   const handleJoin = useCallback(
     async (coveyRoomID: string) => {
       let connectWatchdog: NodeJS.Timeout | undefined = undefined;
       let loadingToast: ToastId | undefined = undefined;
       try {
-        // if (!loggedIn) {
-        //   return;
-        // }
         if (!userName || userName.length === 0) {
           toast({
             title: 'Unable to join town',
@@ -166,9 +143,6 @@ export default function TownSelection({ username, userId }: TownSelectionProps):
   );
 
   const handleCreate = async () => {
-    // if (!loggedIn) {
-    //   return;
-    // }
     if (!userName || userName.length === 0) {
       toast({
         title: 'Unable to create town',
@@ -266,27 +240,8 @@ export default function TownSelection({ username, userId }: TownSelectionProps):
     }
   };
 
-  // const firebaseSignOut = async () => {
-  //   await signOut(auth);
-  // };
-
-  // if (!loggedIn) {
-  //   return (
-  //     <>
-  //       <SignInOrUp />
-  //     </>
-  //   );
-  // }
   return (
     <>
-      {/* <Box borderWidth='1px' borderRadius='lg'>
-        <Box p='4' flex='1'>
-          Current User: {userName}{' '}
-          <Button onClick={firebaseSignOut} size='xs' colorScheme='red'>
-            Sign Out
-          </Button>
-        </Box>
-      </Box> */}
       <form>
         <Stack>
           <Box borderWidth='1px' borderRadius='lg'>

@@ -1,9 +1,6 @@
 import assert from 'assert';
 import Phaser from 'phaser';
-import PlayerController, {
-  MOVEMENT_SPEED,
-  PlayerGameObjects,
-} from '../../classes/PlayerController';
+import PlayerController, { MOVEMENT_SPEED } from '../../classes/PlayerController';
 import TownController from '../../classes/TownController';
 import { Direction, PetType, PlayerLocation } from '../../types/CoveyTownSocket';
 import { Callback } from '../VideoCall/VideoFrontend/types';
@@ -13,7 +10,6 @@ import GameArea from './interactables/GameArea';
 import Transporter from './interactables/Transporter';
 import ViewingArea from './interactables/ViewingArea';
 import HospitalArea from './interactables/HospitalArea';
-import PetInteractivePopup from './PetInteractivePopup';
 import PetController, { PetGameObjects } from '../../classes/PetController';
 
 export class NoPetError extends Error {
@@ -26,7 +22,6 @@ export class NoPetError extends Error {
 const LABEL_OFFSET_Y = -20;
 const PET_LABEL_OFFSET_Y = 10;
 const PET_EMOTICON_OFFSET_Y = -20;
-
 const STAT_DECAY_SECONDS = 10;
 
 // Still not sure what the right type is here... "Interactable" doesn't do it
@@ -1284,7 +1279,6 @@ export default class TownGameScene extends Phaser.Scene {
     console.log('checking for pet');
     console.log(this.coveyTownController.ourPet);
 
-    //temporary stat decaying. This should be accomplished by the backend emitting an event later
     const decayEvent = this.time.addEvent({
       delay: STAT_DECAY_SECONDS * 1000,
       loop: true,
@@ -1296,14 +1290,7 @@ export default class TownGameScene extends Phaser.Scene {
   }
 
   private _decayPetStats() {
-    //if (this.coveyTownController.ourPet) {
     this.coveyTownController.decreasePetStats(1);
-    // console.log([
-    //   this.coveyTownController.ourPet?.petHappiness,
-    //   this.coveyTownController.ourPet?.petHunger,
-    //   this.coveyTownController.ourPet?.petHealth,
-    // ]);
-    //}
   }
 
   private _addInitialPetSprite(
@@ -1352,7 +1339,6 @@ export default class TownGameScene extends Phaser.Scene {
         {
           font: '12px monospace',
           color: '#000000',
-          // padding: {x: 20, y: 10},
           backgroundColor: '#ffffff',
         },
       )
@@ -1381,7 +1367,6 @@ export default class TownGameScene extends Phaser.Scene {
         {
           font: '18px monospace',
           color: '#000000',
-          // padding: {x: 20, y: 10},
           backgroundColor: '#ffffff',
         },
       );

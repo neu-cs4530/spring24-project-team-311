@@ -2,14 +2,9 @@ import React, { useState, useEffect, FormEvent } from 'react';
 import DeviceSelectionScreen from './DeviceSelectionScreen/DeviceSelectionScreen';
 import IntroContainer from '../IntroContainer/IntroContainer';
 import MediaErrorSnackbar from './MediaErrorSnackbar/MediaErrorSnackbar';
-import RoomNameScreen from './RoomNameScreen/RoomNameScreen';
-import { useAppState } from '../../state';
-import { useParams } from 'react-router-dom';
 import useVideoContext from '../../hooks/useVideoContext/useVideoContext';
 import { Box, Button, Heading, Text } from '@chakra-ui/react';
 import TownSelection from '../../../../Login/TownSelection';
-import { TownJoinResponse } from '../../../../../types/CoveyTownSocket';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { signOut } from 'firebase/auth';
 import SignInOrUp from '../../../../Login/SignInOrUp';
 import { auth } from '../../../../../firebase';
@@ -24,7 +19,6 @@ export default function PreJoinScreens() {
   const [newSignUp, setNewSignUp] = useState<boolean>(false);
   const [userName, setUserName] = useState<string>('');
   const [userID, setUserID] = useState<string>('');
-  // const { user } = useAppState();
   const { getAudioAndVideoTracks } = useVideoContext();
 
   const [mediaError, setMediaError] = useState<Error>();
