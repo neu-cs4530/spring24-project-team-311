@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ChakraProvider } from '@chakra-ui/react';
 import '@testing-library/jest-dom';
 import React from 'react';
@@ -55,7 +56,6 @@ jest.mock('firebase/auth', () => {
       if (!email.includes('@')) {
         const err = new MockFirebaseError('auth/invalid-email');
         err.code = 'auth/invalid-email';
-        console.log('error', err);
         return Promise.reject(err);
       }
       if (email === 'test@mail.com') {

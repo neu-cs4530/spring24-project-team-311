@@ -82,6 +82,10 @@ export type TownEvents = {
    */
   playersChanged: (newPlayers: PlayerController[]) => void;
 
+  /**
+   * An event that indicates that the set of pets in the town has changed. This event is dispatched
+   * before updating the properties of this TownController; clients will find the new pets in the parameter
+   */
   petsChanged: (newPets: PetController[]) => void;
 
   /**
@@ -355,16 +359,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     newStats: { health: number; happiness: number; hunger: number },
   ) {
     const petToUpdate = this._petsInternal.find(eachPet => eachPet.petID === petID);
-    // console.log('PET TO UPDATE');
     if (petToUpdate) {
-      // console.log('PET TO');
       petToUpdate.petHealth = Math.max(newStats.health, 0);
       petToUpdate.petHappiness = Math.max(newStats.happiness, 0);
       petToUpdate.petHunger = Math.max(newStats.hunger, 0);
-
-      // console.log('PETHEALTH ' + petToUpdate.petHealth);
-      // console.log('PETHUNGER' + petToUpdate.petHunger);
-      // console.log('PETHAPPINESS' + petToUpdate.petHappiness);
 
       this._socket.emit('updatePetStats', petToUpdate.playerID, petID, {
         health: petToUpdate.petHealth,
@@ -372,8 +370,6 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         hunger: petToUpdate.petHunger,
         hospital: petToUpdate.isInHospital,
       });
-
-      // TODO: update backend
     }
   }
 
@@ -387,7 +383,6 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         happiness: pet.petHappiness - delta,
         hunger: pet.petHunger - delta,
       });
-      // this._socket.emit('decreaseStats', delta);
     });
   }
 

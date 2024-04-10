@@ -21,6 +21,7 @@ import {
 } from '@chakra-ui/react';
 import { auth } from '../../firebase';
 import paws from '../Town/images/paws-town.png';
+import assert from 'assert';
 
 function SignInComponent(): JSX.Element {
   const [email, setEmail] = useState('');
@@ -136,7 +137,6 @@ function SignUpComponent({
     let errorState = false;
     await createUserWithEmailAndPassword(auth, email, password)
       .catch(async error => {
-        console.log(error.code, error.message);
         errorState = true;
         setIsSigningUp(false);
         switch (error.code) {
@@ -168,7 +168,8 @@ function SignUpComponent({
       .then(async () => {
         if (!errorState) {
           updateUserName(userName);
-          await updateProfile(auth.currentUser!, { displayName: userName });
+          assert(auth.currentUser !== null, 'User is null');
+          await updateProfile(auth.currentUser, { displayName: userName });
           toast({
             title: 'Account created.',
             status: 'success',

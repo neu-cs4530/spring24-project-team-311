@@ -303,13 +303,11 @@ export default class TownGameScene extends Phaser.Scene {
       petObjects.sprite.y = destination.y;
     }
     if (destination.moving !== undefined) {
-      this.coveyTownController.ourPet!.location.moving = destination.moving;
+      this.coveyTownController.ourPet.location.moving = destination.moving;
     }
     if (destination.rotation !== undefined) {
-      this.coveyTownController.ourPet!.location.rotation = destination.rotation;
+      this.coveyTownController.ourPet.location.rotation = destination.rotation;
     }
-
-    // TODO: emit movement for pet
   }
 
   update(time: number, delta: number) {
@@ -320,12 +318,6 @@ export default class TownGameScene extends Phaser.Scene {
     if (this._paused) {
       return;
     }
-    const prevLocation: PlayerLocation = {
-      x: this._lastLocation?.x || 0,
-      y: this._lastLocation?.y || 0,
-      rotation: 'front',
-      moving: false,
-    };
     const gameObjects = this.coveyTownController.ourPlayer.gameObjects;
     if (gameObjects && this._cursors) {
       const prevVelocity = gameObjects.sprite.body.velocity.clone();
@@ -442,7 +434,7 @@ export default class TownGameScene extends Phaser.Scene {
 
     // Update the position of the follower sprite to follow the player sprite
     const petObjects = this.coveyTownController.ourPet?.gameObjects;
-    if (gameObjects && petObjects) {
+    if (gameObjects && petObjects && this.coveyTownController.ourPet) {
       const prevVelocity = petObjects.sprite.body.velocity.clone();
       const body = petObjects.sprite.body as Phaser.Physics.Arcade.Body;
 
@@ -450,10 +442,10 @@ export default class TownGameScene extends Phaser.Scene {
       body.setVelocity(0);
 
       // get direction to move pet
-      const petLocation = this.coveyTownController.ourPet!.location;
+      const petLocation = this.coveyTownController.ourPet.location;
 
       // get location behind the player
-      const playerBounds = this.coveyTownController.ourPlayer.gameObjects!.sprite.getBounds();
+      const playerBounds = gameObjects.sprite.getBounds();
       let offsetX = 0;
       let offsetY = 0;
       switch (this.coveyTownController.ourPlayer.location.rotation) {
@@ -492,7 +484,7 @@ export default class TownGameScene extends Phaser.Scene {
         }
       }
 
-      const ourPetType = this.coveyTownController.ourPet!.petType;
+      const ourPetType = this.coveyTownController.ourPet.petType;
       switch (ourPetType) {
         case 'Dog':
           this._setDogSprite(petObjects, primaryDirection, prevVelocity, body);
@@ -513,14 +505,14 @@ export default class TownGameScene extends Phaser.Scene {
       petObjects.label.setX(body.x);
       petObjects.label.setY(body.y + PET_LABEL_OFFSET_Y);
 
-      this.coveyTownController.ourPet!.location = {
+      this.coveyTownController.ourPet.location = {
         x: petObjects.sprite.getBounds().centerX,
         y: petObjects.sprite.getBounds().centerY,
         rotation: primaryDirection || 'front',
         moving: primaryDirection !== undefined,
       };
 
-      this._catchPetUp(this.coveyTownController.ourPet!);
+      this._catchPetUp(this.coveyTownController.ourPet);
 
       // update other pet labels
       for (const pet of this.coveyTownController.pets) {
@@ -536,33 +528,23 @@ export default class TownGameScene extends Phaser.Scene {
         this._petEmoticon.setX(petObjects.sprite.x);
         this._petEmoticon.setY(petObjects.sprite.y + PET_EMOTICON_OFFSET_Y);
         let numHighStats = 0;
-        let numMediumStats = 0;
         let numLowStats = 0;
-        if (this.coveyTownController.ourPet!.petHappiness > 70) {
+        if (this.coveyTownController.ourPet.petHappiness > 70) {
           numHighStats++;
         }
-        if (this.coveyTownController.ourPet!.petHealth > 70) {
+        if (this.coveyTownController.ourPet.petHealth > 70) {
           numHighStats++;
         }
-        if (this.coveyTownController.ourPet!.petHunger > 70) {
+        if (this.coveyTownController.ourPet.petHunger > 70) {
           numHighStats++;
         }
-        if (this.coveyTownController.ourPet!.petHappiness > 30) {
-          numMediumStats++;
-        }
-        if (this.coveyTownController.ourPet!.petHealth > 30) {
-          numMediumStats++;
-        }
-        if (this.coveyTownController.ourPet!.petHunger > 30) {
-          numMediumStats++;
-        }
-        if (this.coveyTownController.ourPet!.petHappiness <= 30) {
+        if (this.coveyTownController.ourPet.petHappiness <= 30) {
           numLowStats++;
         }
-        if (this.coveyTownController.ourPet!.petHealth <= 30) {
+        if (this.coveyTownController.ourPet.petHealth <= 30) {
           numLowStats++;
         }
-        if (this.coveyTownController.ourPet!.petHunger <= 30) {
+        if (this.coveyTownController.ourPet.petHunger <= 30) {
           numLowStats++;
         }
 
@@ -588,8 +570,8 @@ export default class TownGameScene extends Phaser.Scene {
       }
 
       // If pet is in hospital, set invisible
-      petObjects.sprite.visible = !this.coveyTownController.ourPet!.isInHospital;
-      petObjects.label.visible = !this.coveyTownController.ourPet!.isInHospital;
+      petObjects.sprite.visible = !this.coveyTownController.ourPet.isInHospital;
+      petObjects.label.visible = !this.coveyTownController.ourPet.isInHospital;
     }
 
     for (const pet of this._pets) {
@@ -1265,6 +1247,7 @@ export default class TownGameScene extends Phaser.Scene {
     this.coveyTownController.addListener('playersChanged', players => this.updatePlayers(players));
     this.coveyTownController.addListener('petsChanged', pets => this.updatePets(pets, spawnPoint));
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const decayEvent = this.time.addEvent({
       delay: STAT_DECAY_SECONDS * 1000,
       loop: true,
