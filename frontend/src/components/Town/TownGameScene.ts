@@ -1,6 +1,9 @@
 import assert from 'assert';
 import Phaser from 'phaser';
-import PlayerController, { MOVEMENT_SPEED } from '../../classes/PlayerController';
+import PlayerController, {
+  MOVEMENT_SPEED,
+  PlayerGameObjects,
+} from '../../classes/PlayerController';
 import TownController from '../../classes/TownController';
 import { Direction, PetType, PlayerLocation } from '../../types/CoveyTownSocket';
 import { Callback } from '../VideoCall/VideoFrontend/types';
@@ -24,7 +27,7 @@ const LABEL_OFFSET_Y = -20;
 const PET_LABEL_OFFSET_Y = 10;
 const PET_EMOTICON_OFFSET_Y = -20;
 
-const STAT_DECAY_SECONDS = 1;
+const STAT_DECAY_SECONDS = 10;
 
 // Still not sure what the right type is here... "Interactable" doesn't do it
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -220,6 +223,26 @@ export default class TownGameScene extends Phaser.Scene {
     });
     // Remove disconnected players from list
     this._players = players;
+  }
+
+  updatePets(pets: PetController[]) {
+    //Make sure that each pet has sprites
+    pets.map(eachPet => this.createPetSprites(eachPet));
+
+    // Remove disconnected pets from board
+    const disconnectedPets = this._pets.filter(pet => !pets.find(p => p.petID === pet.petID));
+
+    disconnectedPets.forEach(disconnectedPet => {
+      if (disconnectedPet.gameObjects) {
+        const { sprite, label } = disconnectedPet.gameObjects;
+        if (sprite && label) {
+          sprite.destroy();
+          label.destroy();
+        }
+      }
+    });
+    // Remove disconnected pets from list
+    this._pets = pets;
   }
 
   getNewMovementDirection() {
@@ -576,6 +599,117 @@ export default class TownGameScene extends Phaser.Scene {
       // If pet is in hospital, set invisible
       petObjects.sprite.visible = !this.coveyTownController.ourPet!.isInHospital;
       petObjects.label.visible = !this.coveyTownController.ourPet!.isInHospital;
+    }
+
+    for (const pet of this._pets) {
+      if (pet.petID !== this.coveyTownController.ourPet?.petID) {
+        this.createPetSprites(pet);
+        this._animatePet(pet);
+      }
+    }
+    console.log(this._pets);
+  }
+
+  private _animatePet(petToAnimate: PetController) {
+    const petOwner = this.coveyTownController.players.filter(
+      player => player.id === petToAnimate.playerID,
+    )[0];
+    const playerObjects = petOwner.gameObjects;
+    const petObjects = petToAnimate.gameObjects;
+    if (playerObjects && petObjects) {
+      const prevVelocity = petObjects.sprite.body.velocity.clone();
+      const body = petObjects.sprite.body as Phaser.Physics.Arcade.Body;
+
+      // Stop any previous movement from the last frame
+      body.setVelocity(0);
+
+      // get direction to move pet
+      const petLocation = petToAnimate.location;
+
+      // get location behind the player
+      const playerBounds = playerObjects.sprite.getBounds();
+      let offsetX = 0;
+      let offsetY = 0;
+      switch (petOwner.location.rotation) {
+        case 'left':
+          offsetX = 32;
+          offsetY = 16;
+          break;
+        case 'right':
+          offsetX = -32;
+          offsetY = 16;
+          break;
+        case 'front':
+          offsetY = -32;
+          break;
+        case 'back':
+          offsetY = 32;
+          break;
+      }
+      const targetLocation = {
+        x: playerBounds.centerX + offsetX,
+        y: playerBounds.centerY + offsetY,
+      };
+
+      const deltaX = targetLocation.x - petLocation.x;
+      const deltaY = targetLocation.y - petLocation.y;
+
+      let primaryDirection: Direction | undefined;
+
+      if (petOwner.location.moving) {
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+          primaryDirection = deltaX > 0 ? 'right' : 'left';
+        } else if (Math.abs(deltaY) > Math.abs(deltaX)) {
+          primaryDirection = deltaY > 0 ? 'front' : 'back';
+        } else {
+          primaryDirection = undefined;
+        }
+        // console.log('------');
+        // console.log(`deltaX: ${deltaX}, deltaY: ${deltaY}`);
+        // console.log(`prevLocation: ${JSON.stringify(targetLocation)}`);
+        // console.log(`petLocation: ${JSON.stringify(petLocation)}`);
+        // console.log(`primaryDirection: ${primaryDirection}`);
+      }
+
+      const petType = petToAnimate.petType;
+      switch (petType) {
+        case 'Dog':
+          this._setDogSprite(petObjects, primaryDirection, prevVelocity, body);
+          break;
+        case 'Cat':
+          this._setCatSprite(petObjects, primaryDirection, prevVelocity, body);
+          break;
+        case 'Duck':
+          this._setDuckSprite(petObjects, primaryDirection, prevVelocity, body);
+          break;
+        default:
+          console.error(`Invalid pet type ${petType}`);
+          this._setDogSprite(petObjects, primaryDirection, prevVelocity, body);
+          break;
+      }
+      // Normalize and scale the velocity so that pet can't move faster along a diagonal
+      petObjects.sprite.body.velocity.normalize().scale(MOVEMENT_SPEED);
+      petObjects.label.setX(body.x);
+      petObjects.label.setY(body.y + PET_LABEL_OFFSET_Y);
+
+      // replace with emit later
+      petToAnimate.location = {
+        x: petObjects.sprite.getBounds().centerX,
+        y: petObjects.sprite.getBounds().centerY,
+        rotation: primaryDirection || 'front',
+        moving: primaryDirection !== undefined,
+      };
+
+      // update other pet labels
+      for (const pet of this.coveyTownController.pets) {
+        if (pet.gameObjects?.label && pet.gameObjects?.sprite.body) {
+          pet.gameObjects.label.setX(pet.gameObjects.sprite.body.x);
+          pet.gameObjects.label.setY(pet.gameObjects.sprite.body.y + PET_LABEL_OFFSET_Y);
+        }
+      }
+
+      petObjects.sprite.visible = !petToAnimate.isInHospital;
+      petObjects.label.visible = !petToAnimate.isInHospital;
     }
   }
 
@@ -1112,6 +1246,7 @@ export default class TownGameScene extends Phaser.Scene {
     this._onGameReadyListeners.forEach(listener => listener());
     this._onGameReadyListeners = [];
     this.coveyTownController.addListener('playersChanged', players => this.updatePlayers(players));
+    this.coveyTownController.addListener('petsChanged', pets => this.updatePets(pets));
 
     console.log('checking for pet');
     console.log(this.coveyTownController.ourPet);
@@ -1130,17 +1265,17 @@ export default class TownGameScene extends Phaser.Scene {
   private _decayPetStats() {
     //if (this.coveyTownController.ourPet) {
     this.coveyTownController.decreasePetStats(1);
-    console.log([
-      this.coveyTownController.ourPet?.petHappiness,
-      this.coveyTownController.ourPet?.petHunger,
-      this.coveyTownController.ourPet?.petHealth,
-    ]);
+    // console.log([
+    //   this.coveyTownController.ourPet?.petHappiness,
+    //   this.coveyTownController.ourPet?.petHunger,
+    //   this.coveyTownController.ourPet?.petHealth,
+    // ]);
     //}
   }
 
   private _addInitialPetSprite(
     petType: PetType,
-    spawnPoint: Phaser.GameObjects.Components.Transform,
+    spawnPoint: Phaser.GameObjects.Components.Transform | PlayerLocation,
   ) {
     switch (petType) {
       case 'Dog':
@@ -1171,13 +1306,16 @@ export default class TownGameScene extends Phaser.Scene {
     }
   }
 
-  private _addInitialPetLabel(spawnPoint: Phaser.GameObjects.Components.Transform) {
+  private _addInitialPetLabel(
+    spawnPoint: Phaser.GameObjects.Components.Transform | PlayerLocation,
+    pet?: PetController,
+  ) {
     // add label
     return this.add
       .text(
         spawnPoint.x + 32,
         spawnPoint.y + PET_LABEL_OFFSET_Y,
-        this.coveyTownController.ourPet?.petName || 'Pet',
+        pet ? pet.petName : this.coveyTownController.ourPet?.petName || 'Pet',
         {
           font: '12px monospace',
           color: '#000000',
@@ -1218,6 +1356,19 @@ export default class TownGameScene extends Phaser.Scene {
         sprite,
         label,
         locationManagedByGameScene: false,
+      };
+      this._collidingLayers.forEach(layer => this.physics.add.collider(sprite, layer));
+    }
+  }
+
+  createPetSprites(pet: PetController) {
+    if (!pet.gameObjects) {
+      const sprite = this._addInitialPetSprite(pet.petType, pet.location);
+      const label = this._addInitialPetLabel(pet.location, pet);
+      pet.gameObjects = {
+        sprite,
+        label,
+        locationManagedByGameScene: true,
       };
       this._collidingLayers.forEach(layer => this.physics.add.collider(sprite, layer));
     }

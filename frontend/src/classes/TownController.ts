@@ -82,6 +82,8 @@ export type TownEvents = {
    */
   playersChanged: (newPlayers: PlayerController[]) => void;
 
+  petsChanged: (newPets: PetController[]) => void;
+
   /**
    * An event that indicates that a player has moved. This event is dispatched after updating the player's location -
    * the new location can be found on the PlayerController.
@@ -332,6 +334,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   }
 
   private set _pets(newPets: PetController[]) {
+    this.emit('petsChanged', newPets);
     this._petsInternal = newPets;
   }
 
@@ -359,9 +362,9 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
       petToUpdate.petHappiness = Math.max(newStats.happiness, 0);
       petToUpdate.petHunger = Math.max(newStats.hunger, 0);
 
-      console.log('PETHEALTH ' + petToUpdate.petHealth);
-      console.log('PETHUNGER' + petToUpdate.petHunger);
-      console.log('PETHAPPINESS' + petToUpdate.petHappiness);
+      // console.log('PETHEALTH ' + petToUpdate.petHealth);
+      // console.log('PETHUNGER' + petToUpdate.petHunger);
+      // console.log('PETHAPPINESS' + petToUpdate.petHappiness);
 
       this._socket.emit('updatePetStats', petToUpdate.playerID, petID, {
         health: petToUpdate.petHealth,
@@ -552,6 +555,42 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
           playerToUpdate.location.interactableID = movedPlayer.location.interactableID;
         } else {
           playerToUpdate.location = movedPlayer.location;
+          const petToUpdate = this._petsInternal.find(
+            eachPet => eachPet.playerID === movedPlayer.id,
+          );
+          if (petToUpdate) {
+            if (playerToUpdate.location.rotation === 'front') {
+              petToUpdate.location = {
+                x: playerToUpdate.location.x,
+                y: playerToUpdate.location.y + 20,
+                rotation: playerToUpdate.location.rotation,
+                moving: playerToUpdate.location.moving,
+              };
+            } else if (playerToUpdate.location.rotation === 'back') {
+              petToUpdate.location = {
+                x: playerToUpdate.location.x,
+                y: playerToUpdate.location.y - 20,
+                rotation: playerToUpdate.location.rotation,
+                moving: playerToUpdate.location.moving,
+              };
+            } else if (playerToUpdate.location.rotation === 'right') {
+              petToUpdate.location = {
+                x: playerToUpdate.location.x - 20,
+                y: playerToUpdate.location.y,
+                rotation: playerToUpdate.location.rotation,
+                moving: playerToUpdate.location.moving,
+              };
+            } else if (playerToUpdate.location.rotation === 'left') {
+              petToUpdate.location = {
+                x: playerToUpdate.location.x + 20,
+                y: playerToUpdate.location.y,
+                rotation: playerToUpdate.location.rotation,
+                moving: playerToUpdate.location.moving,
+              };
+            }
+          } else {
+            console.log('PET TO UPDATE NOT FOUND');
+          }
         }
         this.emit('playerMoved', playerToUpdate);
       }
@@ -743,7 +782,8 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
           PlayerController.fromPlayerModel(eachPlayerModel),
         );
 
-        this._petsInternal = initialData.currentPets.map(eachPetModel =>
+        console.log(initialData.currentPets);
+        this._pets = initialData.currentPets.map(eachPetModel =>
           new PetController(
             eachPetModel.ownerID,
             eachPetModel.id,
