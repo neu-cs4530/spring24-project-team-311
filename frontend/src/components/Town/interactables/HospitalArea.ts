@@ -12,9 +12,9 @@ export default class HospitalArea extends Interactable {
     this.setAlpha(0);
     this.setDepth(-1);
     this.scene.add.text(
-      this.x - this.displayWidth / 2,
-      this.y + this.displayHeight / 2,
-      `Check up a pet`,
+      this.x - this.displayWidth / 1.35,
+      this.y + this.displayHeight / 1.9,
+      `Check up a pet in the back`,
       { color: '#FFFFFF', backgroundColor: '#000000' },
     );
   }

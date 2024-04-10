@@ -22,7 +22,7 @@ export class NoPetError extends Error {
 const LABEL_OFFSET_Y = -20;
 const PET_LABEL_OFFSET_Y = 10;
 const PET_EMOTICON_OFFSET_Y = -20;
-const STAT_DECAY_SECONDS = 10;
+const STAT_DECAY_SECONDS = 3;
 
 // Still not sure what the right type is here... "Interactable" doesn't do it
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
