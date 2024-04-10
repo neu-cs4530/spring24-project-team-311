@@ -6,7 +6,6 @@ import e from 'cors';
 import InvalidParametersError from '../lib/InvalidParametersError';
 import IVideoClient from '../lib/IVideoClient';
 import Player from '../lib/Player';
-import Pet from '../lib/Pet';
 import TwilioVideo from '../lib/TwilioVideo';
 import { isViewingArea } from '../TestUtils';
 import {
@@ -31,6 +30,7 @@ import InteractableArea from './InteractableArea';
 import ViewingArea from './ViewingArea';
 import PetsController from './PetsController';
 import MockPetDatabase from './MockPetDatabase';
+import Pet from '../lib/Pet';
 
 /**
  * The Town class implements the logic for each town: managing the various events that
@@ -86,6 +86,7 @@ export default class Town {
   /** The list of players currently in the town * */
   private _players: Player[] = [];
 
+  /** The list of pets currently in the town * */
   private _pets: Pet[] = [];
 
   /** The videoClient that this CoveyTown will use to provision video resources * */

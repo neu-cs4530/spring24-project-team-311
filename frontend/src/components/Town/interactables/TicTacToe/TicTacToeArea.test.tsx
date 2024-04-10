@@ -164,7 +164,7 @@ describe('[T2] TicTacToeArea', () => {
     );
   }
   beforeEach(() => {
-    ourPlayer = new PlayerController('player x', 'player x', randomLocation());
+    ourPlayer = new PlayerController('player x', 'player x', randomLocation(), 'test@test.com');
     mockGameArea.name = nanoid();
     mockReset(townController);
     gameAreaController.mockReset();
@@ -267,8 +267,18 @@ describe('[T2] TicTacToeArea', () => {
     });
     it('Is not shown if the game is in progress', () => {
       gameAreaController.mockStatus = 'IN_PROGRESS';
-      gameAreaController.mockX = new PlayerController('player X', 'player X', randomLocation());
-      gameAreaController.mockO = new PlayerController('player O', 'player O', randomLocation());
+      gameAreaController.mockX = new PlayerController(
+        'player X',
+        'player X',
+        randomLocation(),
+        'test@test.com',
+      );
+      gameAreaController.mockO = new PlayerController(
+        'player O',
+        'player O',
+        randomLocation(),
+        'test@test.com',
+      );
       gameAreaController.mockIsPlayer = false;
       renderTicTacToeArea();
       expect(screen.queryByText('Join New Game')).not.toBeInTheDocument();
@@ -276,7 +286,12 @@ describe('[T2] TicTacToeArea', () => {
     it('Is enabled when the player is not in a game and the game is not in progress', () => {
       gameAreaController.mockStatus = 'WAITING_TO_START';
       gameAreaController.mockX = undefined;
-      gameAreaController.mockO = new PlayerController('player O', 'player O', randomLocation());
+      gameAreaController.mockO = new PlayerController(
+        'player O',
+        'player O',
+        randomLocation(),
+        'test@test.com',
+      );
       gameAreaController.mockIsPlayer = false;
       renderTicTacToeArea();
       expect(screen.queryByText('Join New Game')).toBeInTheDocument();
@@ -332,8 +347,18 @@ describe('[T2] TicTacToeArea', () => {
     it('Adds the display of the button when a game becomes possible to join', () => {
       gameAreaController.mockStatus = 'IN_PROGRESS';
       gameAreaController.mockIsPlayer = false;
-      gameAreaController.mockX = new PlayerController('player X', 'player X', randomLocation());
-      gameAreaController.mockO = new PlayerController('player O', 'player O', randomLocation());
+      gameAreaController.mockX = new PlayerController(
+        'player X',
+        'player X',
+        randomLocation(),
+        'test@test.com',
+      );
+      gameAreaController.mockO = new PlayerController(
+        'player O',
+        'player O',
+        randomLocation(),
+        'test@test.com',
+      );
       renderTicTacToeArea();
       expect(screen.queryByText('Join New Game')).not.toBeInTheDocument();
       act(() => {
@@ -346,12 +371,22 @@ describe('[T2] TicTacToeArea', () => {
       gameAreaController.mockStatus = 'WAITING_TO_START';
       gameAreaController.mockIsPlayer = false;
       gameAreaController.mockX = undefined;
-      gameAreaController.mockO = new PlayerController('player O', 'player O', randomLocation());
+      gameAreaController.mockO = new PlayerController(
+        'player O',
+        'player O',
+        randomLocation(),
+        'test@test.com',
+      );
       renderTicTacToeArea();
       expect(screen.queryByText('Join New Game')).toBeInTheDocument();
       act(() => {
         gameAreaController.mockStatus = 'IN_PROGRESS';
-        gameAreaController.mockX = new PlayerController('player X', 'player X', randomLocation());
+        gameAreaController.mockX = new PlayerController(
+          'player X',
+          'player X',
+          randomLocation(),
+          'test@test.com',
+        );
         gameAreaController.emit('gameUpdated');
       });
       expect(screen.queryByText('Join New Game')).not.toBeInTheDocument();
@@ -361,7 +396,12 @@ describe('[T2] TicTacToeArea', () => {
     it('Displays the username of the X player if the X player is in the game', () => {
       gameAreaController.mockStatus = 'IN_PROGRESS';
       gameAreaController.mockIsPlayer = false;
-      gameAreaController.mockX = new PlayerController(nanoid(), nanoid(), randomLocation());
+      gameAreaController.mockX = new PlayerController(
+        nanoid(),
+        nanoid(),
+        randomLocation(),
+        'test@test.com',
+      );
       renderTicTacToeArea();
       const listOfPlayers = screen.getByLabelText('list of players in the game');
       expect(
@@ -371,7 +411,12 @@ describe('[T2] TicTacToeArea', () => {
     it('Displays the username of the O player if the O player is in the game', () => {
       gameAreaController.mockStatus = 'IN_PROGRESS';
       gameAreaController.mockIsPlayer = false;
-      gameAreaController.mockO = new PlayerController(nanoid(), nanoid(), randomLocation());
+      gameAreaController.mockO = new PlayerController(
+        nanoid(),
+        nanoid(),
+        randomLocation(),
+        'test@test.com',
+      );
       renderTicTacToeArea();
       const listOfPlayers = screen.getByLabelText('list of players in the game');
       expect(
@@ -401,7 +446,12 @@ describe('[T2] TicTacToeArea', () => {
       const listOfPlayers = screen.getByLabelText('list of players in the game');
       expect(within(listOfPlayers).getByText(`X: (No player yet!)`)).toBeInTheDocument();
       act(() => {
-        gameAreaController.mockX = new PlayerController(nanoid(), nanoid(), randomLocation());
+        gameAreaController.mockX = new PlayerController(
+          nanoid(),
+          nanoid(),
+          randomLocation(),
+          'test@test.com',
+        );
         gameAreaController.emit('gameUpdated');
       });
       expect(
@@ -415,7 +465,12 @@ describe('[T2] TicTacToeArea', () => {
       const listOfPlayers = screen.getByLabelText('list of players in the game');
       expect(within(listOfPlayers).getByText(`O: (No player yet!)`)).toBeInTheDocument();
       act(() => {
-        gameAreaController.mockO = new PlayerController(nanoid(), nanoid(), randomLocation());
+        gameAreaController.mockO = new PlayerController(
+          nanoid(),
+          nanoid(),
+          randomLocation(),
+          'test@test.com',
+        );
         gameAreaController.emit('gameUpdated');
       });
       expect(
@@ -444,7 +499,12 @@ describe('[T2] TicTacToeArea', () => {
         gameAreaController.mockStatus = 'IN_PROGRESS';
         gameAreaController.mockMoveCount = 2;
         gameAreaController.mockX = ourPlayer;
-        gameAreaController.mockO = new PlayerController('player O', 'player O', randomLocation());
+        gameAreaController.mockO = new PlayerController(
+          'player O',
+          'player O',
+          randomLocation(),
+          'test@test.com',
+        );
         gameAreaController.mockWhoseTurn = gameAreaController.mockX;
         gameAreaController.mockIsOurTurn = true;
       });
@@ -520,7 +580,12 @@ describe('[T2] TicTacToeArea', () => {
         gameAreaController.mockStatus = 'IN_PROGRESS';
         gameAreaController.mockIsPlayer = false;
         gameAreaController.mockX = ourPlayer;
-        gameAreaController.mockO = new PlayerController('player O', 'player O', randomLocation());
+        gameAreaController.mockO = new PlayerController(
+          'player O',
+          'player O',
+          randomLocation(),
+          'test@test.com',
+        );
         gameAreaController.mockWinner = ourPlayer;
         renderTicTacToeArea();
         act(() => {
@@ -536,7 +601,12 @@ describe('[T2] TicTacToeArea', () => {
         gameAreaController.mockStatus = 'IN_PROGRESS';
         gameAreaController.mockIsPlayer = false;
         gameAreaController.mockX = ourPlayer;
-        gameAreaController.mockO = new PlayerController('player O', 'player O', randomLocation());
+        gameAreaController.mockO = new PlayerController(
+          'player O',
+          'player O',
+          randomLocation(),
+          'test@test.com',
+        );
         gameAreaController.mockWinner = gameAreaController.mockO;
         renderTicTacToeArea();
         act(() => {
@@ -552,7 +622,12 @@ describe('[T2] TicTacToeArea', () => {
         gameAreaController.mockStatus = 'IN_PROGRESS';
         gameAreaController.mockIsPlayer = false;
         gameAreaController.mockX = ourPlayer;
-        gameAreaController.mockO = new PlayerController('player O', 'player O', randomLocation());
+        gameAreaController.mockO = new PlayerController(
+          'player O',
+          'player O',
+          randomLocation(),
+          'test@test.com',
+        );
         gameAreaController.mockWinner = undefined;
         renderTicTacToeArea();
         act(() => {

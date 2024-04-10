@@ -46,7 +46,6 @@ TownsStore.initializeTownsStore((townID: string) => socketServer.to(townID));
 // Connect the socket server to the TownsController. We use here the same pattern as tsoa
 // (the library that we use for REST), which creates a new controller instance for each request
 socketServer.on('connection', socket => {
-  // new TownsController().joinTown(socket);
   new TownsController().joinTown(socket);
 });
 

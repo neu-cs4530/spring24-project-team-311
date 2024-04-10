@@ -91,7 +91,7 @@ export interface PetCreateResponse {
   /**
    * The ID of the newly created pet. This ID is needed to join the town along with the userID.
    */
-  petID: string | undefined;
+  petID: string;
 }
 
 export interface PetCreateParams {

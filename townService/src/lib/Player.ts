@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 import { Player as PlayerModel, PlayerLocation, TownEmitter } from '../types/CoveyTownSocket';
-import Pet from './Pet';
+import Pet, { PetType } from './Pet';
 
 /**
  * Each user who is connected to a town is represented by a Player object
@@ -36,6 +36,8 @@ export default class Player {
       rotation: 'front',
     };
     this._userName = userName;
+    // we should try to input the id here
+    // TO DO make persistent
     this._id = userID;
     this._sessionToken = nanoid();
     this.townEmitter = townEmitter;
