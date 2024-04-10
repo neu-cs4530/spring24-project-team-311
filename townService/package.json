@@ -75,6 +75,6 @@
     "swagger-ui-express": "^4.4.0",
     "tsoa": "^4.1.0",
     "twilio": "^3.78.0",
-    "firebase": "^10.7.0"
+    "firebase": "^10.10.0"
   }
 }
